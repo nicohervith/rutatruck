@@ -1,5 +1,17 @@
 Comencé el proyecto con el comando : 
 npx create-next-app@latest rutatruck
 
+Para levantar el server npm run dev en la raíz del proyecto.
+
 Luego para claude corrí el comando:
 claude plugin marketplace add JuliusBrussee/caveman && claude plugin install caveman@caveman
+
+contrasñea postgresql 123456 puerto 5432
+
+compañia de granos , necesidad de que la empresa necesita contratar o el agropecuario
+
+Si tengo campo y necesito camion la idea es crear algo donde la empresa publica una necesidad de carga (o el productor agropecuario) y el transportista toma esa carga.
+
+varios origenes varios destinos.
+cobrar la comision que pague la empresa, no el transportista. 
+Vea el camionero la solicitud y aplique.

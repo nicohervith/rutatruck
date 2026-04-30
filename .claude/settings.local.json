@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(node -e \"const p = require\\('prisma/config'\\); console.log\\(Object.keys\\(p\\)\\)\")",
+      "Bash(node -e \"const p = require\\('prisma/config'\\); const dc = p.defineConfig; console.log\\(dc.toString\\(\\).substring\\(0, 500\\)\\)\")",
+      "Bash(node -e \"const p = require\\('@prisma/client'\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\('__'\\)\\).join\\(', '\\)\\)\")",
+      "Bash(npm view *)",
+      "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; Get-ChildItem -Recurse -File | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next|\\\\.git' } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\', ''\\) } | Sort-Object)"
+    ]
+  }
+}
