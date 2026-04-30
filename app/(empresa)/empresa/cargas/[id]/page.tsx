@@ -97,30 +97,34 @@ export default async function CargaDetallePage({
           <div className="space-y-2">
             {[
               ["Tipo de carga", carga.tipoCarga],
-              carga.peso !== null && ["Peso", `${carga.peso} toneladas`],
-              carga.presupuesto !== null && [
-                "Presupuesto",
-                `$${carga.presupuesto.toLocaleString("es-AR")}`,
-              ],
+              carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
+              carga.presupuesto !== null
+                ? [
+                    "Presupuesto",
+                    `$${carga.presupuesto.toLocaleString("es-AR")}`,
+                  ]
+                : null,
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
-              carga.fechaEntrega && [
-                "Fecha de entrega",
-                carga.fechaEntrega.toLocaleDateString("es-AR"),
-              ],
-              carga.tiempoEstimado && ["Tiempo estimado", carga.tiempoEstimado],
-              carga.descripcion && ["Descripción", carga.descripcion],
+              carga.fechaEntrega
+                ? [
+                    "Fecha de entrega",
+                    carga.fechaEntrega.toLocaleDateString("es-AR"),
+                  ]
+                : null,
+              carga.tiempoEstimado
+                ? ["Tiempo estimado", carga.tiempoEstimado]
+                : null,
+              carga.descripcion ? ["Descripción", carga.descripcion] : null,
             ]
-              .filter(Boolean)
+              .filter((item): item is string[] => Array.isArray(item)) // Type guard aquí
               .map(([label, value]) => (
                 <div
-                  key={label as string}
+                  key={label}
                   className="flex justify-between py-1.5 border-b border-gray-50 last:border-0"
                 >
-                  <span className="text-sm text-gray-500">
-                    {label as string}
-                  </span>
+                  <span className="text-sm text-gray-500">{label}</span>
                   <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">
-                    {value as string}
+                    {value}
                   </span>
                 </div>
               ))}
