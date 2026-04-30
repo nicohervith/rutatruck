@@ -1,0 +1,5 @@
+Comencé el proyecto con el comando : 
+npx create-next-app@latest rutatruck
+
+Luego para claude corrí el comando:
+claude plugin marketplace add JuliusBrussee/caveman && claude plugin install caveman@caveman
