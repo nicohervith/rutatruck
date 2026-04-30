@@ -29,42 +29,65 @@ export default async function CargaDetallePage({
     where: { id: cargaId, empresaId: session.userId },
     include: {
       postulaciones: {
-        include: { transportista: { select: { id: true, name: true, email: true, phone: true } } },
+        include: {
+          transportista: {
+            select: { id: true, name: true, email: true, phone: true },
+          },
+        },
         orderBy: { createdAt: "asc" },
       },
-      transportistaAsignado: { select: { name: true, email: true, phone: true } },
+      transportistaAsignado: {
+        select: { name: true, email: true, phone: true },
+      },
     },
   });
 
   if (!carga) redirect("/empresa/cargas");
 
-  const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-gray-100 text-gray-600" };
+  const estado = ESTADO_LABELS[carga.estado] ?? {
+    label: carga.estado,
+    color: "bg-gray-100 text-gray-600",
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4">
-        <Link href="/empresa/dashboard" className="text-xl font-bold text-green-700">
+        <Link
+          href="/empresa/dashboard"
+          className="text-xl font-bold text-green-700"
+        >
           RutaTruck
         </Link>
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         <div className="mb-6">
-          <Link href="/empresa/cargas" className="text-sm text-gray-500 hover:text-gray-700 inline-block mb-3">
+          <Link
+            href="/empresa/cargas"
+            className="text-sm text-gray-500 hover:text-gray-700 inline-block mb-3"
+          >
             ← Mis cargas
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-gray-800">{carga.titulo}</h1>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
+            <h1 className="text-2xl font-semibold text-gray-800">
+              {carga.titulo}
+            </h1>
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}
+            >
               {estado.label}
             </span>
           </div>
-          <p className="text-gray-500 mt-1 text-sm">{carga.origen} → {carga.destino}</p>
+          <p className="text-gray-500 mt-1 text-sm">
+            {carga.origen} → {carga.destino}
+          </p>
         </div>
 
         {error === "pago_cancelado" && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-yellow-800">El pago fue cancelado. Podés intentarlo nuevamente.</p>
+            <p className="text-sm text-yellow-800">
+              El pago fue cancelado. Podés intentarlo nuevamente.
+            </p>
           </div>
         )}
 
@@ -75,28 +98,51 @@ export default async function CargaDetallePage({
             {[
               ["Tipo de carga", carga.tipoCarga],
               carga.peso !== null && ["Peso", `${carga.peso} toneladas`],
-              carga.presupuesto !== null && ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`],
+              carga.presupuesto !== null && [
+                "Presupuesto",
+                `$${carga.presupuesto.toLocaleString("es-AR")}`,
+              ],
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
-              carga.fechaEntrega && ["Fecha de entrega", carga.fechaEntrega.toLocaleDateString("es-AR")],
+              carga.fechaEntrega && [
+                "Fecha de entrega",
+                carga.fechaEntrega.toLocaleDateString("es-AR"),
+              ],
               carga.tiempoEstimado && ["Tiempo estimado", carga.tiempoEstimado],
               carga.descripcion && ["Descripción", carga.descripcion],
-            ].filter(Boolean).map(([label, value]) => (
-              <div key={label as string} className="flex justify-between py-1.5 border-b border-gray-50 last:border-0">
-                <span className="text-sm text-gray-500">{label as string}</span>
-                <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">{value as string}</span>
-              </div>
-            ))}
+            ]
+              .filter(Boolean)
+              .map(([label, value]) => (
+                <div
+                  key={label as string}
+                  className="flex justify-between py-1.5 border-b border-gray-50 last:border-0"
+                >
+                  <span className="text-sm text-gray-500">
+                    {label as string}
+                  </span>
+                  <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">
+                    {value as string}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
 
         {/* Transportista asignado */}
         {carga.transportistaAsignado && (
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-6">
-            <h2 className="font-medium text-gray-800 mb-3">Transportista asignado</h2>
-            <p className="font-medium text-gray-800">{carga.transportistaAsignado.name}</p>
-            <p className="text-sm text-gray-600">{carga.transportistaAsignado.email}</p>
+            <h2 className="font-medium text-gray-800 mb-3">
+              Transportista asignado
+            </h2>
+            <p className="font-medium text-gray-800">
+              {carga.transportistaAsignado.name}
+            </p>
+            <p className="text-sm text-gray-600">
+              {carga.transportistaAsignado.email}
+            </p>
             {carga.transportistaAsignado.phone && (
-              <p className="text-sm text-gray-600">{carga.transportistaAsignado.phone}</p>
+              <p className="text-sm text-gray-600">
+                {carga.transportistaAsignado.phone}
+              </p>
             )}
           </div>
         )}
@@ -118,26 +164,34 @@ export default async function CargaDetallePage({
             </p>
           ) : (
             <div className="space-y-4">
-              {carga.postulaciones.map((p) => (
+              {carga.postulaciones.map((p: any) => (
                 <div
                   key={p.id}
                   className={`rounded-xl border p-4 ${
                     p.estado === "ACEPTADA"
                       ? "border-green-200 bg-green-50"
                       : p.estado === "RECHAZADA"
-                      ? "border-gray-100 bg-gray-50 opacity-60"
-                      : "border-gray-100"
+                        ? "border-gray-100 bg-gray-50 opacity-60"
+                        : "border-gray-100"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800">{p.transportista.name}</p>
-                      <p className="text-sm text-gray-500">{p.transportista.email}</p>
+                      <p className="font-medium text-gray-800">
+                        {p.transportista.name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {p.transportista.email}
+                      </p>
                       {p.transportista.phone && (
-                        <p className="text-sm text-gray-500">{p.transportista.phone}</p>
+                        <p className="text-sm text-gray-500">
+                          {p.transportista.phone}
+                        </p>
                       )}
                       {p.mensaje && (
-                        <p className="text-sm text-gray-600 mt-2 italic">"{p.mensaje}"</p>
+                        <p className="text-sm text-gray-600 mt-2 italic">
+                          "{p.mensaje}"
+                        </p>
                       )}
                       <p className="text-xs text-gray-400 mt-1">
                         Postulado el {p.createdAt.toLocaleDateString("es-AR")}
@@ -154,14 +208,15 @@ export default async function CargaDetallePage({
                           No seleccionado
                         </span>
                       )}
-                      {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
-                        <SeleccionarButton
-                          cargaId={carga.id}
-                          postulacionId={p.id}
-                          transportistaNombre={p.transportista.name}
-                          presupuesto={carga.presupuesto}
-                        />
-                      )}
+                      {p.estado === "PENDIENTE" &&
+                        carga.estado === "ACTIVA" && (
+                          <SeleccionarButton
+                            cargaId={carga.id}
+                            postulacionId={p.id}
+                            transportistaNombre={p.transportista.name}
+                            presupuesto={carga.presupuesto}
+                          />
+                        )}
                     </div>
                   </div>
                 </div>
