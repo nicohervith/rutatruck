@@ -70,7 +70,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 transition-colors"
+              className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 transition-colors cursor-pointer"
             >
               {pending ? "Ingresando..." : "Ingresar"}
             </button>

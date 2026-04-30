@@ -1,8 +1,15 @@
+import Link from "next/link";
 import { verifySession } from "@/lib/dal";
+import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
+
+  const [totalCargas, misPostulaciones] = await Promise.all([
+    db.carga.count({ where: { estado: "ACTIVA" } }),
+    db.postulacion.count({ where: { transportistaId: session.userId } }),
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -11,7 +18,7 @@ export default async function TransportistaDashboard() {
         <form action={logout}>
           <button
             type="submit"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
             Cerrar sesión
           </button>
@@ -31,11 +38,11 @@ export default async function TransportistaDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <p className="text-sm text-gray-500">Cargas disponibles</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
+            <p className="text-3xl font-bold text-gray-800 mt-1">{totalCargas}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <p className="text-sm text-gray-500">Mis postulaciones</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
+            <p className="text-3xl font-bold text-gray-800 mt-1">{misPostulaciones}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <p className="text-sm text-gray-500">Viajes completados</p>
@@ -43,11 +50,21 @@ export default async function TransportistaDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-          <p className="text-gray-400 mb-4">No hay cargas disponibles aún</p>
-          <button className="bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-6 py-2.5 transition-colors">
-            Ver todas las cargas
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link
+            href="/transportista/cargas"
+            className="bg-white rounded-xl border border-gray-100 p-8 text-center hover:border-green-200 hover:shadow-sm transition-all block"
+          >
+            <p className="font-medium text-gray-800 mb-1">Ver cargas disponibles</p>
+            <p className="text-sm text-gray-400">Explorá cargas activas y postulate</p>
+          </Link>
+          <Link
+            href="/transportista/postulaciones"
+            className="bg-white rounded-xl border border-gray-100 p-8 text-center hover:border-green-200 hover:shadow-sm transition-all block"
+          >
+            <p className="font-medium text-gray-800 mb-1">Mis postulaciones</p>
+            <p className="text-sm text-gray-400">Seguí el estado de tus postulaciones</p>
+          </Link>
         </div>
       </main>
     </div>

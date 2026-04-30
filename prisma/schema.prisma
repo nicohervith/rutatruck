@@ -7,17 +7,74 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
-  phone     String?
-  createdAt DateTime @default(now())
+  id              String        @id @default(cuid())
+  name            String
+  email           String        @unique
+  password        String
+  role            Role
+  phone           String?
+  createdAt       DateTime      @default(now())
+  cargas          Carga[]       @relation("EmpresaCarga")
+  cargasAsignadas Carga[]       @relation("TransportistaAsignado")
+  postulaciones   Postulacion[]
 }
 
 enum Role {
   EMPRESA
   TRANSPORTISTA
   ADMIN
+}
+
+model Carga {
+  id                      Int           @id @default(autoincrement())
+  titulo                  String
+  origen                  String
+  destino                 String
+  tipoCarga               String
+  peso                    Float?
+  volumen                 Float?
+  presupuesto             Float?
+  fechaCarga              DateTime
+  fechaEntrega            DateTime?
+  tiempoEstimado          String?
+  descripcion             String?       @db.Text
+  contactoNombre          String
+  contactoTelefono        String
+  contactoEmail           String
+  estado                  EstadoCarga   @default(ACTIVA)
+  mpPaymentId             String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  empresaId               String
+  empresa                 User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
+  transportistaAsignadoId String?
+  transportistaAsignado   User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
+  postulaciones           Postulacion[]
+}
+
+model Postulacion {
+  id              Int               @id @default(autoincrement())
+  cargaId         Int
+  transportistaId String
+  mensaje         String?           @db.Text
+  estado          EstadoPostulacion @default(PENDIENTE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  carga           Carga             @relation(fields: [cargaId], references: [id])
+  transportista   User              @relation(fields: [transportistaId], references: [id])
+
+  @@unique([cargaId, transportistaId])
+}
+
+enum EstadoCarga {
+  ACTIVA
+  ASIGNADA
+  FINALIZADA
+  CANCELADA
+}
+
+enum EstadoPostulacion {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
 }

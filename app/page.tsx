@@ -8,7 +8,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors"
+            className="text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors cursor-pointer"
           >
             Ingresar
           </Link>
