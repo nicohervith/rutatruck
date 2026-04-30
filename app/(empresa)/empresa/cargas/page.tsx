@@ -86,7 +86,7 @@ export default async function CargasPage({
           </div>
         ) : (
           <div className="space-y-3">
-            {cargas.map((carga) => {
+            {cargas.map((carga:any) => {
               const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-gray-100 text-gray-600" };
               const postulacionesPendientes = carga._count.postulaciones;
               return (
