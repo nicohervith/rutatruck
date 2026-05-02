@@ -2,6 +2,8 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800" },
@@ -33,11 +35,8 @@ export default async function MisPostulacionesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Link
-          href="/transportista/dashboard"
-          className="text-xl font-bold text-green-700"
-        >
-          RutaTruck
+        <Link href="/transportista/dashboard">
+          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         </Link>
         <div className="flex items-center gap-4">
           <Link
@@ -71,7 +70,7 @@ export default async function MisPostulacionesPage() {
             </p>
             <Link
               href="/transportista/cargas"
-              className="bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-6 py-2.5 transition-colors inline-block"
+              className="bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-6 py-2.5 transition-colors inline-block"
             >
               Ver cargas disponibles
             </Link>

@@ -3,8 +3,11 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import SeleccionarButton from "./_components/SeleccionarButton";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
+  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-100 text-yellow-800" },
   ACTIVA: { label: "Activa", color: "bg-green-100 text-green-800" },
   ASIGNADA: { label: "Asignada", color: "bg-blue-100 text-blue-800" },
   FINALIZADA: { label: "Finalizada", color: "bg-gray-100 text-gray-600" },
@@ -52,11 +55,8 @@ export default async function CargaDetallePage({
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4">
-        <Link
-          href="/empresa/dashboard"
-          className="text-xl font-bold text-green-700"
-        >
-          RutaTruck
+        <Link href="/empresa/dashboard">
+          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         </Link>
       </header>
 
@@ -173,7 +173,7 @@ export default async function CargaDetallePage({
                   key={p.id}
                   className={`rounded-xl border p-4 ${
                     p.estado === "ACEPTADA"
-                      ? "border-green-200 bg-green-50"
+                      ? "border-brand-border bg-brand-light"
                       : p.estado === "RECHAZADA"
                         ? "border-gray-100 bg-gray-50 opacity-60"
                         : "border-gray-100"
@@ -203,7 +203,7 @@ export default async function CargaDetallePage({
                     </div>
                     <div className="flex-shrink-0">
                       {p.estado === "ACEPTADA" && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-brand-light text-brand-navy">
                           Seleccionado
                         </span>
                       )}
@@ -218,7 +218,6 @@ export default async function CargaDetallePage({
                             cargaId={carga.id}
                             postulacionId={p.id}
                             transportistaNombre={p.transportista.name}
-                            presupuesto={carga.presupuesto}
                           />
                         )}
                     </div>

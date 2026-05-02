@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 interface ContactoDefecto {
   nombre: string;
@@ -12,12 +14,16 @@ interface ContactoDefecto {
 
 export default function NuevaCargaForm({
   contactoDefecto,
+  precioPublicacion,
+  errorInicial,
 }: {
   contactoDefecto: ContactoDefecto;
+  precioPublicacion: number;
+  errorInicial?: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(errorInicial ?? null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,7 +41,7 @@ export default function NuevaCargaForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al crear la carga");
-      router.push(`/empresa/cargas?success=1`);
+      window.location.href = data.url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");
       setPending(false);
@@ -43,14 +49,14 @@ export default function NuevaCargaForm({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent text-sm";
+    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-sm";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Link href="/empresa/dashboard" className="text-xl font-bold text-green-700">
-          RutaTruck
+        <Link href="/empresa/dashboard">
+          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         </Link>
       </header>
 
@@ -66,7 +72,7 @@ export default function NuevaCargaForm({
             Publicar nueva carga
           </h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Completá los datos del envío. La carga queda visible para transportistas inmediatamente.
+            Completá los datos del envío. Una vez procesado el pago de publicación, la carga quedará visible para transportistas.
           </p>
         </div>
 
@@ -280,6 +286,11 @@ export default function NuevaCargaForm({
             </p>
           )}
 
+          <div className="bg-brand-light border border-brand-border rounded-xl px-4 py-3 text-sm text-brand-navy">
+            Al continuar serás redirigido a MercadoPago para abonar la tarifa de publicación de{" "}
+            <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
+          </div>
+
           <div className="flex items-center justify-end gap-4">
             <Link
               href="/empresa/dashboard"
@@ -290,9 +301,9 @@ export default function NuevaCargaForm({
             <button
               type="submit"
               disabled={pending}
-              className="bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer"
+              className="bg-brand-navy hover:bg-brand-navy-dark disabled:opacity-60 text-white font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer"
             >
-              {pending ? "Publicando..." : "Publicar carga"}
+              {pending ? "Procesando..." : "Ir al pago →"}
             </button>
           </div>
         </form>

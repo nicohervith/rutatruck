@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       pending: `${origin}/api/pagos/failure`,
     },
     auto_return: "approved",
-    statement_descriptor: "RutaTruck",
+    statement_descriptor: "ClickCargo",
   });
 
   const url =

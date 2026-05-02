@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
@@ -12,10 +14,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-green-700">RutaTruck</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Transporte agrícola conectado
-            </p>
+            <Image src={logoImage} alt="ClickCargo" width={200} height={67} className="mx-auto" />
           </Link>
         </div>
 
@@ -38,7 +37,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent"
                 placeholder="tu@email.com"
               />
             </div>
@@ -56,7 +55,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
@@ -70,7 +69,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 transition-colors cursor-pointer"
+              className="w-full bg-brand-navy hover:bg-brand-navy-dark disabled:opacity-60 text-white font-medium rounded-lg py-2.5 transition-colors cursor-pointer"
             >
               {pending ? "Ingresando..." : "Ingresar"}
             </button>
@@ -80,7 +79,7 @@ export default function LoginPage() {
             ¿No tenés cuenta?{" "}
             <Link
               href="/registro"
-              className="text-green-700 hover:text-green-800 font-medium"
+              className="text-brand-navy hover:text-brand-navy-dark font-medium"
             >
               Registrate
             </Link>

@@ -16,7 +16,7 @@ export default async function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-green-700">RutaTruck</h1>
+          <h1 className="text-xl font-bold text-brand-navy">ClickCargo</h1>
           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
             Admin
           </span>

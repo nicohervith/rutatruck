@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RutaTruck — Transporte agrícola conectado",
+  title: "ClickCargo — Red Integral de Cargas",
   description:
-    "Plataforma que conecta empresas de transporte con transportistas agrícolas",
+    "Plataforma que conecta empresas con transportistas para coordinar cargas de forma simple y segura",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

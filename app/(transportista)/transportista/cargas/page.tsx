@@ -2,6 +2,8 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -35,11 +37,8 @@ export default async function TransportistasCargasPage({
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Link
-          href="/transportista/dashboard"
-          className="text-xl font-bold text-green-700"
-        >
-          RutaTruck
+        <Link href="/transportista/dashboard">
+          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         </Link>
         <div className="flex items-center gap-4">
           <Link
@@ -71,8 +70,8 @@ export default async function TransportistasCargasPage({
         </div>
 
         {success === "1" && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-green-800 font-medium">
+          <div className="mb-6 bg-brand-light border border-brand-border rounded-xl px-4 py-3">
+            <p className="text-sm text-brand-navy font-medium">
               ¡Postulación enviada! La empresa te contactará si te selecciona.
             </p>
           </div>
@@ -114,7 +113,7 @@ export default async function TransportistasCargasPage({
                       ` · $${carga.presupuesto.toLocaleString("es-AR")}`}
                   </p>
                 </div>
-                <span className="flex-shrink-0 text-sm text-green-700 font-medium">
+                <span className="flex-shrink-0 text-sm text-brand-navy font-medium">
                   Ver →
                 </span>
               </Link>

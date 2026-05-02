@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { crearPreferencia } from "@/lib/mercadopago";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -71,9 +72,45 @@ export async function POST(req: NextRequest) {
       contactoTelefono,
       contactoEmail,
       empresaId: session.userId,
-      estado: "ACTIVA",
+      estado: "PENDIENTE_PAGO",
     },
   });
 
-  return NextResponse.json({ id: carga.id }, { status: 201 });
+  const fee = parseFloat(process.env.MP_PRECIO_PUBLICACION ?? "500");
+  const origin = new URL(req.url).origin;
+
+  const preference = await crearPreferencia({
+    items: [
+      {
+        id: carga.id.toString(),
+        title: `Publicación de carga: ${carga.titulo}`,
+        quantity: 1,
+        unit_price: fee,
+        currency_id: "ARS",
+      },
+    ],
+    external_reference: `publicar_${carga.id}`,
+    back_urls: {
+      success: `${origin}/api/pagos/success`,
+      failure: `${origin}/api/pagos/failure`,
+      pending: `${origin}/api/pagos/failure`,
+    },
+    auto_return: "approved",
+    statement_descriptor: "ClickCargo",
+  });
+
+  const url =
+    process.env.NODE_ENV === "production"
+      ? preference.init_point
+      : preference.sandbox_init_point;
+
+  if (!url) {
+    await db.carga.delete({ where: { id: carga.id } });
+    return NextResponse.json(
+      { error: "Error al crear preferencia de pago" },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ url }, { status: 201 });
 }

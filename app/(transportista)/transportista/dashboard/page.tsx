@@ -2,6 +2,8 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
@@ -14,7 +16,7 @@ export default async function TransportistaDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-green-700">RutaTruck</h1>
+        <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         <form action={logout}>
           <button
             type="submit"
