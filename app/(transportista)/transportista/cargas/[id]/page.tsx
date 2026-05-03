@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
 import PostularseButton from "./_components/PostularseButton";
+import CompletarViajeButton from "./_components/CompletarViajeButton";
+import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -47,11 +49,16 @@ export default async function CargaPublicaPage({
     redirect("/transportista/cargas");
   }
 
+  const soyAsignado = carga.transportistaAsignadoId === session.userId;
   const soyAceptado = miPostulacion?.estado === "ACEPTADA";
   const waPhone = formatWhatsApp(carga.contactoTelefono);
   const waMsg = encodeURIComponent(
     `Hola ${carga.contactoNombre}, soy el transportista seleccionado para la carga "${carga.titulo}". Me comunico para coordinar los detalles.`,
   );
+
+  const puedeCompletar = soyAsignado && carga.estado === "ASIGNADA";
+  const puedeDisputa = soyAsignado && (carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION");
+  const esperandoConfirmacion = soyAsignado && carga.estado === "EN_CONFIRMACION";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,17 +97,11 @@ export default async function CargaPublicaPage({
                 ? ["Volumen", `${carga.volumen} m³`]
                 : null,
               carga.presupuesto !== null
-                ? [
-                    "Presupuesto",
-                    `$${carga.presupuesto.toLocaleString("es-AR")}`,
-                  ]
+                ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
                 : null,
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
               carga.fechaEntrega
-                ? [
-                    "Fecha de entrega",
-                    carga.fechaEntrega.toLocaleDateString("es-AR"),
-                  ]
+                ? ["Fecha de entrega", carga.fechaEntrega.toLocaleDateString("es-AR")]
                 : null,
               carga.tiempoEstimado
                 ? ["Tiempo estimado", carga.tiempoEstimado]
@@ -153,6 +154,44 @@ export default async function CargaPublicaPage({
                 WhatsApp
               </a>
             </div>
+          </div>
+        )}
+
+        {/* Acciones del transportista asignado */}
+        {(puedeCompletar || puedeDisputa || esperandoConfirmacion) && (
+          <div className="space-y-3 mb-6">
+            {esperandoConfirmacion && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                <p className="text-sm text-orange-800 font-medium">
+                  Marcaste este viaje como completado. Esperando confirmación de la empresa.
+                </p>
+              </div>
+            )}
+            {puedeCompletar && (
+              <CompletarViajeButton cargaId={carga.id} />
+            )}
+            {puedeDisputa && (
+              <AbrirDisputaTransportistaButton cargaId={carga.id} />
+            )}
+          </div>
+        )}
+
+        {/* Viaje finalizado */}
+        {soyAsignado && carga.estado === "FINALIZADA" && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-green-800 font-medium">
+              Viaje completado y confirmado por la empresa.
+            </p>
+          </div>
+        )}
+
+        {/* Disputa */}
+        {soyAsignado && carga.estado === "DISPUTA" && (
+          <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-purple-800 font-medium mb-1">Disputa abierta</p>
+            {carga.disputaDescripcion && (
+              <p className="text-sm text-purple-700">{carga.disputaDescripcion}</p>
+            )}
           </div>
         )}
 

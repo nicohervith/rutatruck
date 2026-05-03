@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
+import NotificacionBell from "../_components/NotificacionBell";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -32,7 +33,7 @@ export default async function TransportistasCargasPage({
     }),
   ]);
 
-  const yaPostuladoEn = new Set(misPostulaciones.map((p:any) => p.cargaId));
+  const yaPostuladoEn = new Set(misPostulaciones.map((p: any) => p.cargaId));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,6 +48,7 @@ export default async function TransportistasCargasPage({
           >
             Mis postulaciones
           </Link>
+          <NotificacionBell />
           <form action={logout}>
             <button
               type="submit"

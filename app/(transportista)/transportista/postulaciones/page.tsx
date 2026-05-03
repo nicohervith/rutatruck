@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
+import NotificacionBell from "../_components/NotificacionBell";
+import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800" },
@@ -34,6 +36,7 @@ export default async function MisPostulacionesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <MarkNotificacionesVistas />
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/transportista/dashboard">
           <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
@@ -45,6 +48,7 @@ export default async function MisPostulacionesPage() {
           >
             Ver cargas
           </Link>
+          <NotificacionBell />
           <form action={logout}>
             <button
               type="submit"
@@ -82,13 +86,20 @@ export default async function MisPostulacionesPage() {
                 label: p.estado,
                 color: "bg-gray-100 text-gray-600",
               };
+              const esNueva = p.estado === "ACEPTADA" && !p.vistaTransportista;
               return (
-                <div
+                <Link
                   key={p.id}
-                  className="bg-white rounded-xl border border-gray-100 p-5 flex items-start justify-between gap-4"
+                  href={`/transportista/cargas/${p.carga.id}`}
+                  className={`bg-white rounded-xl border p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all block ${
+                    esNueva ? "border-green-300 ring-1 ring-green-200" : "border-gray-100"
+                  }`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
+                      {esNueva && (
+                        <span className="flex h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                      )}
                       <h3 className="font-medium text-gray-800 truncate">
                         {p.carga.titulo}
                       </h3>
@@ -108,7 +119,12 @@ export default async function MisPostulacionesPage() {
                         ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
                     </p>
                   </div>
-                </div>
+                  {esNueva && (
+                    <span className="flex-shrink-0 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                      ¡Nuevo!
+                    </span>
+                  )}
+                </Link>
               );
             })}
           </div>

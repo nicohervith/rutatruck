@@ -51,6 +51,8 @@ model Carga {
   transportistaAsignadoId String?
   transportistaAsignado   User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
   postulaciones           Postulacion[]
+  disputaDescripcion      String?       @db.Text
+  disputaAbiertaPor       String?
 }
 
 model Postulacion {
@@ -64,6 +66,8 @@ model Postulacion {
   carga           Carga             @relation(fields: [cargaId], references: [id])
   transportista   User              @relation(fields: [transportistaId], references: [id])
 
+  vistaTransportista      Boolean           @default(false)
+
   @@unique([cargaId, transportistaId])
 }
 
@@ -71,8 +75,10 @@ enum EstadoCarga {
   PENDIENTE_PAGO
   ACTIVA
   ASIGNADA
+  EN_CONFIRMACION
   FINALIZADA
   CANCELADA
+  DISPUTA
 }
 
 enum EstadoPostulacion {

@@ -4,27 +4,32 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
+import NotificacionBell from "../_components/NotificacionBell";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
 
-  const [totalCargas, misPostulaciones] = await Promise.all([
+  const [totalCargas, misPostulaciones, viajesCompletados] = await Promise.all([
     db.carga.count({ where: { estado: "ACTIVA" } }),
     db.postulacion.count({ where: { transportistaId: session.userId } }),
+    db.carga.count({ where: { transportistaAsignadoId: session.userId, estado: "FINALIZADA" } }),
   ]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
-        <form action={logout}>
-          <button
-            type="submit"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-          >
-            Cerrar sesión
-          </button>
-        </form>
+        <div className="flex items-center gap-4">
+          <NotificacionBell />
+          <form action={logout}>
+            <button
+              type="submit"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            >
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12">
@@ -48,7 +53,7 @@ export default async function TransportistaDashboard() {
           </div>
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <p className="text-sm text-gray-500">Viajes completados</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
+            <p className="text-3xl font-bold text-gray-800 mt-1">{viajesCompletados}</p>
           </div>
         </div>
 
