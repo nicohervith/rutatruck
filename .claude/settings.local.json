@@ -12,7 +12,9 @@
       "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; Get-ChildItem app -Recurse -File | Where-Object { $_.FullName -notmatch '\\\\.next' } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\app\\\\', 'app/'\\) } | Sort-Object)",
       "Bash(node -e \"const p = require\\('@prisma/client'\\); console.log\\(typeof p.PrismaClient, Object.keys\\(new p.PrismaClient\\({adapter: null}\\)\\).slice\\(0,5\\)\\)\")",
       "Bash(node -e ' *)",
-      "Bash(node scripts/fix-estado.mjs)"
+      "Bash(node scripts/fix-estado.mjs)",
+      "Bash(Get-Content *)",
+      "Bash(node -e \"const mp = require\\('mercadopago'\\); console.log\\(Object.keys\\(mp\\)\\)\")"
     ]
   }
 }
