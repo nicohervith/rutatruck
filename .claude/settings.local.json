@@ -14,7 +14,21 @@
       "Bash(node -e ' *)",
       "Bash(node scripts/fix-estado.mjs)",
       "Bash(Get-Content *)",
-      "Bash(node -e \"const mp = require\\('mercadopago'\\); console.log\\(Object.keys\\(mp\\)\\)\")"
+      "Bash(node -e \"const mp = require\\('mercadopago'\\); console.log\\(Object.keys\\(mp\\)\\)\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(transportista\\)\\\\transportista\\\\cargas\\\\[id]\" -Recurse)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(transportista\\)\" -Recurse -File)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\app\" -Recurse | Where-Object { $_.FullName -match \"cargas\" } | Select-Object -ExpandProperty FullName)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\node_modules\\\\next\\\\dist\\\\docs\\\\01-app\" -Recurse | Where-Object { $_.Name -match \"dynamic|route|param\" } | Select-Object -ExpandProperty FullName)",
+      "PowerShell(Select-String -Path \"D:\\\\Programación\\\\rutatruck\\\\node_modules\\\\.prisma\\\\client\\\\index.d.ts\" -Pattern \"cargaId_transportistaId\" | Select-Object -First 5 | ForEach-Object { $_.Line.Trim\\(\\) })",
+      "PowerShell(Test-Path \"D:\\\\Programación\\\\rutatruck\\\\public\"; Get-ChildItem \"D:\\\\Programación\\\\rutatruck\" -Depth 0 -Force | Where-Object { $_.Name -eq \"public\" } | Select-Object Name, Attributes)",
+      "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\node_modules\\\\next\\\\dist\\\\docs\\\\01-app\\\\02-guides\" -Recurse | Where-Object { $_.Name -match \"pwa|service|worker|push|notif\" } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\node_modules\\\\next\\\\dist\\\\docs\" -Recurse | Where-Object { $_.Name -match \"pwa|service|worker|push|notif\" } | Select-Object FullName)",
+      "Bash(node -e \"const webpush = require\\('web-push'\\); const keys = webpush.generateVAPIDKeys\\(\\); console.log\\('VAPID_PUBLIC_KEY=' + keys.publicKey\\); console.log\\('VAPID_PRIVATE_KEY=' + keys.privateKey\\);\")",
+      "Read(//d/Programacion/**)",
+      "Bash(node -e \"const webpush = require\\('web-push'\\); const keys = webpush.generateVAPIDKeys\\(\\); console.log\\('PUBLIC=' + keys.publicKey + '\\\\nPRIVATE=' + keys.privateKey\\);\")",
+      "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\public\" | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
+      "PowerShell(cmd /c \"dir D:\\\\Programación\\\\rutatruck\\\\public\")"
     ]
   }
 }

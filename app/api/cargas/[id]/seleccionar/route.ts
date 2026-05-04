@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(
   req: NextRequest,
@@ -61,6 +62,12 @@ export async function POST(
       data: { estado: "RECHAZADA" },
     }),
   ]);
+
+  sendPushToUser(postulacion.transportistaId, {
+    title: "¡Fuiste seleccionado!",
+    body: `Te seleccionaron para la carga "${carga.titulo}". Entrá para ver los detalles.`,
+    url: `/transportista/cargas/${cargaId}`,
+  }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
