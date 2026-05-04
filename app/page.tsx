@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-green-700">RutaTruck</h1>
+        <Image src={logoImage} alt="ClickCargo" width={110} height={37} />
         <div className="flex items-center gap-3">
           <Link
             href="/login"
@@ -14,7 +16,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/registro"
-            className="text-sm bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-4 py-2 transition-colors"
+            className="text-sm bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-4 py-2 transition-colors"
           >
             Registrarse
           </Link>
@@ -23,21 +25,21 @@ export default function LandingPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
         <div className="max-w-2xl text-center">
-          <span className="inline-block text-xs font-medium text-green-700 bg-green-50 rounded-full px-3 py-1 mb-6">
-            Plataforma de transporte agrícola
+          <span className="inline-block text-xs font-medium text-brand-navy bg-brand-light rounded-full px-3 py-1 mb-6">
+            Red Integral de Cargas
           </span>
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-6">
             Conectamos empresas con{" "}
-            <span className="text-green-700">transportistas del campo</span>
+            <span className="text-brand-navy">transportistas de carga</span>
           </h2>
           <p className="text-lg text-gray-500 mb-10 max-w-lg mx-auto">
             Publicá cargas, encontrá transportistas disponibles y coordiná
-            entregas agrícolas de forma simple y segura.
+            entregas de forma simple y segura.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/registro"
-              className="w-full sm:w-auto bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-8 py-3 transition-colors text-center"
+              className="w-full sm:w-auto bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-8 py-3 transition-colors text-center"
             >
               Empezar gratis
             </Link>
@@ -52,9 +54,9 @@ export default function LandingPage() {
 
         <div className="mt-24 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl w-full">
           <div className="text-center">
-            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-brand-light rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-6 h-6 text-green-700"
+                className="w-6 h-6 text-brand"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -75,9 +77,9 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-brand-light rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-6 h-6 text-green-700"
+                className="w-6 h-6 text-brand"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -98,9 +100,9 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-brand-light rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-6 h-6 text-green-700"
+                className="w-6 h-6 text-brand"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -124,7 +126,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="px-6 py-6 border-t border-gray-100 text-center text-sm text-gray-400">
-        © 2026 RutaTruck. Todos los derechos reservados.
+        © 2026 ClickCargo. Todos los derechos reservados.
       </footer>
     </div>
   );

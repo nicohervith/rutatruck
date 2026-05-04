@@ -65,7 +65,7 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
           value={mensaje}
           onChange={(e) => setMensaje(e.target.value)}
           rows={3}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent text-sm"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-sm"
           placeholder="Presentate brevemente, indicá tu experiencia o disponibilidad..."
         />
       </div>
@@ -75,7 +75,7 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer"
+        className="w-full bg-brand-navy hover:bg-brand-navy-dark disabled:opacity-60 text-white font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer"
       >
         {pending ? "Enviando..." : "Enviar postulación"}
       </button>

@@ -9,49 +9,24 @@ export async function GET(req: NextRequest) {
 
   if (!externalReference || status !== "approved") {
     return NextResponse.redirect(
-      new URL(`/api/pagos/failure?external_reference=${externalReference ?? ""}`, req.nextUrl)
+      new URL(`/api/pagos/failure?external_reference=${externalReference ?? ""}`, req.nextUrl),
     );
   }
 
-  // Parse "carga_{cargaId}_post_{postulacionId}"
-  const match = externalReference.match(/^carga_(\d+)_post_(\d+)$/);
-  if (!match) {
-    return NextResponse.redirect(new URL("/empresa/cargas", req.nextUrl));
-  }
-
-  const cargaId = parseInt(match[1]);
-  const postulacionId = parseInt(match[2]);
-
-  try {
-    const postulacion = await db.postulacion.findUnique({
-      where: { id: postulacionId, cargaId },
-    });
-
-    if (!postulacion) {
+  // Publicación de carga: "publicar_{cargaId}"
+  const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
+  if (matchPublicar) {
+    const cargaId = parseInt(matchPublicar[1]);
+    try {
+      await db.carga.update({
+        where: { id: cargaId, estado: "PENDIENTE_PAGO" },
+        data: { estado: "ACTIVA", pagado: true, mpPaymentId: paymentId ?? null },
+      });
+    } catch {
       return NextResponse.redirect(new URL("/empresa/cargas?error=pago", req.nextUrl));
     }
-
-    await db.$transaction([
-      db.carga.update({
-        where: { id: cargaId },
-        data: {
-          estado: "ASIGNADA",
-          transportistaAsignadoId: postulacion.transportistaId,
-          mpPaymentId: paymentId ?? null,
-        },
-      }),
-      db.postulacion.update({
-        where: { id: postulacionId },
-        data: { estado: "ACEPTADA" },
-      }),
-      db.postulacion.updateMany({
-        where: { cargaId, id: { not: postulacionId }, estado: "PENDIENTE" },
-        data: { estado: "RECHAZADA" },
-      }),
-    ]);
-  } catch {
-    return NextResponse.redirect(new URL("/empresa/cargas?error=pago", req.nextUrl));
+    return NextResponse.redirect(new URL("/empresa/cargas?success=1", req.nextUrl));
   }
 
-  return NextResponse.redirect(new URL(`/empresa/cargas/${cargaId}`, req.nextUrl));
+  return NextResponse.redirect(new URL("/empresa/cargas", req.nextUrl));
 }

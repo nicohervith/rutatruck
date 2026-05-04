@@ -2,8 +2,11 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
+import Image from "next/image";
+import logoImage from "@/app/assets/Logo.jpeg";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
+  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-100 text-yellow-800" },
   ACTIVA: { label: "Activa", color: "bg-green-100 text-green-800" },
   ASIGNADA: { label: "Asignada", color: "bg-blue-100 text-blue-800" },
   FINALIZADA: { label: "Finalizada", color: "bg-gray-100 text-gray-600" },
@@ -33,11 +36,11 @@ export default async function EmpresaDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-green-700">RutaTruck</h1>
+        <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         <div className="flex items-center gap-4">
           <Link
             href="/empresa/cargas/nueva"
-            className="text-sm bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-4 py-2 transition-colors"
+            className="text-sm bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-4 py-2 transition-colors"
           >
             + Nueva carga
           </Link>
@@ -75,7 +78,7 @@ export default async function EmpresaDashboard() {
 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium text-gray-800">Últimas cargas</h3>
-          <Link href="/empresa/cargas" className="text-sm text-green-700 hover:text-green-800">
+          <Link href="/empresa/cargas" className="text-sm text-brand-navy hover:text-brand-navy-dark">
             Ver todas →
           </Link>
         </div>
@@ -85,7 +88,7 @@ export default async function EmpresaDashboard() {
             <p className="text-gray-400 mb-4">Todavía no publicaste cargas</p>
             <Link
               href="/empresa/cargas/nueva"
-              className="bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg px-6 py-2.5 transition-colors inline-block"
+              className="bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-6 py-2.5 transition-colors inline-block"
             >
               Publicar primera carga
             </Link>

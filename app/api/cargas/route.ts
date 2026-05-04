@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { crearPreferencia } from "@/lib/mercadopago";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -54,26 +55,81 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const carga = await db.carga.create({
-    data: {
-      titulo,
-      origen,
-      destino,
-      tipoCarga,
-      peso: peso ? parseFloat(peso) : null,
-      volumen: volumen ? parseFloat(volumen as string) : null,
-      presupuesto: presupuesto ? parseFloat(presupuesto as string) : null,
-      fechaCarga: new Date(fechaCarga),
-      fechaEntrega: fechaEntrega ? new Date(fechaEntrega as string) : null,
-      tiempoEstimado: (tiempoEstimado as string) || null,
-      descripcion: (descripcion as string) || null,
-      contactoNombre,
-      contactoTelefono,
-      contactoEmail,
-      empresaId: session.userId,
-      estado: "ACTIVA",
-    },
-  });
+   let carga;
+   try {
+     carga = await db.carga.create({
+       data: {
+         titulo,
+         origen,
+         destino,
+         tipoCarga,
+         peso: peso ? parseFloat(peso) : null,
+         volumen: volumen ? parseFloat(volumen) : null,
+         presupuesto: presupuesto ? parseFloat(presupuesto) : null,
+         fechaCarga: new Date(fechaCarga),
+         fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
+         tiempoEstimado: tiempoEstimado || null,
+         descripcion: descripcion || null,
+         contactoNombre,
+         contactoTelefono,
+         contactoEmail,
+         empresaId: session.userId,
+         estado: "PENDIENTE_PAGO",
+       },
+     });
+   } catch (err) {
+     console.error("[POST /api/cargas] Error Prisma:", err);
+     return NextResponse.json(
+       { error: "Error al guardar la carga" },
+       { status: 500 },
+     );
+   }
 
-  return NextResponse.json({ id: carga.id }, { status: 201 });
+   const fee = parseFloat(process.env.MP_PRECIO_PUBLICACION ?? "500");
+   const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+
+   let preference;
+   try {
+     preference = await crearPreferencia({
+       items: [
+         {
+           id: carga.id.toString(),
+           title: `Publicación de carga: ${carga.titulo}`,
+           quantity: 1,
+           unit_price: fee,
+           currency_id: "ARS",
+         },
+       ],
+       external_reference: `publicar_${carga.id}`,
+       back_urls: {
+         success: `${origin}/api/pagos/success`,
+         failure: `${origin}/api/pagos/failure`,
+         pending: `${origin}/api/pagos/failure`,
+       },
+       auto_return: "approved",
+       statement_descriptor: "ClickCargo",
+     });
+   } catch (err) {
+     console.error("[POST /api/cargas] Error MercadoPago:", err);
+     await db.carga.delete({ where: { id: carga.id } }).catch(() => {});
+     return NextResponse.json(
+       { error: "Error al conectar con MercadoPago" },
+       { status: 500 },
+     );
+   }
+
+   const url =
+     process.env.NODE_ENV === "production"
+       ? preference.init_point
+       : preference.sandbox_init_point;
+
+   if (!url) {
+     await db.carga.delete({ where: { id: carga.id } }).catch(() => {});
+     return NextResponse.json(
+       { error: "Error al crear preferencia de pago" },
+       { status: 500 },
+     );
+   }
+
+   return NextResponse.json({ url }, { status: 201 });
 }

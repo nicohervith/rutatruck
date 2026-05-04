@@ -9,7 +9,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   if (session.role !== "EMPRESA") {
-    return NextResponse.json({ error: "Solo empresas pueden realizar pagos" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Solo empresas pueden realizar pagos" },
+      { status: 403 },
+    );
   }
 
   let body: { cargaId: number; postulacionId: number };
@@ -28,19 +31,29 @@ export async function POST(req: NextRequest) {
   }
 
   if (!carga.presupuesto) {
-    return NextResponse.json({ error: "La carga no tiene presupuesto definido" }, { status: 400 });
+    return NextResponse.json(
+      { error: "La carga no tiene presupuesto definido" },
+      { status: 400 },
+    );
   }
 
   const postulacion = await db.postulacion.findUnique({
-    where: { id: body.postulacionId, cargaId: body.cargaId, estado: "PENDIENTE" },
+    where: {
+      id: body.postulacionId,
+      cargaId: body.cargaId,
+      estado: "PENDIENTE",
+    },
     include: { transportista: { select: { name: true } } },
   });
 
   if (!postulacion) {
-    return NextResponse.json({ error: "Postulación no encontrada" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Postulación no encontrada" },
+      { status: 404 },
+    );
   }
 
-  const origin = new URL(req.url).origin;
+  const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
   const externalReference = `carga_${carga.id}_post_${postulacion.id}`;
 
   const preference = await crearPreferencia({
@@ -61,7 +74,7 @@ export async function POST(req: NextRequest) {
       pending: `${origin}/api/pagos/failure`,
     },
     auto_return: "approved",
-    statement_descriptor: "RutaTruck",
+    statement_descriptor: "ClickCargo",
   });
 
   const url =
@@ -70,7 +83,10 @@ export async function POST(req: NextRequest) {
       : preference.sandbox_init_point;
 
   if (!url) {
-    return NextResponse.json({ error: "Error al crear preferencia de pago" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error al crear preferencia de pago" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ url });
