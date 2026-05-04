@@ -16,7 +16,8 @@ model User {
   createdAt       DateTime      @default(now())
   cargas          Carga[]       @relation("EmpresaCarga")
   cargasAsignadas Carga[]       @relation("TransportistaAsignado")
-  postulaciones   Postulacion[]
+  postulaciones     Postulacion[]
+  pushSubscriptions PushSubscription[]
 }
 
 enum Role {
@@ -85,4 +86,15 @@ enum EstadoPostulacion {
   PENDIENTE
   ACEPTADA
   RECHAZADA
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

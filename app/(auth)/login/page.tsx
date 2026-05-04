@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo.jpeg";
+import logoImage from "@/app/assets/Logo2.jpeg";
 import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
