@@ -4,13 +4,16 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
+import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-100 text-yellow-800" },
   ACTIVA: { label: "Activa", color: "bg-green-100 text-green-800" },
   ASIGNADA: { label: "Asignada", color: "bg-blue-100 text-blue-800" },
+  EN_CONFIRMACION: { label: "Confirmar completado", color: "bg-orange-100 text-orange-800" },
   FINALIZADA: { label: "Finalizada", color: "bg-gray-100 text-gray-600" },
   CANCELADA: { label: "Cancelada", color: "bg-red-100 text-red-800" },
+  DISPUTA: { label: "En disputa", color: "bg-purple-100 text-purple-800" },
 };
 
 export default async function EmpresaDashboard() {
@@ -38,6 +41,7 @@ export default async function EmpresaDashboard() {
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         <div className="flex items-center gap-4">
+          <NotificacionBellEmpresa />
           <Link
             href="/empresa/cargas/nueva"
             className="text-sm bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-4 py-2 transition-colors"

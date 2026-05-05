@@ -28,7 +28,9 @@
       "Read(//d/Programacion/**)",
       "Bash(node -e \"const webpush = require\\('web-push'\\); const keys = webpush.generateVAPIDKeys\\(\\); console.log\\('PUBLIC=' + keys.publicKey + '\\\\nPRIVATE=' + keys.privateKey\\);\")",
       "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\public\" | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
-      "PowerShell(cmd /c \"dir D:\\\\Programación\\\\rutatruck\\\\public\")"
+      "PowerShell(cmd /c \"dir D:\\\\Programación\\\\rutatruck\\\\public\")",
+      "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\" -Recurse | Select-Object FullName | Where-Object { $_.FullName -match \"_components\" })",
+      "PowerShell(cmd /c \"dir /s /b D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\")"
     ]
   }
 }
