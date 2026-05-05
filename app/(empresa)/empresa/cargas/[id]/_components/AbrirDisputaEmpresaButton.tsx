@@ -2,26 +2,68 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function AbrirDisputaEmpresaButton({ cargaId }: { cargaId: number }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [descripcion, setDescripcion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleClick() {
+    const result = await Swal.fire({
+      title: "Abrir disputa",
+      text: "Describí el motivo del problema con el viaje.",
+      input: "textarea",
+      inputPlaceholder: "Describí el motivo de la disputa...",
+      showCancelButton: true,
+      confirmButtonText: "Abrir disputa",
+      cancelButtonText: "Cancelar",
+      background: "#112424",
+      color: "#ffffff",
+      confirmButtonColor: "#F97316",
+      cancelButtonColor: "#1E3838",
+      icon: "warning",
+      iconColor: "#F97316",
+      didOpen: () => {
+        const input = Swal.getInput();
+        if (input) {
+          input.style.backgroundColor = "#0F2020";
+          input.style.borderColor = "#1E3838";
+          input.style.color = "#ffffff";
+          input.style.borderRadius = "8px";
+        }
+      },
+      preConfirm: (value: string) => {
+        if (!value?.trim()) {
+          Swal.showValidationMessage("Ingresá una descripción");
+          return false;
+        }
+        return value.trim();
+      },
+    });
+
+    if (!result.isConfirmed || !result.value) return;
+
     setError(null);
     setPending(true);
     try {
       const res = await fetch(`/api/cargas/${cargaId}/disputa`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descripcion }),
+        body: JSON.stringify({ descripcion: result.value }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al abrir disputa");
+      await Swal.fire({
+        title: "Disputa abierta",
+        text: "El equipo revisará el caso.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        background: "#112424",
+        color: "#ffffff",
+        confirmButtonColor: "#2DD4BF",
+        iconColor: "#4ADE80",
+      });
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");
@@ -29,44 +71,16 @@ export default function AbrirDisputaEmpresaButton({ cargaId }: { cargaId: number
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-sm text-orange-600 hover:text-orange-700 border border-orange-200 hover:border-orange-300 bg-orange-50 hover:bg-orange-100 font-medium rounded-lg px-4 py-2 transition-colors cursor-pointer"
-      >
-        Abrir disputa
-      </button>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <textarea
-        value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
-        rows={3}
-        required
-        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-        placeholder="Describí el motivo de la disputa..."
-      />
-      {error && <p className="text-xs text-red-600">{error}</p>}
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={pending || !descripcion.trim()}
-          className="text-sm bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-medium rounded-lg px-4 py-2 transition-colors cursor-pointer"
-        >
-          {pending ? "Enviando..." : "Confirmar disputa"}
-        </button>
-        <button
-          type="button"
-          onClick={() => { setOpen(false); setError(null); }}
-          className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+    <div className="flex flex-col items-start gap-1">
+      <button
+        onClick={handleClick}
+        disabled={pending}
+        className="text-sm font-medium rounded-lg px-4 py-2 transition-colors cursor-pointer disabled:opacity-60 border border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"
+      >
+        {pending ? "Enviando..." : "Abrir disputa"}
+      </button>
+      {error && <p className="text-xs text-red-300">{error}</p>}
+    </div>
   );
 }

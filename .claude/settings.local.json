@@ -31,7 +31,10 @@
       "PowerShell(cmd /c \"dir D:\\\\Programación\\\\rutatruck\\\\public\")",
       "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\" -Recurse | Select-Object FullName | Where-Object { $_.FullName -match \"_components\" })",
       "PowerShell(cmd /c \"dir /s /b D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\")",
-      "Bash(Start-Sleep -Seconds 5)"
+      "Bash(Start-Sleep -Seconds 5)",
+      "Bash(dir /s /b app)",
+      "Bash(findstr /i empresa)",
+      "Bash(findstr -i \"sweet\")"
     ]
   }
 }

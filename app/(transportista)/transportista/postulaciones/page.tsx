@@ -3,41 +3,41 @@ import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo.jpeg";
+import logoImage from "@/app/assets/Logo5.jpeg";
 import NotificacionBell from "../_components/NotificacionBell";
 import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
 
 type CargaEstadoConfig = {
   label: string;
   color: string;
-  border: string;
   dot: string;
+  borderLeftColor: string;
 };
 
 const CARGA_ESTADO_CONFIG: Record<string, CargaEstadoConfig> = {
   ASIGNADA: {
     label: "En viaje",
-    color: "bg-blue-100 text-blue-800",
-    border: "border-l-blue-400",
+    color: "bg-blue-500/20 text-blue-300",
     dot: "bg-blue-400",
+    borderLeftColor: "#60A5FA",
   },
   EN_CONFIRMACION: {
     label: "Esperando confirmación",
-    color: "bg-orange-100 text-orange-800",
-    border: "border-l-orange-400",
+    color: "bg-orange-500/20 text-orange-300",
     dot: "bg-orange-400",
+    borderLeftColor: "#FB923C",
   },
   FINALIZADA: {
     label: "Viaje completado",
-    color: "bg-green-100 text-green-800",
-    border: "border-l-green-400",
+    color: "bg-green-500/20 text-green-300",
     dot: "bg-green-400",
+    borderLeftColor: "#4ADE80",
   },
   DISPUTA: {
     label: "En disputa",
-    color: "bg-purple-100 text-purple-800",
-    border: "border-l-purple-400",
+    color: "bg-purple-500/20 text-purple-300",
     dot: "bg-purple-400",
+    borderLeftColor: "#C084FC",
   },
 };
 
@@ -82,16 +82,20 @@ export default async function MisPostulacionesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
       <MarkNotificacionesVistas />
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+      <header
+        className="px-6 py-4 flex items-center justify-between border-b"
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+      >
         <Link href="/transportista/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
+          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
         </Link>
         <div className="flex items-center gap-4">
           <Link
             href="/transportista/cargas"
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="text-sm transition-colors"
+            style={{ color: "#6B7280" }}
           >
             Ver cargas
           </Link>
@@ -99,7 +103,8 @@ export default async function MisPostulacionesPage() {
           <form action={logout}>
             <button
               type="submit"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="text-sm transition-colors cursor-pointer hover:text-gray-400"
+              style={{ color: "#6B7280" }}
             >
               Cerrar sesión
             </button>
@@ -109,19 +114,19 @@ export default async function MisPostulacionesPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Mis postulaciones
-          </h1>
+          <h1 className="text-2xl font-semibold text-white">Mis postulaciones</h1>
         </div>
 
         {postulaciones.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
-            <p className="text-gray-400 mb-4">
-              Todavía no te postulaste a ninguna carga
-            </p>
+          <div
+            className="rounded-xl border p-12 text-center"
+            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+          >
+            <p className="mb-4" style={{ color: "#6B7280" }}>Todavía no te postulaste a ninguna carga</p>
             <Link
               href="/transportista/cargas"
-              className="bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-6 py-2.5 transition-colors inline-block"
+              className="font-medium rounded-lg px-6 py-2.5 transition-colors inline-block text-sm"
+              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
             >
               Ver cargas disponibles
             </Link>
@@ -134,29 +139,30 @@ export default async function MisPostulacionesPage() {
               const esNueva = esAceptada && !p.vistaTransportista;
               const cargaCfg = CARGA_ESTADO_CONFIG[p.carga.estado];
 
-              const borderClass = esAceptada && cargaCfg
-                ? `border-l-4 ${cargaCfg.border}`
-                : esNueva
-                ? "border-green-300 ring-1 ring-green-200"
-                : "border-gray-100";
+              const cardStyle: React.CSSProperties = {
+                backgroundColor: "#112424",
+                borderColor: esNueva ? "#2DD4BF33" : "#1E3838",
+                ...(esAceptada && cargaCfg
+                  ? { borderLeftColor: cargaCfg.borderLeftColor, borderLeftWidth: "4px" }
+                  : {}),
+              };
 
               return (
                 <Link
                   key={p.id}
                   href={`/transportista/cargas/${p.carga.id}`}
-                  className={`bg-white rounded-xl border p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all block ${borderClass} ${esRechazada ? "opacity-55" : ""}`}
+                  className={`rounded-xl border p-5 flex items-start justify-between gap-4 hover:border-[#2DD4BF33] transition-all block ${esRechazada ? "opacity-50" : ""} ${esNueva ? "ring-1 ring-[#2DD4BF20]" : ""}`}
+                  style={cardStyle}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       {esNueva && (
-                        <span className="flex h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                        <span className="flex h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#2DD4BF" }} />
                       )}
-                      {esAceptada && cargaCfg && (
+                      {esAceptada && cargaCfg && !esNueva && (
                         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cargaCfg.dot}`} />
                       )}
-                      <h3 className="font-medium text-gray-800 truncate">
-                        {p.carga.titulo}
-                      </h3>
+                      <h3 className="font-medium text-white truncate">{p.carga.titulo}</h3>
                       {esAceptada && cargaCfg ? (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cargaCfg.color}`}>
                           {cargaCfg.label}
@@ -164,36 +170,34 @@ export default async function MisPostulacionesPage() {
                       ) : (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
                           esRechazada
-                            ? "bg-gray-100 text-gray-500"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? "bg-white/10 text-gray-400"
+                            : "bg-yellow-500/20 text-yellow-300"
                         }`}>
                           {esRechazada ? "No seleccionado" : "Pendiente"}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 ml-4">
+                    <p className="text-sm ml-4" style={{ color: "#6B7280" }}>
                       {p.carga.origen} → {p.carga.destino}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1 ml-4">
-                      {p.carga.fechaCarga.toLocaleDateString("es-AR")} ·{" "}
-                      {p.carga.tipoCarga}
-                      {p.carga.presupuesto !== null &&
-                        ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
+                    <p className="text-xs mt-1 ml-4" style={{ color: "#4B5563" }}>
+                      {p.carga.fechaCarga.toLocaleDateString("es-AR")} · {p.carga.tipoCarga}
+                      {p.carga.presupuesto !== null && ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     {esNueva && (
-                      <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ color: "#2DD4BF", backgroundColor: "#2DD4BF1A" }}>
                         ¡Nuevo!
                       </span>
                     )}
                     {esAceptada && p.carga.estado === "FINALIZADA" && (
-                      <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium text-green-300 bg-green-500/20 px-2 py-1 rounded-full">
                         ✓ Completado
                       </span>
                     )}
                     {esAceptada && p.carga.estado === "EN_CONFIRMACION" && (
-                      <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium text-orange-300 bg-orange-500/20 px-2 py-1 rounded-full">
                         Aguardando empresa
                       </span>
                     )}

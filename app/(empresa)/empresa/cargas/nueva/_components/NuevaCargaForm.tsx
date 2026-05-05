@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo.jpeg";
+import logoImage from "@/app/assets/Logo5.jpeg";
 
 interface ContactoDefecto {
   nombre: string;
@@ -49,14 +49,19 @@ export default function NuevaCargaForm({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-sm";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+    "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
+  const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+  const labelClass = "block text-sm font-medium mb-1" ;
+  const labelStyle = { color: "#9CA3AF" };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <header
+        className="px-6 py-4 flex items-center justify-between border-b"
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+      >
         <Link href="/empresa/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
+          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
         </Link>
       </header>
 
@@ -64,25 +69,26 @@ export default function NuevaCargaForm({
         <div className="mb-8">
           <Link
             href="/empresa/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-700 mb-3 inline-block"
+            className="text-sm mb-3 inline-block transition-colors"
+            style={{ color: "#6B7280" }}
           >
             ← Volver al panel
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Publicar nueva carga
-          </h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <h1 className="text-2xl font-semibold text-white">Publicar nueva carga</h1>
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             Completá los datos del envío. Una vez procesado el pago de publicación, la carga quedará visible para transportistas.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Datos de la carga */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
-            <h2 className="font-medium text-gray-800">Datos de la carga</h2>
+          <div
+            className="rounded-xl border p-6 space-y-4"
+            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+          >
+            <h2 className="font-medium text-white">Datos de la carga</h2>
 
             <div>
-              <label htmlFor="titulo" className={labelClass}>
+              <label htmlFor="titulo" className={labelClass} style={labelStyle}>
                 Título de la carga *
               </label>
               <input
@@ -91,13 +97,14 @@ export default function NuevaCargaForm({
                 type="text"
                 required
                 className={inputClass}
+                style={inputStyle}
                 placeholder="Ej: Transporte de soja — Córdoba a Rosario"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="origen" className={labelClass}>
+                <label htmlFor="origen" className={labelClass} style={labelStyle}>
                   Origen *
                 </label>
                 <input
@@ -106,11 +113,12 @@ export default function NuevaCargaForm({
                   type="text"
                   required
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ciudad / Provincia"
                 />
               </div>
               <div>
-                <label htmlFor="destino" className={labelClass}>
+                <label htmlFor="destino" className={labelClass} style={labelStyle}>
                   Destino *
                 </label>
                 <input
@@ -119,6 +127,7 @@ export default function NuevaCargaForm({
                   type="text"
                   required
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ciudad / Provincia"
                 />
               </div>
@@ -126,7 +135,7 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="tipoCarga" className={labelClass}>
+                <label htmlFor="tipoCarga" className={labelClass} style={labelStyle}>
                   Tipo de carga *
                 </label>
                 <select
@@ -134,20 +143,19 @@ export default function NuevaCargaForm({
                   name="tipoCarga"
                   required
                   defaultValue=""
-                  className={`${inputClass} bg-white`}
+                  className={inputClass}
+                  style={inputStyle}
                 >
-                  <option value="" disabled>
-                    Seleccioná el tipo
-                  </option>
-                  <option value="granos">Granos</option>
-                  <option value="frutas">Frutas</option>
-                  <option value="verduras">Verduras</option>
-                  <option value="animales">Animales</option>
-                  <option value="otro">Otro</option>
+                  <option value="" disabled style={{ backgroundColor: "#0F2020" }}>Seleccioná el tipo</option>
+                  <option value="granos" style={{ backgroundColor: "#0F2020" }}>Granos</option>
+                  <option value="frutas" style={{ backgroundColor: "#0F2020" }}>Frutas</option>
+                  <option value="verduras" style={{ backgroundColor: "#0F2020" }}>Verduras</option>
+                  <option value="animales" style={{ backgroundColor: "#0F2020" }}>Animales</option>
+                  <option value="otro" style={{ backgroundColor: "#0F2020" }}>Otro</option>
                 </select>
               </div>
               <div>
-                <label htmlFor="peso" className={labelClass}>
+                <label htmlFor="peso" className={labelClass} style={labelStyle}>
                   Peso estimado (toneladas)
                 </label>
                 <input
@@ -157,6 +165,7 @@ export default function NuevaCargaForm({
                   step="0.1"
                   min="0"
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ej: 28"
                 />
               </div>
@@ -164,7 +173,7 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="presupuesto" className={labelClass}>
+                <label htmlFor="presupuesto" className={labelClass} style={labelStyle}>
                   Presupuesto ofrecido ($)
                 </label>
                 <input
@@ -174,11 +183,12 @@ export default function NuevaCargaForm({
                   step="0.01"
                   min="0"
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ej: 150000"
                 />
               </div>
               <div>
-                <label htmlFor="tiempoEstimado" className={labelClass}>
+                <label htmlFor="tiempoEstimado" className={labelClass} style={labelStyle}>
                   Tiempo estimado del viaje
                 </label>
                 <input
@@ -186,6 +196,7 @@ export default function NuevaCargaForm({
                   name="tiempoEstimado"
                   type="text"
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ej: 2 días"
                 />
               </div>
@@ -193,7 +204,7 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="fechaCarga" className={labelClass}>
+                <label htmlFor="fechaCarga" className={labelClass} style={labelStyle}>
                   Fecha de carga *
                 </label>
                 <input
@@ -202,10 +213,11 @@ export default function NuevaCargaForm({
                   type="date"
                   required
                   className={inputClass}
+                  style={{ ...inputStyle, colorScheme: "dark" }}
                 />
               </div>
               <div>
-                <label htmlFor="fechaEntrega" className={labelClass}>
+                <label htmlFor="fechaEntrega" className={labelClass} style={labelStyle}>
                   Fecha de entrega estimada
                 </label>
                 <input
@@ -213,12 +225,13 @@ export default function NuevaCargaForm({
                   name="fechaEntrega"
                   type="date"
                   className={inputClass}
+                  style={{ ...inputStyle, colorScheme: "dark" }}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="descripcion" className={labelClass}>
+              <label htmlFor="descripcion" className={labelClass} style={labelStyle}>
                 Descripción adicional
               </label>
               <textarea
@@ -226,17 +239,20 @@ export default function NuevaCargaForm({
                 name="descripcion"
                 rows={3}
                 className={inputClass}
+                style={inputStyle}
                 placeholder="Condiciones especiales, instrucciones de carga, etc."
               />
             </div>
           </div>
 
-          {/* Datos de contacto */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
-            <h2 className="font-medium text-gray-800">Datos de contacto</h2>
+          <div
+            className="rounded-xl border p-6 space-y-4"
+            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+          >
+            <h2 className="font-medium text-white">Datos de contacto</h2>
 
             <div>
-              <label htmlFor="contactoNombre" className={labelClass}>
+              <label htmlFor="contactoNombre" className={labelClass} style={labelStyle}>
                 Nombre de contacto *
               </label>
               <input
@@ -246,12 +262,13 @@ export default function NuevaCargaForm({
                 required
                 defaultValue={contactoDefecto.nombre}
                 className={inputClass}
+                style={inputStyle}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="contactoTelefono" className={labelClass}>
+                <label htmlFor="contactoTelefono" className={labelClass} style={labelStyle}>
                   Teléfono *
                 </label>
                 <input
@@ -261,11 +278,12 @@ export default function NuevaCargaForm({
                   required
                   defaultValue={contactoDefecto.telefono}
                   className={inputClass}
+                  style={inputStyle}
                   placeholder="Ej: +54 9 351 000-0000"
                 />
               </div>
               <div>
-                <label htmlFor="contactoEmail" className={labelClass}>
+                <label htmlFor="contactoEmail" className={labelClass} style={labelStyle}>
                   Email *
                 </label>
                 <input
@@ -275,18 +293,22 @@ export default function NuevaCargaForm({
                   required
                   defaultValue={contactoDefecto.email}
                   className={inputClass}
+                  style={inputStyle}
                 />
               </div>
             </div>
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">
+            <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
               {error}
             </p>
           )}
 
-          <div className="bg-brand-light border border-brand-border rounded-xl px-4 py-3 text-sm text-brand-navy">
+          <div
+            className="rounded-xl border px-4 py-3 text-sm"
+            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33", color: "#2DD4BF" }}
+          >
             Al continuar serás redirigido a MercadoPago para abonar la tarifa de publicación de{" "}
             <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
           </div>
@@ -294,14 +316,16 @@ export default function NuevaCargaForm({
           <div className="flex items-center justify-end gap-4">
             <Link
               href="/empresa/dashboard"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm transition-colors"
+              style={{ color: "#6B7280" }}
             >
               Cancelar
             </Link>
             <button
               type="submit"
               disabled={pending}
-              className="bg-brand-navy hover:bg-brand-navy-dark disabled:opacity-60 text-white font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer"
+              className="font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
+              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
             >
               {pending ? "Procesando..." : "Ir al pago →"}
             </button>

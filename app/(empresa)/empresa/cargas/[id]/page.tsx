@@ -3,26 +3,25 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import SeleccionarButton from "./_components/SeleccionarButton";
-import CancelarCargaButton from "./_components/CancelarCargaButton";
 import EditarCargaPanel from "./_components/EditarCargaPanel";
 import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo.jpeg";
+import logoImage from "@/app/assets/Logo5.jpeg";
 
 function formatWhatsApp(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
-  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-100 text-yellow-800" },
-  ACTIVA: { label: "Activa", color: "bg-green-100 text-green-800" },
-  ASIGNADA: { label: "Asignada", color: "bg-blue-100 text-blue-800" },
-  EN_CONFIRMACION: { label: "Esperando confirmación", color: "bg-orange-100 text-orange-800" },
-  FINALIZADA: { label: "Finalizada", color: "bg-gray-100 text-gray-600" },
-  CANCELADA: { label: "Cancelada", color: "bg-red-100 text-red-800" },
-  DISPUTA: { label: "En disputa", color: "bg-purple-100 text-purple-800" },
+  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-500/20 text-yellow-300" },
+  ACTIVA: { label: "Activa", color: "bg-green-500/20 text-green-300" },
+  ASIGNADA: { label: "Asignada", color: "bg-blue-500/20 text-blue-300" },
+  EN_CONFIRMACION: { label: "Esperando confirmación", color: "bg-orange-500/20 text-orange-300" },
+  FINALIZADA: { label: "Finalizada", color: "bg-white/10 text-gray-400" },
+  CANCELADA: { label: "Cancelada", color: "bg-red-500/20 text-red-300" },
+  DISPUTA: { label: "En disputa", color: "bg-purple-500/20 text-purple-300" },
 };
 
 function toDateInput(date: Date | null): string {
@@ -65,7 +64,7 @@ export default async function CargaDetallePage({
 
   const estado = ESTADO_LABELS[carga.estado] ?? {
     label: carga.estado,
-    color: "bg-gray-100 text-gray-600",
+    color: "bg-white/10 text-gray-400",
   };
 
   const puedeEditar = carga.estado === "ACTIVA";
@@ -74,10 +73,13 @@ export default async function CargaDetallePage({
   const puedeDisputa = carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <header
+        className="px-6 py-4 flex items-center justify-between border-b"
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+      >
         <Link href="/empresa/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
+          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
         </Link>
         <NotificacionBellEmpresa />
       </header>
@@ -86,39 +88,38 @@ export default async function CargaDetallePage({
         <div className="mb-6">
           <Link
             href="/empresa/cargas"
-            className="text-sm text-gray-500 hover:text-gray-700 inline-block mb-3"
+            className="text-sm inline-block mb-3 transition-colors"
+            style={{ color: "#6B7280" }}
           >
             ← Mis cargas
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              {carga.titulo}
-            </h1>
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}
-            >
+            <h1 className="text-2xl font-semibold text-white">{carga.titulo}</h1>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
               {estado.label}
             </span>
           </div>
-          <p className="text-gray-500 mt-1 text-sm">
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             {carga.origen} → {carga.destino}
           </p>
         </div>
 
         {error === "pago_cancelado" && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-yellow-800">
+          <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
+            <p className="text-sm text-yellow-300">
               El pago fue cancelado. Podés intentarlo nuevamente.
             </p>
           </div>
         )}
 
-        {/* Acciones disponibles */}
         {(puedeCancelar || puedeEditar || puedeConfirmar || puedeDisputa) && (
-          <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-            <h2 className="font-medium text-gray-800 mb-4">Acciones</h2>
+          <div
+            className="rounded-xl border p-5 mb-6"
+            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+          >
+            <h2 className="font-medium text-white mb-4">Acciones</h2>
             <div className="flex flex-wrap gap-3">
-              {puedeEditar && (
+              {(puedeEditar || puedeCancelar) && (
                 <EditarCargaPanel
                   carga={{
                     id: carga.id,
@@ -138,40 +139,39 @@ export default async function CargaDetallePage({
                   }}
                 />
               )}
-              {puedeCancelar && <CancelarCargaButton cargaId={carga.id} />}
               {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
             </div>
             {puedeDisputa && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-400 mb-2">¿Hubo un problema con el viaje?</p>
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: "#1E3838" }}>
+                <p className="text-xs mb-2" style={{ color: "#4B5563" }}>¿Hubo un problema con el viaje?</p>
                 <AbrirDisputaEmpresaButton cargaId={carga.id} />
               </div>
             )}
           </div>
         )}
 
-        {/* Aviso de confirmación pendiente */}
         {carga.estado === "EN_CONFIRMACION" && (
-          <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-orange-800 font-medium">
+          <div className="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
+            <p className="text-sm text-orange-300 font-medium">
               El transportista marcó el viaje como completado. ¿Podés confirmarlo?
             </p>
           </div>
         )}
 
-        {/* Aviso de disputa */}
         {carga.estado === "DISPUTA" && carga.disputaDescripcion && (
-          <div className="mb-6 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-purple-800 font-medium mb-1">
+          <div className="mb-6 bg-purple-500/10 border border-purple-500/30 rounded-xl px-4 py-3">
+            <p className="text-sm text-purple-300 font-medium mb-1">
               Disputa abierta por {carga.disputaAbiertaPor === "EMPRESA" ? "vos" : "el transportista"}
             </p>
-            <p className="text-sm text-purple-700">{carga.disputaDescripcion}</p>
+            <p className="text-sm text-purple-200">{carga.disputaDescripcion}</p>
           </div>
         )}
 
-        {/* Datos de la carga */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <h2 className="font-medium text-gray-800 mb-4">Datos de la carga</h2>
+        <div
+          className="rounded-xl border p-6 mb-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h2 className="font-medium text-white mb-4">Datos de la carga</h2>
           <div className="space-y-2">
             {[
               ["Tipo de carga", carga.tipoCarga],
@@ -190,34 +190,30 @@ export default async function CargaDetallePage({
               .map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex justify-between py-1.5 border-b border-gray-50 last:border-0"
+                  className="flex justify-between py-1.5 border-b last:border-0"
+                  style={{ borderColor: "#1E3838" }}
                 >
-                  <span className="text-sm text-gray-500">{label}</span>
-                  <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">
-                    {value}
-                  </span>
+                  <span className="text-sm" style={{ color: "#6B7280" }}>{label}</span>
+                  <span className="text-sm font-medium text-white text-right max-w-[60%]">{value}</span>
                 </div>
               ))}
           </div>
         </div>
 
-        {/* Transportista asignado */}
         {carga.transportistaAsignado && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-6">
-            <h2 className="font-medium text-gray-800 mb-3">
-              Transportista asignado
-            </h2>
-            <p className="font-medium text-gray-800">
-              {carga.transportistaAsignado.name}
-            </p>
-            <p className="text-sm text-gray-600 mt-0.5">
-              {carga.transportistaAsignado.email}
-            </p>
+          <div
+            className="rounded-xl border p-6 mb-6"
+            style={{ backgroundColor: "#112424", borderColor: "#2DD4BF33" }}
+          >
+            <h2 className="font-medium text-white mb-3">Transportista asignado</h2>
+            <p className="font-medium text-white">{carga.transportistaAsignado.name}</p>
+            <p className="text-sm mt-0.5" style={{ color: "#6B7280" }}>{carga.transportistaAsignado.email}</p>
             {carga.transportistaAsignado.phone && (
               <div className="flex flex-wrap gap-3 mt-4">
                 <a
                   href={`tel:${carga.transportistaAsignado.phone}`}
-                  className="inline-flex items-center gap-2 bg-white border border-blue-200 text-blue-800 text-sm font-medium rounded-lg px-4 py-2 hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center gap-2 border text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+                  style={{ borderColor: "#2DD4BF33", color: "#2DD4BF", backgroundColor: "#2DD4BF0D" }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -241,19 +237,21 @@ export default async function CargaDetallePage({
           </div>
         )}
 
-        {/* Postulaciones */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <h2 className="font-medium text-gray-800 mb-4">
+        <div
+          className="rounded-xl border p-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h2 className="font-medium text-white mb-4">
             Postulaciones
             {carga.postulaciones.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-400">
+              <span className="ml-2 text-sm font-normal" style={{ color: "#4B5563" }}>
                 ({carga.postulaciones.length})
               </span>
             )}
           </h2>
 
           {carga.postulaciones.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">
+            <p className="text-sm text-center py-6" style={{ color: "#4B5563" }}>
               Todavía no hay postulaciones para esta carga.
             </p>
           ) : (
@@ -262,54 +260,47 @@ export default async function CargaDetallePage({
                 <div
                   key={p.id}
                   className={`rounded-xl border p-4 ${
-                    p.estado === "ACEPTADA"
-                      ? "border-brand-border bg-brand-light"
-                      : p.estado === "RECHAZADA"
-                        ? "border-gray-100 bg-gray-50 opacity-60"
-                        : "border-gray-100"
+                    p.estado === "RECHAZADA" ? "opacity-50" : ""
                   }`}
+                  style={{
+                    borderColor: p.estado === "ACEPTADA" ? "#2DD4BF33" : "#1E3838",
+                    backgroundColor: p.estado === "ACEPTADA" ? "#2DD4BF0D" : "#0F2020",
+                  }}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800">
-                        {p.transportista.name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {p.transportista.email}
-                      </p>
+                      <p className="font-medium text-white">{p.transportista.name}</p>
+                      <p className="text-sm" style={{ color: "#6B7280" }}>{p.transportista.email}</p>
                       {p.transportista.phone && (
-                        <p className="text-sm text-gray-500">
-                          {p.transportista.phone}
-                        </p>
+                        <p className="text-sm" style={{ color: "#6B7280" }}>{p.transportista.phone}</p>
                       )}
                       {p.mensaje && (
-                        <p className="text-sm text-gray-600 mt-2 italic">
+                        <p className="text-sm mt-2 italic" style={{ color: "#9CA3AF" }}>
                           "{p.mensaje}"
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs mt-1" style={{ color: "#4B5563" }}>
                         Postulado el {p.createdAt.toLocaleDateString("es-AR")}
                       </p>
                     </div>
                     <div className="flex-shrink-0">
                       {p.estado === "ACEPTADA" && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-brand-light text-brand-navy">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#2DD4BF20] text-[#2DD4BF]">
                           Seleccionado
                         </span>
                       )}
                       {p.estado === "RECHAZADA" && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/10 text-gray-400">
                           No seleccionado
                         </span>
                       )}
-                      {p.estado === "PENDIENTE" &&
-                        carga.estado === "ACTIVA" && (
-                          <SeleccionarButton
-                            cargaId={carga.id}
-                            postulacionId={p.id}
-                            transportistaNombre={p.transportista.name}
-                          />
-                        )}
+                      {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
+                        <SeleccionarButton
+                          cargaId={carga.id}
+                          postulacionId={p.id}
+                          transportistaNombre={p.transportista.name}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
