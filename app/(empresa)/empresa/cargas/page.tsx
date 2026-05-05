@@ -4,13 +4,58 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo.jpeg";
+import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 
-const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
-  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-100 text-yellow-800" },
-  ACTIVA: { label: "Activa", color: "bg-green-100 text-green-800" },
-  ASIGNADA: { label: "Asignada", color: "bg-blue-100 text-blue-800" },
-  FINALIZADA: { label: "Finalizada", color: "bg-gray-100 text-gray-600" },
-  CANCELADA: { label: "Cancelada", color: "bg-red-100 text-red-800" },
+type EstadoConfig = {
+  label: string;
+  color: string;
+  border: string;
+  dot: string;
+};
+
+const ESTADO_CONFIG: Record<string, EstadoConfig> = {
+  PENDIENTE_PAGO: {
+    label: "Pago pendiente",
+    color: "bg-yellow-100 text-yellow-800",
+    border: "border-l-yellow-400",
+    dot: "bg-yellow-400",
+  },
+  ACTIVA: {
+    label: "Activa",
+    color: "bg-green-100 text-green-800",
+    border: "border-l-green-400",
+    dot: "bg-green-400",
+  },
+  ASIGNADA: {
+    label: "Asignada",
+    color: "bg-blue-100 text-blue-800",
+    border: "border-l-blue-400",
+    dot: "bg-blue-400",
+  },
+  EN_CONFIRMACION: {
+    label: "Confirmar completado",
+    color: "bg-orange-100 text-orange-800",
+    border: "border-l-orange-400",
+    dot: "bg-orange-400",
+  },
+  FINALIZADA: {
+    label: "Finalizada",
+    color: "bg-gray-100 text-gray-500",
+    border: "border-l-gray-300",
+    dot: "bg-gray-300",
+  },
+  CANCELADA: {
+    label: "Cancelada",
+    color: "bg-red-100 text-red-700",
+    border: "border-l-red-300",
+    dot: "bg-red-300",
+  },
+  DISPUTA: {
+    label: "En disputa",
+    color: "bg-purple-100 text-purple-800",
+    border: "border-l-purple-400",
+    dot: "bg-purple-400",
+  },
 };
 
 export default async function CargasPage({
@@ -29,6 +74,10 @@ export default async function CargasPage({
     },
   });
 
+  const enConfirmacion = cargas.filter((c) => c.estado === "EN_CONFIRMACION");
+  const resto = cargas.filter((c) => c.estado !== "EN_CONFIRMACION");
+  const sorted = [...enConfirmacion, ...resto];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
@@ -36,6 +85,7 @@ export default async function CargasPage({
           <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
         </Link>
         <div className="flex items-center gap-4">
+          <NotificacionBellEmpresa />
           <Link
             href="/empresa/cargas/nueva"
             className="text-sm bg-brand-navy hover:bg-brand-navy-dark text-white font-medium rounded-lg px-4 py-2 transition-colors"
@@ -89,37 +139,51 @@ export default async function CargasPage({
           </div>
         ) : (
           <div className="space-y-3">
-            {cargas.map((carga:any) => {
-              const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-gray-100 text-gray-600" };
+            {sorted.map((carga: any) => {
+              const cfg = ESTADO_CONFIG[carga.estado] ?? {
+                label: carga.estado,
+                color: "bg-gray-100 text-gray-600",
+                border: "border-l-gray-300",
+                dot: "bg-gray-300",
+              };
               const postulacionesPendientes = carga._count.postulaciones;
+              const needsAction = carga.estado === "EN_CONFIRMACION";
               return (
                 <Link
                   key={carga.id}
                   href={`/empresa/cargas/${carga.id}`}
-                  className="bg-white rounded-xl border border-gray-100 p-5 flex items-start justify-between gap-4 hover:border-gray-200 hover:shadow-sm transition-all block"
+                  className={`bg-white rounded-xl border border-gray-100 border-l-4 ${cfg.border} p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all block ${needsAction ? "ring-1 ring-orange-200" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
                       <h3 className="font-medium text-gray-800 truncate">
                         {carga.titulo}
                       </h3>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${estado.color}`}>
-                        {estado.label}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.color}`}>
+                        {cfg.label}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 ml-4">
                       {carga.origen} → {carga.destino}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1 ml-4">
                       {carga.fechaCarga.toLocaleDateString("es-AR")} · {carga.tipoCarga}
                       {carga.peso !== null && ` · ${carga.peso}t`}
                     </p>
                   </div>
-                  {postulacionesPendientes > 0 && (
-                    <span className="flex-shrink-0 text-sm bg-orange-100 text-orange-700 font-medium rounded-lg px-3 py-1.5">
-                      {postulacionesPendientes} postulaci{postulacionesPendientes === 1 ? "ón" : "ones"}
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {needsAction && (
+                      <span className="text-xs font-medium bg-orange-500 text-white rounded-lg px-3 py-1.5">
+                        Acción requerida
+                      </span>
+                    )}
+                    {postulacionesPendientes > 0 && !needsAction && (
+                      <span className="text-sm bg-orange-100 text-orange-700 font-medium rounded-lg px-3 py-1.5">
+                        {postulacionesPendientes} postulaci{postulacionesPendientes === 1 ? "ón" : "ones"}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               );
             })}

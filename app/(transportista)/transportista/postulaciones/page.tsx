@@ -7,10 +7,48 @@ import logoImage from "@/app/assets/Logo.jpeg";
 import NotificacionBell from "../_components/NotificacionBell";
 import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
 
-const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
-  PENDIENTE: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800" },
-  ACEPTADA: { label: "Seleccionado", color: "bg-green-100 text-green-800" },
-  RECHAZADA: { label: "No seleccionado", color: "bg-gray-100 text-gray-600" },
+type CargaEstadoConfig = {
+  label: string;
+  color: string;
+  border: string;
+  dot: string;
+};
+
+const CARGA_ESTADO_CONFIG: Record<string, CargaEstadoConfig> = {
+  ASIGNADA: {
+    label: "En viaje",
+    color: "bg-blue-100 text-blue-800",
+    border: "border-l-blue-400",
+    dot: "bg-blue-400",
+  },
+  EN_CONFIRMACION: {
+    label: "Esperando confirmación",
+    color: "bg-orange-100 text-orange-800",
+    border: "border-l-orange-400",
+    dot: "bg-orange-400",
+  },
+  FINALIZADA: {
+    label: "Viaje completado",
+    color: "bg-green-100 text-green-800",
+    border: "border-l-green-400",
+    dot: "bg-green-400",
+  },
+  DISPUTA: {
+    label: "En disputa",
+    color: "bg-purple-100 text-purple-800",
+    border: "border-l-purple-400",
+    dot: "bg-purple-400",
+  },
+};
+
+const SORT_ORDER: Record<string, number> = {
+  EN_CONFIRMACION: 0,
+  DISPUTA: 1,
+  ASIGNADA: 2,
+  ACTIVA: 3,
+  PENDIENTE_PAGO: 4,
+  FINALIZADA: 5,
+  CANCELADA: 6,
 };
 
 export default async function MisPostulacionesPage() {
@@ -28,10 +66,19 @@ export default async function MisPostulacionesPage() {
           fechaCarga: true,
           tipoCarga: true,
           presupuesto: true,
+          estado: true,
         },
       },
     },
     orderBy: { createdAt: "desc" },
+  });
+
+  const sorted = [...postulaciones].sort((a: any, b: any) => {
+    if (a.estado === "RECHAZADA" && b.estado !== "RECHAZADA") return 1;
+    if (a.estado !== "RECHAZADA" && b.estado === "RECHAZADA") return -1;
+    const orderA = SORT_ORDER[a.carga.estado] ?? 9;
+    const orderB = SORT_ORDER[b.carga.estado] ?? 9;
+    return orderA - orderB;
   });
 
   return (
@@ -81,49 +128,76 @@ export default async function MisPostulacionesPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {postulaciones.map((p: any) => {
-              const estado = ESTADO_LABELS[p.estado] ?? {
-                label: p.estado,
-                color: "bg-gray-100 text-gray-600",
-              };
-              const esNueva = p.estado === "ACEPTADA" && !p.vistaTransportista;
+            {sorted.map((p: any) => {
+              const esAceptada = p.estado === "ACEPTADA";
+              const esRechazada = p.estado === "RECHAZADA";
+              const esNueva = esAceptada && !p.vistaTransportista;
+              const cargaCfg = CARGA_ESTADO_CONFIG[p.carga.estado];
+
+              const borderClass = esAceptada && cargaCfg
+                ? `border-l-4 ${cargaCfg.border}`
+                : esNueva
+                ? "border-green-300 ring-1 ring-green-200"
+                : "border-gray-100";
+
               return (
                 <Link
                   key={p.id}
                   href={`/transportista/cargas/${p.carga.id}`}
-                  className={`bg-white rounded-xl border p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all block ${
-                    esNueva ? "border-green-300 ring-1 ring-green-200" : "border-gray-100"
-                  }`}
+                  className={`bg-white rounded-xl border p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all block ${borderClass} ${esRechazada ? "opacity-55" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       {esNueva && (
                         <span className="flex h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                      )}
+                      {esAceptada && cargaCfg && (
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cargaCfg.dot}`} />
                       )}
                       <h3 className="font-medium text-gray-800 truncate">
                         {p.carga.titulo}
                       </h3>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${estado.color}`}
-                      >
-                        {estado.label}
-                      </span>
+                      {esAceptada && cargaCfg ? (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cargaCfg.color}`}>
+                          {cargaCfg.label}
+                        </span>
+                      ) : (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          esRechazada
+                            ? "bg-gray-100 text-gray-500"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}>
+                          {esRechazada ? "No seleccionado" : "Pendiente"}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 ml-4">
                       {p.carga.origen} → {p.carga.destino}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1 ml-4">
                       {p.carga.fechaCarga.toLocaleDateString("es-AR")} ·{" "}
                       {p.carga.tipoCarga}
                       {p.carga.presupuesto !== null &&
                         ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
                     </p>
                   </div>
-                  {esNueva && (
-                    <span className="flex-shrink-0 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                      ¡Nuevo!
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {esNueva && (
+                      <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                        ¡Nuevo!
+                      </span>
+                    )}
+                    {esAceptada && p.carga.estado === "FINALIZADA" && (
+                      <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                        ✓ Completado
+                      </span>
+                    )}
+                    {esAceptada && p.carga.estado === "EN_CONFIRMACION" && (
+                      <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-1 rounded-full">
+                        Aguardando empresa
+                      </span>
+                    )}
+                  </div>
                 </Link>
               );
             })}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(
   _req: NextRequest,
@@ -23,6 +24,12 @@ export async function POST(
     where: { id: cargaId },
     data: { estado: "EN_CONFIRMACION" },
   });
+
+  sendPushToUser(carga.empresaId, {
+    title: "Viaje marcado como completado",
+    body: `El transportista marcó "${carga.titulo}" como completado. Confirmá o abrí una disputa.`,
+    url: `/empresa/cargas/${cargaId}`,
+  }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
