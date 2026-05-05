@@ -3,7 +3,7 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo.jpeg";
+import logoImage from "@/app/assets/Logo5.jpeg";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
 import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
@@ -32,16 +32,9 @@ export default async function CargaPublicaPage({
   if (isNaN(cargaId)) redirect("/transportista/cargas");
 
   const [carga, miPostulacion] = await Promise.all([
-    db.carga.findUnique({
-      where: { id: cargaId },
-    }),
+    db.carga.findUnique({ where: { id: cargaId } }),
     db.postulacion.findUnique({
-      where: {
-        cargaId_transportistaId: {
-          cargaId,
-          transportistaId: session.userId,
-        },
-      },
+      where: { cargaId_transportistaId: { cargaId, transportistaId: session.userId } },
     }),
   ]);
 
@@ -61,10 +54,13 @@ export default async function CargaPublicaPage({
   const esperandoConfirmacion = soyAsignado && carga.estado === "EN_CONFIRMACION";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-6 py-4">
+    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <header
+        className="px-6 py-4 border-b"
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+      >
         <Link href="/transportista/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={120} height={40} />
+          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
         </Link>
       </header>
 
@@ -72,30 +68,27 @@ export default async function CargaPublicaPage({
         <div className="mb-6">
           <Link
             href="/transportista/cargas"
-            className="text-sm text-gray-500 hover:text-gray-700 inline-block mb-3"
+            className="text-sm inline-block mb-3 transition-colors"
+            style={{ color: "#6B7280" }}
           >
             ← Cargas disponibles
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-800">
-            {carga.titulo}
-          </h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-white">{carga.titulo}</h1>
+          <p className="mt-1" style={{ color: "#6B7280" }}>
             {carga.origen} → {carga.destino}
           </p>
         </div>
 
-        {/* Detalles de la carga */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <h2 className="font-medium text-gray-800 mb-4">
-            Detalles de la carga
-          </h2>
+        <div
+          className="rounded-xl border p-6 mb-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h2 className="font-medium text-white mb-4">Detalles de la carga</h2>
           <div className="space-y-2">
             {[
               ["Tipo", TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga],
               carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
-              carga.volumen !== null
-                ? ["Volumen", `${carga.volumen} m³`]
-                : null,
+              carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
                 : null,
@@ -103,38 +96,38 @@ export default async function CargaPublicaPage({
               carga.fechaEntrega
                 ? ["Fecha de entrega", carga.fechaEntrega.toLocaleDateString("es-AR")]
                 : null,
-              carga.tiempoEstimado
-                ? ["Tiempo estimado", carga.tiempoEstimado]
-                : null,
+              carga.tiempoEstimado ? ["Tiempo estimado", carga.tiempoEstimado] : null,
               carga.descripcion ? ["Descripción", carga.descripcion] : null,
             ]
               .filter((item): item is string[] => Array.isArray(item))
               .map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex justify-between py-1.5 border-b border-gray-50 last:border-0"
+                  className="flex justify-between py-1.5 border-b last:border-0"
+                  style={{ borderColor: "#1E3838" }}
                 >
-                  <span className="text-sm text-gray-500">{label}</span>
-                  <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">
-                    {value}
-                  </span>
+                  <span className="text-sm" style={{ color: "#6B7280" }}>{label}</span>
+                  <span className="text-sm font-medium text-white text-right max-w-[60%]">{value}</span>
                 </div>
               ))}
           </div>
         </div>
 
-        {/* Datos de contacto — solo cuando el transportista fue seleccionado */}
         {soyAceptado && (
-          <div className="bg-brand-light border border-brand-border rounded-xl p-6 mb-6">
-            <h2 className="font-medium text-brand-navy mb-4">
+          <div
+            className="rounded-xl border p-6 mb-6"
+            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33" }}
+          >
+            <h2 className="font-medium mb-4" style={{ color: "#2DD4BF" }}>
               Datos de contacto de la empresa
             </h2>
-            <p className="font-medium text-gray-800">{carga.contactoNombre}</p>
-            <p className="text-sm text-gray-600 mt-0.5">{carga.contactoEmail}</p>
+            <p className="font-medium text-white">{carga.contactoNombre}</p>
+            <p className="text-sm mt-0.5" style={{ color: "#6B7280" }}>{carga.contactoEmail}</p>
             <div className="flex flex-wrap gap-3 mt-4">
               <a
                 href={`tel:${carga.contactoTelefono}`}
-                className="inline-flex items-center gap-2 bg-white border border-brand-border text-brand-navy text-sm font-medium rounded-lg px-4 py-2 hover:bg-brand-light transition-colors"
+                className="inline-flex items-center gap-2 border text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+                style={{ borderColor: "#2DD4BF33", color: "#2DD4BF", backgroundColor: "#2DD4BF0D" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -157,40 +150,33 @@ export default async function CargaPublicaPage({
           </div>
         )}
 
-        {/* Acciones del transportista asignado */}
         {(puedeCompletar || puedeDisputa || esperandoConfirmacion) && (
           <div className="space-y-3 mb-6">
             {esperandoConfirmacion && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-                <p className="text-sm text-orange-800 font-medium">
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
+                <p className="text-sm text-orange-300 font-medium">
                   Marcaste este viaje como completado. Esperando confirmación de la empresa.
                 </p>
               </div>
             )}
-            {puedeCompletar && (
-              <CompletarViajeButton cargaId={carga.id} />
-            )}
-            {puedeDisputa && (
-              <AbrirDisputaTransportistaButton cargaId={carga.id} />
-            )}
+            {puedeCompletar && <CompletarViajeButton cargaId={carga.id} />}
+            {puedeDisputa && <AbrirDisputaTransportistaButton cargaId={carga.id} />}
           </div>
         )}
 
-        {/* Viaje finalizado */}
         {soyAsignado && carga.estado === "FINALIZADA" && (
-          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6">
-            <p className="text-sm text-green-800 font-medium">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-green-300 font-medium">
               Viaje completado y confirmado por la empresa.
             </p>
           </div>
         )}
 
-        {/* Disputa */}
         {soyAsignado && carga.estado === "DISPUTA" && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 mb-6">
-            <p className="text-sm text-purple-800 font-medium mb-1">Disputa abierta</p>
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-purple-300 font-medium mb-1">Disputa abierta</p>
             {carga.disputaDescripcion && (
-              <p className="text-sm text-purple-700">{carga.disputaDescripcion}</p>
+              <p className="text-sm text-purple-200">{carga.disputaDescripcion}</p>
             )}
           </div>
         )}

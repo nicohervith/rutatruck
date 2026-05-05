@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #FBFAF8;
   --foreground: #171717;
 }
 
@@ -15,6 +15,9 @@
   --color-brand-border: #c8e0e2;
   --color-brand-navy: #1B3A4B;
   --color-brand-navy-dark: #142d3a;
+  --color-landing-bg: #0C1E1E;
+  --color-landing-teal: #2DD4BF;
+  --color-landing-teal-dark: #22b5a0;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -3,33 +3,34 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import logoImage from "@/app/assets/Logo2.jpeg";
+import logoImage from "@/app/assets/Logo5.jpeg";
 import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
   const [showPassword, setShowPassword] = useState(false);
 
+  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
+  const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#0C1E1E" }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <Image src={logoImage} alt="ClickCargo" width={200} height={67} className="mx-auto" />
+            <Image src={logoImage} alt="ClickCargo" width={72} height={72} className="mx-auto rounded-2xl" />
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            Iniciar sesión
-          </h2>
+        <div
+          className="rounded-2xl border p-8"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h2 className="text-xl font-semibold text-white mb-6">Iniciar sesión</h2>
 
           <form action={action} className="space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="email" className="block text-sm font-medium mb-1" style={{ color: "#9CA3AF" }}>
                 Email
               </label>
               <input
@@ -38,16 +39,14 @@ export default function LoginPage() {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                className={inputClass}
+                style={inputStyle}
                 placeholder="tu@email.com"
               />
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="password" className="block text-sm font-medium mb-1" style={{ color: "#9CA3AF" }}>
                 Contraseña
               </label>
               <div className="relative">
@@ -57,13 +56,15 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   autoComplete="current-password"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                  className={`${inputClass} pr-10`}
+                  style={inputStyle}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 transition-colors"
+                  style={{ color: "#4B5563" }}
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? (
@@ -81,7 +82,7 @@ export default function LoginPage() {
             </div>
 
             {state?.error && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+              <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
                 {state.error}
               </p>
             )}
@@ -89,18 +90,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full bg-brand-navy hover:bg-brand-navy-dark disabled:opacity-60 text-white font-medium rounded-lg py-2.5 transition-colors cursor-pointer"
+              className="w-full font-medium rounded-lg py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
+              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
             >
               {pending ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm" style={{ color: "#6B7280" }}>
             ¿No tenés cuenta?{" "}
-            <Link
-              href="/registro"
-              className="text-brand-navy hover:text-brand-navy-dark font-medium"
-            >
+            <Link href="/registro" className="font-medium transition-colors" style={{ color: "#2DD4BF" }}>
               Registrate
             </Link>
           </p>
