@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo5.jpeg";
 import NotificacionBell from "../_components/NotificacionBell";
+import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
+import { AutoRefresh } from "@/app/_components/AutoRefresh";
 
 type CargaEstadoConfig = {
   label: string;
@@ -15,6 +16,12 @@ type CargaEstadoConfig = {
 };
 
 const CARGA_ESTADO_CONFIG: Record<string, CargaEstadoConfig> = {
+  PENDIENTE_PAGO_TRANSPORTISTA: {
+    label: "Pagar comisión",
+    color: "bg-yellow-500/20 text-yellow-300",
+    dot: "bg-yellow-400",
+    borderLeftColor: "#FCD34D",
+  },
   ASIGNADA: {
     label: "En viaje",
     color: "bg-blue-500/20 text-blue-300",
@@ -83,6 +90,7 @@ export default async function MisPostulacionesPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <AutoRefresh url="/api/postulaciones/hash" />
       <MarkNotificacionesVistas />
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
@@ -91,24 +99,9 @@ export default async function MisPostulacionesPage() {
         <Link href="/transportista/dashboard">
           <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
         </Link>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/transportista/cargas"
-            className="text-sm transition-colors"
-            style={{ color: "#6B7280" }}
-          >
-            Ver cargas
-          </Link>
+        <div className="flex items-center gap-2">
           <NotificacionBell />
-          <form action={logout}>
-            <button
-              type="submit"
-              className="text-sm transition-colors cursor-pointer hover:text-gray-400"
-              style={{ color: "#6B7280" }}
-            >
-              Cerrar sesión
-            </button>
-          </form>
+          <HamburgerMenu role="transportista" />
         </div>
       </header>
 

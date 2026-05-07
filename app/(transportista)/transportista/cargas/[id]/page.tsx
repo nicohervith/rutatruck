@@ -7,6 +7,10 @@ import logoImage from "@/app/assets/Logo5.jpeg";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
 import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
+import PagarComisionButton from "./_components/PagarComisionButton";
+import CountdownTimer from "./_components/CountdownTimer";
+import { AutoRefresh } from "@/app/_components/AutoRefresh";
+import { getComisionConfig, calcularComision, expirarSeleccion } from "@/lib/comision";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -22,11 +26,14 @@ function formatWhatsApp(phone: string): string {
 
 export default async function CargaPublicaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; pago?: string }>;
 }) {
   const session = await verifySession();
   const { id } = await params;
+  const { error, pago } = await searchParams;
 
   const cargaId = parseInt(id);
   if (isNaN(cargaId)) redirect("/transportista/cargas");
@@ -42,6 +49,16 @@ export default async function CargaPublicaPage({
     redirect("/transportista/cargas");
   }
 
+  // Lazy expiration check on page load
+  if (
+    carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA" &&
+    carga.transportistaPagoDeadline &&
+    carga.transportistaPagoDeadline < new Date()
+  ) {
+    await expirarSeleccion(cargaId);
+    redirect(`/transportista/cargas/${cargaId}`);
+  }
+
   const soyAsignado = carga.transportistaAsignadoId === session.userId;
   const soyAceptado = miPostulacion?.estado === "ACEPTADA";
   const waPhone = formatWhatsApp(carga.contactoTelefono);
@@ -49,12 +66,20 @@ export default async function CargaPublicaPage({
     `Hola ${carga.contactoNombre}, soy el transportista seleccionado para la carga "${carga.titulo}". Me comunico para coordinar los detalles.`,
   );
 
+  const pendePago = soyAsignado && carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
   const puedeCompletar = soyAsignado && carga.estado === "ASIGNADA";
   const puedeDisputa = soyAsignado && (carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION");
   const esperandoConfirmacion = soyAsignado && carga.estado === "EN_CONFIRMACION";
 
+  let montoComision = 0;
+  if (pendePago) {
+    const config = await getComisionConfig();
+    montoComision = calcularComision(config, carga.presupuesto);
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      {soyAsignado && <AutoRefresh url={`/api/cargas/${cargaId}/estado`} />}
       <header
         className="px-6 py-4 border-b"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
@@ -78,6 +103,48 @@ export default async function CargaPublicaPage({
             {carga.origen} → {carga.destino}
           </p>
         </div>
+
+        {pago === "1" && (
+          <div
+            className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
+            style={{ backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33" }}
+          >
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
+              ¡Comisión pagada! El viaje está activado.
+            </p>
+          </div>
+        )}
+
+        {error === "pago_cancelado" && (
+          <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
+            <p className="text-sm text-yellow-300">El pago fue cancelado. Podés intentarlo nuevamente.</p>
+          </div>
+        )}
+
+        {/* Sección de pago de comisión */}
+        {pendePago && carga.transportistaPagoDeadline && (
+          <div
+            className="rounded-xl border p-5 mb-6"
+            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33" }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-white">¡Fuiste seleccionado!</h2>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "#9CA3AF" }}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <CountdownTimer deadline={carga.transportistaPagoDeadline.toISOString()} />
+              </div>
+            </div>
+            <p className="text-sm mb-4" style={{ color: "#9CA3AF" }}>
+              Pagá la comisión para activar el viaje. Si no pagás a tiempo, la carga vuelve a estar disponible.
+            </p>
+            <PagarComisionButton cargaId={carga.id} montoComision={montoComision} />
+          </div>
+        )}
 
         <div
           className="rounded-xl border p-6 mb-6"
@@ -113,7 +180,7 @@ export default async function CargaPublicaPage({
           </div>
         </div>
 
-        {soyAceptado && (
+        {soyAceptado && carga.estado === "ASIGNADA" && (
           <div
             className="rounded-xl border p-6 mb-6"
             style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33" }}
@@ -181,7 +248,7 @@ export default async function CargaPublicaPage({
           </div>
         )}
 
-        <PostularseButton cargaId={carga.id} miPostulacion={miPostulacion} />
+        {!soyAsignado && <PostularseButton cargaId={carga.id} miPostulacion={miPostulacion} />}
       </main>
     </div>
   );

@@ -28,5 +28,34 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/empresa/cargas?success=1", req.nextUrl));
   }
 
+  // Comisión transportista: "comision_carga_{cargaId}"
+  const matchComision = externalReference.match(/^comision_carga_(\d+)$/);
+  if (matchComision) {
+    const cargaId = parseInt(matchComision[1]);
+    try {
+      await db.$transaction([
+        db.carga.update({
+          where: { id: cargaId, estado: "PENDIENTE_PAGO_TRANSPORTISTA" },
+          data: {
+            estado: "ASIGNADA",
+            transportistaMpPaymentId: paymentId ?? null,
+            transportistaPagoDeadline: null,
+          },
+        }),
+        db.postulacion.updateMany({
+          where: { cargaId, estado: "PENDIENTE" },
+          data: { estado: "RECHAZADA" },
+        }),
+      ]);
+    } catch {
+      return NextResponse.redirect(
+        new URL(`/transportista/cargas/${cargaId}?error=pago_cancelado`, req.nextUrl),
+      );
+    }
+    return NextResponse.redirect(
+      new URL(`/transportista/cargas/${cargaId}?pago=1`, req.nextUrl),
+    );
+  }
+
   return NextResponse.redirect(new URL("/empresa/cargas", req.nextUrl));
 }

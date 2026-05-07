@@ -5,13 +5,12 @@ import { obtenerPago } from "@/lib/mercadopago";
 
 function verificarFirma(req: NextRequest, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
-  if (!secret) return true; // sin secret configurado, skip (solo dev)
+  if (!secret) return true;
 
   const xSignature = req.headers.get("x-signature");
   const xRequestId = req.headers.get("x-request-id");
   if (!xSignature || !xRequestId) return false;
 
-  // x-signature: "ts=<timestamp>,v1=<hmac>"
   const parts = Object.fromEntries(
     xSignature.split(",").map((part) => part.split("=") as [string, string])
   );
@@ -40,10 +39,29 @@ async function procesarPago(paymentId: string) {
       where: { id: cargaId, estado: "PENDIENTE_PAGO" },
       data: { estado: "ACTIVA", pagado: true, mpPaymentId: String(pago.id) },
     });
+    return;
+  }
+
+  const matchComision = externalReference.match(/^comision_carga_(\d+)$/);
+  if (matchComision) {
+    const cargaId = parseInt(matchComision[1]);
+    await db.$transaction([
+      db.carga.updateMany({
+        where: { id: cargaId, estado: "PENDIENTE_PAGO_TRANSPORTISTA" },
+        data: {
+          estado: "ASIGNADA",
+          transportistaMpPaymentId: String(pago.id),
+          transportistaPagoDeadline: null,
+        },
+      }),
+      db.postulacion.updateMany({
+        where: { cargaId, estado: "PENDIENTE" },
+        data: { estado: "RECHAZADA" },
+      }),
+    ]);
   }
 }
 
-// Notificación estilo webhook (nuevo)
 export async function POST(req: NextRequest) {
   let body: { type?: string; data?: { id?: string } };
   try {
@@ -52,7 +70,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  // Solo procesamos eventos de pago
   if (body.type !== "payment") {
     return NextResponse.json({ ok: true });
   }
@@ -68,14 +85,12 @@ export async function POST(req: NextRequest) {
     await procesarPago(paymentId);
   } catch (err) {
     console.error("[webhook/mp] error procesando pago", paymentId, err);
-    // Devolvemos 500 para que MP reintente
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
 }
 
-// Notificación estilo IPN (legado) — MP hace GET con ?id=<id>&topic=payment
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const topic = searchParams.get("topic") ?? searchParams.get("type");

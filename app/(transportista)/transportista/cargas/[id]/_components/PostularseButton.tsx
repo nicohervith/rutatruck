@@ -83,7 +83,7 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
+        className="w-full flex items-center justify-center gap-2 font-semibold rounded-xl px-6 py-4 text-base transition-opacity hover:opacity-90 cursor-pointer disabled:opacity-60"
         style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
       >
         {pending ? "Enviando..." : "Enviar postulación"}
