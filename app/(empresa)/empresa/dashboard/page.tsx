@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo5.jpeg";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
+import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-500/20 text-yellow-300" },
@@ -43,113 +43,105 @@ export default async function EmpresaDashboard() {
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <NotificacionBellEmpresa />
-          <Link
-            href="/empresa/cargas/nueva"
-            className="text-sm font-medium rounded-lg px-4 py-2 transition-colors text-white"
-            style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
-          >
-            + Nueva carga
-          </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="text-sm transition-colors cursor-pointer hover:text-gray-400"
-              style={{ color: "#6B7280" }}
-            >
-              Cerrar sesión
-            </button>
-          </form>
+          <HamburgerMenu role="empresa" />
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
+      <main className="max-w-lg mx-auto px-6 py-10">
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-white">Panel de Empresa</h2>
-          <p className="mt-1" style={{ color: "#6B7280" }}>
+          <h2 className="text-2xl font-bold text-white">Panel de Empresa</h2>
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             Publicá cargas y gestioná tus transportistas
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="flex flex-col gap-3 mb-8">
+          <Link
+            href="/empresa/cargas/nueva"
+            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Publicar carga
+          </Link>
+          <Link
+            href="/empresa/cargas"
+            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base border-2 transition-colors hover:bg-[#2DD4BF0D]"
+            style={{ borderColor: "#2DD4BF", color: "#2DD4BF" }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Mis cargas
+            {totalPostulaciones > 0 && (
+              <span className="ml-1 border border-[#2DD4BF33] text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#2DD4BF1A" }}>
+                {totalPostulaciones} pendientes
+              </span>
+            )}
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { label: "Cargas publicadas", value: totalCargas },
-            { label: "Postulaciones pendientes", value: totalPostulaciones },
-            { label: "Viajes completados", value: totalFinalizadas },
+            { label: "Publicadas", value: totalCargas },
+            { label: "Postulaciones", value: totalPostulaciones },
+            { label: "Completados", value: totalFinalizadas },
           ].map(({ label, value }) => (
             <div
               key={label}
-              className="rounded-xl border p-6"
+              className="rounded-xl border p-4 text-center"
               style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
             >
-              <p className="text-sm" style={{ color: "#6B7280" }}>{label}</p>
-              <p className="text-3xl font-bold text-white mt-1">{value}</p>
+              <p className="text-2xl font-bold text-white">{value}</p>
+              <p className="text-xs mt-1" style={{ color: "#6B7280" }}>{label}</p>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-medium text-white">Últimas cargas</h3>
-          <Link
-            href="/empresa/cargas"
-            className="text-sm transition-colors"
-            style={{ color: "#2DD4BF" }}
-          >
-            Ver todas →
-          </Link>
-        </div>
-
-        {cargas.length === 0 ? (
-          <div
-            className="rounded-xl border p-10 text-center"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
-          >
-            <p className="mb-4" style={{ color: "#6B7280" }}>Todavía no publicaste cargas</p>
-            <Link
-              href="/empresa/cargas/nueva"
-              className="font-medium rounded-lg px-6 py-2.5 transition-colors inline-block text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
-            >
-              Publicar primera carga
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {cargas.map((carga: any) => {
-              const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-white/10 text-gray-400" };
-              const pendientes = carga._count.postulaciones;
-              return (
-                <Link
-                  key={carga.id}
-                  href={`/empresa/cargas/${carga.id}`}
-                  className="rounded-xl border p-5 flex items-start justify-between gap-4 transition-all block hover:border-[#2DD4BF33]"
-                  style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-white truncate">{carga.titulo}</h3>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${estado.color}`}>
+        {cargas.length > 0 && (
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium" style={{ color: "#9CA3AF" }}>Últimas cargas</h3>
+              <Link href="/empresa/cargas" className="text-xs transition-colors" style={{ color: "#2DD4BF" }}>
+                Ver todas →
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {cargas.map((carga: any) => {
+                const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-white/10 text-gray-400" };
+                const pendientes = carga._count.postulaciones;
+                return (
+                  <Link
+                    key={carga.id}
+                    href={`/empresa/cargas/${carga.id}`}
+                    className="rounded-xl border p-4 flex items-center justify-between gap-3 transition-all block hover:border-[#2DD4BF33]"
+                    style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white text-sm truncate">{carga.titulo}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                        {carga.origen} → {carga.destino}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {pendientes > 0 && (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-orange-500/20 text-orange-300">
+                          {pendientes}
+                        </span>
+                      )}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
                         {estado.label}
                       </span>
                     </div>
-                    <p className="text-sm" style={{ color: "#6B7280" }}>
-                      {carga.origen} → {carga.destino}
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: "#4B5563" }}>
-                      {carga.fechaCarga.toLocaleDateString("es-AR")} · {carga.tipoCarga}
-                      {carga.peso !== null && ` · ${carga.peso}t`}
-                    </p>
-                  </div>
-                  {pendientes > 0 && (
-                    <span className="flex-shrink-0 text-sm font-medium rounded-lg px-3 py-1.5 bg-orange-500/20 text-orange-300">
-                      {pendientes} postulaci{pendientes === 1 ? "ón" : "ones"}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
         )}
       </main>
     </div>

@@ -8,6 +8,7 @@ import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import Image from "next/image";
+import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import logoImage from "@/app/assets/Logo5.jpeg";
 
 function formatWhatsApp(phone: string): string {
@@ -17,6 +18,7 @@ function formatWhatsApp(phone: string): string {
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-500/20 text-yellow-300" },
   ACTIVA: { label: "Activa", color: "bg-green-500/20 text-green-300" },
+  PENDIENTE_PAGO_TRANSPORTISTA: { label: "Esperando pago", color: "bg-yellow-500/20 text-yellow-300" },
   ASIGNADA: { label: "Asignada", color: "bg-blue-500/20 text-blue-300" },
   EN_CONFIRMACION: { label: "Esperando confirmación", color: "bg-orange-500/20 text-orange-300" },
   FINALIZADA: { label: "Finalizada", color: "bg-white/10 text-gray-400" },
@@ -71,9 +73,11 @@ export default async function CargaDetallePage({
   const puedeCancelar = carga.estado === "ACTIVA";
   const puedeConfirmar = carga.estado === "EN_CONFIRMACION";
   const puedeDisputa = carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION";
+  const esperandoPagoTransportista = carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <AutoRefresh url={`/api/cargas/${carga.id}/estado`} />
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
@@ -147,6 +151,20 @@ export default async function CargaDetallePage({
                 <AbrirDisputaEmpresaButton cargaId={carga.id} />
               </div>
             )}
+          </div>
+        )}
+
+        {esperandoPagoTransportista && carga.transportistaAsignado && carga.transportistaPagoDeadline && (
+          <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
+            <p className="text-sm text-yellow-300 font-medium mb-1">
+              Esperando pago de comisión
+            </p>
+            <p className="text-sm text-yellow-200">
+              <strong>{carga.transportistaAsignado.name}</strong> tiene hasta las{" "}
+              {carga.transportistaPagoDeadline.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })} del{" "}
+              {carga.transportistaPagoDeadline.toLocaleDateString("es-AR")} para pagar la comisión y activar el viaje.
+              Si no paga, la carga vuelve a estar disponible.
+            </p>
           </div>
         )}
 

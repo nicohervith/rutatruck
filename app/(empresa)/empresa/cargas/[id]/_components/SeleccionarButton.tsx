@@ -60,13 +60,16 @@ export default function SeleccionarButton({ cargaId, postulacionId, transportist
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-1">
       <button
         onClick={handleClick}
         disabled={pending}
-        className="text-sm font-medium rounded-lg px-3 py-1.5 transition-colors cursor-pointer disabled:opacity-60"
+        className="flex items-center gap-2 font-semibold rounded-xl px-5 py-2.5 text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
         style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
       >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
         {pending ? "Procesando..." : "Seleccionar"}
       </button>
       {error && <p className="text-xs text-red-300">{error}</p>}

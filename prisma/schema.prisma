@@ -27,33 +27,35 @@ enum Role {
 }
 
 model Carga {
-  id                      Int           @id @default(autoincrement())
-  titulo                  String
-  origen                  String
-  destino                 String
-  tipoCarga               String
-  peso                    Float?
-  volumen                 Float?
-  presupuesto             Float?
-  fechaCarga              DateTime
-  fechaEntrega            DateTime?
-  tiempoEstimado          String?
-  descripcion             String?       @db.Text
-  contactoNombre          String
-  contactoTelefono        String
-  contactoEmail           String
-  estado                  EstadoCarga   @default(PENDIENTE_PAGO)
-  pagado                  Boolean       @default(false)
-  mpPaymentId             String?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
-  empresaId               String
-  empresa                 User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
-  transportistaAsignadoId String?
-  transportistaAsignado   User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
-  postulaciones           Postulacion[]
-  disputaDescripcion      String?       @db.Text
-  disputaAbiertaPor       String?
+  id                         Int           @id @default(autoincrement())
+  titulo                     String
+  origen                     String
+  destino                    String
+  tipoCarga                  String
+  peso                       Float?
+  volumen                    Float?
+  presupuesto                Float?
+  fechaCarga                 DateTime
+  fechaEntrega               DateTime?
+  tiempoEstimado             String?
+  descripcion                String?       @db.Text
+  contactoNombre             String
+  contactoTelefono           String
+  contactoEmail              String
+  estado                     EstadoCarga   @default(PENDIENTE_PAGO)
+  pagado                     Boolean       @default(false)
+  mpPaymentId                String?
+  transportistaPagoDeadline  DateTime?
+  transportistaMpPaymentId   String?
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+  empresaId                  String
+  empresa                    User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
+  transportistaAsignadoId    String?
+  transportistaAsignado      User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
+  postulaciones              Postulacion[]
+  disputaDescripcion         String?       @db.Text
+  disputaAbiertaPor          String?
 }
 
 model Postulacion {
@@ -66,8 +68,7 @@ model Postulacion {
   updatedAt       DateTime          @updatedAt
   carga           Carga             @relation(fields: [cargaId], references: [id])
   transportista   User              @relation(fields: [transportistaId], references: [id])
-
-  vistaTransportista      Boolean           @default(false)
+  vistaTransportista Boolean        @default(false)
 
   @@unique([cargaId, transportistaId])
 }
@@ -75,6 +76,7 @@ model Postulacion {
 enum EstadoCarga {
   PENDIENTE_PAGO
   ACTIVA
+  PENDIENTE_PAGO_TRANSPORTISTA
   ASIGNADA
   EN_CONFIRMACION
   FINALIZADA
@@ -97,4 +99,10 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ConfigApp {
+  id            Int    @id @default(1)
+  comisionTipo  String @default("FIJO")
+  comisionValor Float  @default(5000)
 }

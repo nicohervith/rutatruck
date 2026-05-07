@@ -15,6 +15,14 @@ export async function GET(req: NextRequest) {
         new URL("/empresa/cargas/nueva?error=pago_cancelado", req.nextUrl),
       );
     }
+
+    const matchComision = externalReference.match(/^comision_carga_(\d+)$/);
+    if (matchComision) {
+      const cargaId = parseInt(matchComision[1]);
+      return NextResponse.redirect(
+        new URL(`/transportista/cargas/${cargaId}?error=pago_cancelado`, req.nextUrl),
+      );
+    }
   }
 
   return NextResponse.redirect(new URL("/empresa/cargas", req.nextUrl));

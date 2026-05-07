@@ -1,59 +1,105 @@
 import { verifySession } from "@/lib/dal";
 import { logout } from "@/app/actions/auth";
+import { db } from "@/lib/db";
+import { getComisionConfig } from "@/lib/comision";
+import ComisionForm from "./_components/ComisionForm";
 
 export default async function AdminDashboard() {
   const session = await verifySession();
 
   if (session.role !== "ADMIN") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <p className="text-gray-500">Acceso denegado</p>
       </div>
     );
   }
 
+  const [empresas, transportistas, cargas, comision] = await Promise.all([
+    db.user.count({ where: { role: "EMPRESA" } }),
+    db.user.count({ where: { role: "TRANSPORTISTA" } }),
+    db.carga.count(),
+    getComisionConfig(),
+  ]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+      <header
+        className="px-6 py-4 flex items-center justify-between border-b"
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+      >
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-brand-navy">ClickCargo</h1>
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-            Admin
-          </span>
+          <h1 className="text-lg font-bold text-white">RutaTruck</h1>
+          <span className="text-xs bg-white/10 text-gray-400 px-2 py-0.5 rounded-full">Admin</span>
         </div>
         <form action={logout}>
           <button
             type="submit"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            className="text-sm cursor-pointer hover:text-gray-400"
+            style={{ color: "#6B7280" }}
           >
             Cerrar sesión
           </button>
         </form>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Panel de Administración
-          </h2>
-          <p className="text-gray-500 mt-1">
-            Gestión de usuarios y configuración
-          </p>
+      <main className="max-w-2xl mx-auto px-6 py-12 space-y-8">
+        <div>
+          <h2 className="text-xl font-bold text-white mb-4">Panel de Administración</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Empresas", value: empresas },
+              { label: "Transportistas", value: transportistas },
+              { label: "Cargas", value: cargas },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="rounded-xl border p-5 text-center"
+                style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+              >
+                <p className="text-2xl font-bold text-white">{value}</p>
+                <p className="text-xs mt-1" style={{ color: "#6B7280" }}>{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-sm text-gray-500">Empresas</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-sm text-gray-500">Transportistas</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-sm text-gray-500">Cargas totales</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">0</p>
-          </div>
+        <div
+          className="rounded-xl border p-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h3 className="font-semibold text-white mb-1">Comisión del transportista</h3>
+          <p className="text-sm mb-5" style={{ color: "#6B7280" }}>
+            Monto que paga el transportista para activar un viaje.
+          </p>
+          <ComisionForm
+            comisionTipo={comision.comisionTipo}
+            comisionValor={comision.comisionValor}
+          />
+        </div>
+
+        <div
+          className="rounded-xl border p-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h3 className="font-semibold text-white mb-1">Crear usuario admin</h3>
+          <p className="text-sm mb-3" style={{ color: "#6B7280" }}>
+            Desde terminal con{" "}
+            <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: "#0F2020", color: "#2DD4BF" }}>
+              ADMIN_SETUP_SECRET
+            </code>{" "}
+            configurado en env:
+          </p>
+          <pre
+            className="text-xs rounded-lg p-3 overflow-x-auto"
+            style={{ backgroundColor: "#0F2020", color: "#9CA3AF" }}
+          >
+{`Invoke-RestMethod -Method POST \\
+  -Uri "https://tu-app/api/admin/setup" \\
+  -Headers @{"Authorization"="Bearer TU_SECRET"} \\
+  -ContentType "application/json" \\
+  -Body '{"name":"Admin","email":"a@a.com","password":"pass"}'`}
+          </pre>
         </div>
       </main>
     </div>

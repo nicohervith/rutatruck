@@ -50,17 +50,19 @@ export default function CompletarViajeButton({ cargaId }: { cargaId: number }) {
   }
 
   return (
-    <div className="flex flex-col items-start gap-1">
+    <div className="flex flex-col gap-2">
       <button
         onClick={handleClick}
         disabled={pending}
-        className="bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
+        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
       >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
         {pending ? "Procesando..." : "Marcar viaje como completado"}
       </button>
-      {error && (
-        <p className="text-xs text-red-300">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-300 text-center">{error}</p>}
     </div>
   );
 }

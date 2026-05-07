@@ -11,10 +11,13 @@ function getClient() {
 export async function crearPreferencia(body: PreferenceRequest) {
   if (process.env.NODE_ENV !== "production" && !process.env.MP_ACCESS_TOKEN) {
     const externalRef = body.external_reference ?? "mock";
+    const mockBase = externalRef.startsWith("comision_carga_")
+      ? `${process.env.NEXTAUTH_URL}/transportista/pago-mock`
+      : `${process.env.NEXTAUTH_URL}/empresa/pago-mock`;
     return {
       id: "mock-preference-id",
-      init_point: `${process.env.NEXTAUTH_URL}/empresa/pago-mock?ref=${externalRef}`,
-      sandbox_init_point: `${process.env.NEXTAUTH_URL}/empresa/pago-mock?ref=${externalRef}`,
+      init_point: `${mockBase}?ref=${externalRef}`,
+      sandbox_init_point: `${mockBase}?ref=${externalRef}`,
     };
   }
 

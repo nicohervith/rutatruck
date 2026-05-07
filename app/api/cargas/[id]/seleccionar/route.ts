@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
+import { DEADLINE_HORAS } from "@/lib/comision";
 
 export async function POST(
   req: NextRequest,
@@ -45,27 +46,26 @@ export async function POST(
     );
   }
 
+  const deadline = new Date(Date.now() + DEADLINE_HORAS() * 60 * 60 * 1000);
+
   await db.$transaction([
     db.carga.update({
       where: { id: cargaId },
       data: {
-        estado: "ASIGNADA",
+        estado: "PENDIENTE_PAGO_TRANSPORTISTA",
         transportistaAsignadoId: postulacion.transportistaId,
+        transportistaPagoDeadline: deadline,
       },
     }),
     db.postulacion.update({
       where: { id: body.postulacionId },
       data: { estado: "ACEPTADA" },
     }),
-    db.postulacion.updateMany({
-      where: { cargaId, id: { not: body.postulacionId }, estado: "PENDIENTE" },
-      data: { estado: "RECHAZADA" },
-    }),
   ]);
 
   sendPushToUser(postulacion.transportistaId, {
     title: "¡Fuiste seleccionado!",
-    body: `Te seleccionaron para la carga "${carga.titulo}". Entrá para ver los detalles.`,
+    body: `Tenés ${DEADLINE_HORAS()} horas para pagar la comisión y confirmar el viaje "${carga.titulo}".`,
     url: `/transportista/cargas/${cargaId}`,
   }).catch(() => {});
 
