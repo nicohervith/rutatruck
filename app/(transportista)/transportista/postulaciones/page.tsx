@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
+import FiltroEstado from "@/app/_components/FiltroEstado";
 
 type CargaEstadoConfig = {
   label: string;
@@ -58,8 +58,32 @@ const SORT_ORDER: Record<string, number> = {
   CANCELADA: 6,
 };
 
-export default async function MisPostulacionesPage() {
+const FILTER_OPCIONES = [
+  { value: "", label: "Todas" },
+  { value: "PAGAR", label: "Pagar comisión" },
+  { value: "ASIGNADA", label: "En viaje" },
+  { value: "EN_CONFIRMACION", label: "Aguardando conf." },
+  { value: "FINALIZADA", label: "Completadas" },
+  { value: "DISPUTA", label: "En disputa" },
+  { value: "PENDIENTE", label: "Sin respuesta" },
+  { value: "RECHAZADA", label: "No seleccionado" },
+];
+
+function filtrarPostulaciones(postulaciones: any[], estado: string) {
+  if (!estado) return postulaciones;
+  if (estado === "PENDIENTE") return postulaciones.filter((p) => p.estado === "PENDIENTE");
+  if (estado === "RECHAZADA") return postulaciones.filter((p) => p.estado === "RECHAZADA");
+  if (estado === "PAGAR") return postulaciones.filter((p) => p.estado === "ACEPTADA" && p.carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA");
+  return postulaciones.filter((p) => p.estado === "ACEPTADA" && p.carga.estado === estado);
+}
+
+export default async function MisPostulacionesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>;
+}) {
   const session = await verifySession();
+  const { estado: estadoFiltro = "" } = await searchParams;
 
   const postulaciones = await db.postulacion.findMany({
     where: { transportistaId: session.userId },
@@ -88,6 +112,13 @@ export default async function MisPostulacionesPage() {
     return orderA - orderB;
   });
 
+  const opcionesConCount = FILTER_OPCIONES.map((op) => ({
+    ...op,
+    count: op.value === "" ? postulaciones.length : filtrarPostulaciones(sorted, op.value).length,
+  })).filter((op) => op.value === "" || op.count > 0);
+
+  const visible = filtrarPostulaciones(sorted, estadoFiltro);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
       <AutoRefresh url="/api/postulaciones/hash" />
@@ -97,7 +128,7 @@ export default async function MisPostulacionesPage() {
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/transportista/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <LogoClickCargo />
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBell />
@@ -106,9 +137,15 @@ export default async function MisPostulacionesPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl font-semibold text-white">Mis postulaciones</h1>
         </div>
+
+        {postulaciones.length > 0 && (
+          <div className="mb-5">
+            <FiltroEstado opciones={opcionesConCount} current={estadoFiltro} />
+          </div>
+        )}
 
         {postulaciones.length === 0 ? (
           <div
@@ -126,7 +163,12 @@ export default async function MisPostulacionesPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {sorted.map((p: any) => {
+            {visible.length === 0 && (
+              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}>
+                <p className="text-sm" style={{ color: "#6B7280" }}>No hay postulaciones con ese estado.</p>
+              </div>
+            )}
+            {visible.map((p: any) => {
               const esAceptada = p.estado === "ACEPTADA";
               const esRechazada = p.estado === "RECHAZADA";
               const esNueva = esAceptada && !p.vistaTransportista;

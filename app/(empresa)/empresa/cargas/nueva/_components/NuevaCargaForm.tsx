@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import LocationAutocomplete from "./LocationAutocomplete";
 
 const DRAFT_KEY = "clickcargo-nueva-carga-draft";
@@ -125,13 +124,7 @@ export default function NuevaCargaForm({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/empresa/dashboard">
-          <Image
-            src={logoImage}
-            alt="ClickCargo"
-            width={48}
-            height={48}
-            className="rounded-xl"
-          />
+          <LogoClickCargo />
         </Link>
       </header>
 

@@ -15,10 +15,11 @@ export default async function AdminDashboard() {
     );
   }
 
-  const [empresas, transportistas, cargas, comision] = await Promise.all([
+  const [empresas, transportistas, cargas, disputas, comision] = await Promise.all([
     db.user.count({ where: { role: "EMPRESA" } }),
     db.user.count({ where: { role: "TRANSPORTISTA" } }),
     db.carga.count(),
+    db.carga.count({ where: { estado: "DISPUTA" } }),
     getComisionConfig(),
   ]);
 
@@ -46,21 +47,34 @@ export default async function AdminDashboard() {
       <main className="max-w-2xl mx-auto px-6 py-12 space-y-8">
         <div>
           <h2 className="text-xl font-bold text-white mb-4">Panel de Administración</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Empresas", value: empresas },
-              { label: "Transportistas", value: transportistas },
-              { label: "Cargas", value: cargas },
-            ].map(({ label, value }) => (
-              <div
-                key={label}
-                className="rounded-xl border p-5 text-center"
-                style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
-              >
-                <p className="text-2xl font-bold text-white">{value}</p>
-                <p className="text-xs mt-1" style={{ color: "#6B7280" }}>{label}</p>
-              </div>
-            ))}
+              { label: "Empresas", value: empresas, href: null },
+              { label: "Transportistas", value: transportistas, href: null },
+              { label: "Cargas", value: cargas, href: null },
+              { label: "Disputas", value: disputas, href: "/admin/disputas", alert: disputas > 0 },
+            ].map(({ label, value, href, alert }) => {
+              const card = (
+                <div
+                  key={label}
+                  className="rounded-xl border p-5 text-center"
+                  style={{
+                    backgroundColor: alert ? "#2D1B3A" : "#112424",
+                    borderColor: alert ? "#7C3AED55" : "#1E3838",
+                  }}
+                >
+                  <p className="text-2xl font-bold" style={{ color: alert ? "#C084FC" : "white" }}>{value}</p>
+                  <p className="text-xs mt-1" style={{ color: alert ? "#A855F7" : "#6B7280" }}>{label}</p>
+                </div>
+              );
+              return href ? (
+                <a key={label} href={href} className="hover:opacity-80 transition-opacity">
+                  {card}
+                </a>
+              ) : (
+                <div key={label}>{card}</div>
+              );
+            })}
           </div>
         </div>
 

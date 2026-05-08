@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       );
     }
     return NextResponse.redirect(
-      new URL(`/transportista/cargas/${cargaId}?pago=1`, req.nextUrl),
+      new URL(`/transportista/cargas?pago=1`, req.nextUrl),
     );
   }
 
