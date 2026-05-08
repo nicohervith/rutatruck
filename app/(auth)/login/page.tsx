@@ -2,8 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
@@ -17,8 +16,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#0C1E1E" }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <Image src={logoImage} alt="ClickCargo" width={72} height={72} className="mx-auto rounded-2xl" />
+          <Link href="/" className="inline-flex justify-center">
+            <LogoClickCargo size={52} />
           </Link>
         </div>
 

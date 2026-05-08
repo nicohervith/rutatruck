@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
+import CountdownTimer from "./[id]/_components/CountdownTimer";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -17,12 +17,12 @@ const TIPO_LABELS: Record<string, string> = {
 export default async function TransportistasCargasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>;
+  searchParams: Promise<{ success?: string; pago?: string }>;
 }) {
   const session = await verifySession();
-  const { success } = await searchParams;
+  const { success, pago } = await searchParams;
 
-  const [cargas, misPostulaciones] = await Promise.all([
+  const [cargas, misPostulaciones, pendientesPago] = await Promise.all([
     db.carga.findMany({
       where: { estado: "ACTIVA" },
       orderBy: { createdAt: "desc" },
@@ -30,6 +30,13 @@ export default async function TransportistasCargasPage({
     db.postulacion.findMany({
       where: { transportistaId: session.userId },
       select: { cargaId: true },
+    }),
+    db.carga.findMany({
+      where: {
+        transportistaAsignadoId: session.userId,
+        estado: "PENDIENTE_PAGO_TRANSPORTISTA",
+      },
+      orderBy: { transportistaPagoDeadline: "asc" },
     }),
   ]);
 
@@ -42,7 +49,7 @@ export default async function TransportistasCargasPage({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/transportista/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <LogoClickCargo />
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBell />
@@ -58,6 +65,20 @@ export default async function TransportistasCargasPage({
           </p>
         </div>
 
+        {pago === "1" && (
+          <div
+            className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
+            style={{ backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33" }}
+          >
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
+              ¡Comisión pagada! El viaje está activado.
+            </p>
+          </div>
+        )}
+
         {success === "1" && (
           <div
             className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
@@ -69,6 +90,56 @@ export default async function TransportistasCargasPage({
             <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
               ¡Postulación enviada! La empresa te contactará si te selecciona.
             </p>
+          </div>
+        )}
+
+        {pendientesPago.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#FB923C" }}>
+                Requieren pago — {pendientesPago.length} carga{pendientesPago.length !== 1 ? "s" : ""}
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {pendientesPago.map((carga: any) => (
+                <Link
+                  key={carga.id}
+                  href={`/transportista/cargas/${carga.id}`}
+                  className="rounded-xl border block overflow-hidden transition-all hover:border-orange-400/40"
+                  style={{ backgroundColor: "#1A1200", borderColor: "#78350F55" }}
+                >
+                  <div className="px-4 py-2 flex items-center justify-between border-b" style={{ borderColor: "#78350F55", backgroundColor: "#FB923C15" }}>
+                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#FB923C" }}>
+                      Pendiente de pago
+                    </span>
+                    {carga.transportistaPagoDeadline && (
+                      <div className="flex items-center gap-1.5 text-xs" style={{ color: "#9CA3AF" }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <CountdownTimer deadline={carga.transportistaPagoDeadline.toISOString()} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <p className="text-base font-bold text-white mb-1">
+                      {carga.origen} → {carga.destino}
+                    </p>
+                    <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                      {carga.titulo} · {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}
+                      {carga.presupuesto !== null && ` · $${carga.presupuesto.toLocaleString("es-AR")}`}
+                    </p>
+                  </div>
+                  <div
+                    className="px-4 py-2.5 text-center text-sm font-semibold"
+                    style={{ backgroundColor: "#FB923C", color: "#0C1E1E" }}
+                  >
+                    Pagar comisión →
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 

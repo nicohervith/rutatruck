@@ -1,12 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#0C1E1E" }}>
       <header className="px-6 py-4 flex items-center justify-between">
-        <Image src={logoImage} alt="ClickCargo" width={52} height={52} className="rounded-xl" />
+        <LogoClickCargo />
         <div className="flex items-center gap-3">
           <Link
             href="/login"

@@ -7,9 +7,8 @@ import EditarCargaPanel from "./_components/EditarCargaPanel";
 import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
-import Image from "next/image";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 
 function formatWhatsApp(phone: string): string {
   return phone.replace(/\D/g, "");
@@ -83,7 +82,7 @@ export default async function CargaDetallePage({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/empresa/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <LogoClickCargo />
         </Link>
         <NotificacionBellEmpresa />
       </header>

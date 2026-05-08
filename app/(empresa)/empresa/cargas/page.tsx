@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
+import FiltroEstado from "@/app/_components/FiltroEstado";
 
 type EstadoConfig = {
   label: string;
@@ -58,10 +58,10 @@ const ESTADO_CONFIG: Record<string, EstadoConfig> = {
 export default async function CargasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; error?: string }>;
+  searchParams: Promise<{ success?: string; error?: string; estado?: string }>;
 }) {
   const session = await verifySession();
-  const { success, error } = await searchParams;
+  const { success, error, estado: estadoFiltro = "" } = await searchParams;
 
   const cargas = await db.carga.findMany({
     where: { empresaId: session.userId },
@@ -75,6 +75,22 @@ export default async function CargasPage({
   const resto = cargas.filter((c) => c.estado !== "EN_CONFIRMACION");
   const sorted = [...enConfirmacion, ...resto];
 
+  const estadosCounts = cargas.reduce((acc, c) => {
+    acc[c.estado] = (acc[c.estado] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const filterOpciones = [
+    { value: "", label: "Todas", count: cargas.length },
+    ...Object.entries(estadosCounts).map(([estado, count]) => ({
+      value: estado,
+      label: ESTADO_CONFIG[estado]?.label ?? estado,
+      count,
+    })),
+  ];
+
+  const visible = estadoFiltro ? sorted.filter((c) => c.estado === estadoFiltro) : sorted;
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
       <header
@@ -82,7 +98,7 @@ export default async function CargasPage({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/empresa/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <LogoClickCargo />
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBellEmpresa />
@@ -97,6 +113,12 @@ export default async function CargasPage({
             {cargas.length} carga{cargas.length !== 1 ? "s" : ""} publicada{cargas.length !== 1 ? "s" : ""}
           </p>
         </div>
+
+        {cargas.length > 0 && (
+          <div className="mb-5">
+            <FiltroEstado opciones={filterOpciones} current={estadoFiltro} />
+          </div>
+        )}
 
         {success === "1" && (
           <div
@@ -139,7 +161,12 @@ export default async function CargasPage({
           </div>
         ) : (
           <div className="space-y-4">
-            {sorted.map((carga: any) => {
+            {visible.length === 0 && (
+              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}>
+                <p className="text-sm" style={{ color: "#6B7280" }}>No hay cargas con ese estado.</p>
+              </div>
+            )}
+            {visible.map((carga: any) => {
               const cfg = ESTADO_CONFIG[carga.estado] ?? {
                 label: carga.estado,
                 color: "bg-white/10 text-gray-400",

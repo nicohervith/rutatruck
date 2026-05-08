@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 
@@ -42,7 +41,7 @@ export default async function EmpresaDashboard() {
         className="px-6 py-4 flex items-center justify-between border-b"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
-        <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+        <LogoClickCargo />
         <div className="flex items-center gap-2">
           <NotificacionBellEmpresa />
           <HamburgerMenu role="empresa" />

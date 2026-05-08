@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import Image from "next/image";
-import logoImage from "@/app/assets/Logo5.jpeg";
+import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
 import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
@@ -85,7 +84,7 @@ export default async function CargaPublicaPage({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/transportista/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <LogoClickCargo />
         </Link>
       </header>
 
