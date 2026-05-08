@@ -29,7 +29,7 @@ export default async function AdminDashboard() {
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-white">RutaTruck</h1>
+          <h1 className="text-lg font-bold text-white">ClickCargo</h1>
           <span className="text-xs bg-white/10 text-gray-400 px-2 py-0.5 rounded-full">Admin</span>
         </div>
         <form action={logout}>

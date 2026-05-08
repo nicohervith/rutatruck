@@ -160,10 +160,10 @@ export default async function CargaPublicaPage({
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
                 : null,
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
-              carga.fechaEntrega
-                ? ["Fecha de entrega", carga.fechaEntrega.toLocaleDateString("es-AR")]
+              carga.fechaCupo
+                ? ["Fecha de cupo", carga.fechaCupo.toLocaleDateString("es-AR")]
                 : null,
-              carga.tiempoEstimado ? ["Tiempo estimado", carga.tiempoEstimado] : null,
+              carga.preferenciaCamion ? ["Preferencia de camión", carga.preferenciaCamion] : null,
               carga.descripcion ? ["Descripción", carga.descripcion] : null,
             ]
               .filter((item): item is string[] => Array.isArray(item))

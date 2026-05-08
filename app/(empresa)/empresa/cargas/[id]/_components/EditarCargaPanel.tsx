@@ -13,8 +13,8 @@ interface CargaEditable {
   peso: number | null;
   volumen: number | null;
   fechaCarga: string;
-  fechaEntrega: string | null;
-  tiempoEstimado: string | null;
+  fechaCupo: string | null;
+  preferenciaCamion: string | null;
   descripcion: string | null;
   contactoNombre: string;
   contactoTelefono: string;
@@ -148,15 +148,9 @@ export default function EditarCargaPanel({ carga }: { carga: CargaEditable }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="edit-volumen" className={labelClass} style={labelStyle}>Volumen (m³)</label>
-            <input id="edit-volumen" name="volumen" type="number" step="0.1" min="0" defaultValue={carga.volumen ?? ""} className={inputClass} style={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="edit-tiempoEstimado" className={labelClass} style={labelStyle}>Tiempo estimado</label>
-            <input id="edit-tiempoEstimado" name="tiempoEstimado" type="text" defaultValue={carga.tiempoEstimado ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: 2 días" />
-          </div>
+        <div>
+          <label htmlFor="edit-volumen" className={labelClass} style={labelStyle}>Volumen (m³)</label>
+          <input id="edit-volumen" name="volumen" type="number" step="0.1" min="0" defaultValue={carga.volumen ?? ""} className={inputClass} style={inputStyle} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -165,9 +159,14 @@ export default function EditarCargaPanel({ carga }: { carga: CargaEditable }) {
             <input id="edit-fechaCarga" name="fechaCarga" type="date" required defaultValue={carga.fechaCarga} className={inputClass} style={{ ...inputStyle, colorScheme: "dark" }} />
           </div>
           <div>
-            <label htmlFor="edit-fechaEntrega" className={labelClass} style={labelStyle}>Fecha de entrega</label>
-            <input id="edit-fechaEntrega" name="fechaEntrega" type="date" defaultValue={carga.fechaEntrega ?? ""} className={inputClass} style={{ ...inputStyle, colorScheme: "dark" }} />
+            <label htmlFor="edit-fechaCupo" className={labelClass} style={labelStyle}>Fecha de cupo</label>
+            <input id="edit-fechaCupo" name="fechaCupo" type="date" defaultValue={carga.fechaCupo ?? ""} className={inputClass} style={{ ...inputStyle, colorScheme: "dark" }} />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="edit-preferenciaCamion" className={labelClass} style={labelStyle}>Preferencia de camión</label>
+          <input id="edit-preferenciaCamion" name="preferenciaCamion" type="text" defaultValue={carga.preferenciaCamion ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: Camión jaula, semiremolque, etc." />
         </div>
 
         <div>
