@@ -6,6 +6,8 @@ import SeleccionarButton from "./_components/SeleccionarButton";
 import EditarCargaPanel from "./_components/EditarCargaPanel";
 import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
+import ReintentarPagoButton from "./_components/ReintentarPagoButton";
+import CancelarCargaButton from "./_components/CancelarCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
@@ -70,6 +72,7 @@ export default async function CargaDetallePage({
 
   const puedeEditar = carga.estado === "ACTIVA";
   const puedeCancelar = carga.estado === "ACTIVA";
+  const pendientePago = carga.estado === "PENDIENTE_PAGO";
   const puedeConfirmar = carga.estado === "EN_CONFIRMACION";
   const puedeDisputa = carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION";
   const esperandoPagoTransportista = carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
@@ -91,8 +94,8 @@ export default async function CargaDetallePage({
         <div className="mb-6">
           <Link
             href="/empresa/cargas"
-            className="text-sm inline-block mb-3 transition-colors"
-            style={{ color: "#6B7280" }}
+            className="text-sm font-medium inline-flex items-center gap-1 mb-3 transition-colors"
+            style={{ color: "#2DD4BF" }}
           >
             ← Mis cargas
           </Link>
@@ -115,13 +118,19 @@ export default async function CargaDetallePage({
           </div>
         )}
 
-        {(puedeCancelar || puedeEditar || puedeConfirmar || puedeDisputa) && (
+        {(pendientePago || puedeCancelar || puedeEditar || puedeConfirmar || puedeDisputa) && (
           <div
             className="rounded-xl border p-5 mb-6"
             style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
           >
             <h2 className="font-medium text-white mb-4">Acciones</h2>
             <div className="flex flex-wrap gap-3">
+              {pendientePago && (
+                <>
+                  <ReintentarPagoButton cargaId={carga.id} />
+                  <CancelarCargaButton cargaId={carga.id} />
+                </>
+              )}
               {(puedeEditar || puedeCancelar) && (
                 <EditarCargaPanel
                   carga={{

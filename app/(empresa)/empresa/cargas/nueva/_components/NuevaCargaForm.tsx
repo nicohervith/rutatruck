@@ -95,18 +95,33 @@ export default function NuevaCargaForm({
     setError(null);
     setPending(true);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
     try {
       const res = await fetch("/api/cargas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fields),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al crear la carga");
+      if (!data.url) throw new Error("No se recibió la URL de pago. Intentá de nuevo.");
+
       localStorage.removeItem(DRAFT_KEY);
       window.location.href = data.url;
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error inesperado");
+      clearTimeout(timeout);
+      const msg =
+        err instanceof Error && err.name === "AbortError"
+          ? "La conexión tardó demasiado. Revisá tu conexión e intentá de nuevo."
+          : err instanceof Error
+          ? err.message
+          : "Error inesperado";
+      setError(msg);
       setPending(false);
     }
   }
@@ -132,8 +147,8 @@ export default function NuevaCargaForm({
         <div className="mb-8">
           <Link
             href="/empresa/dashboard"
-            className="text-sm mb-3 inline-block transition-colors"
-            style={{ color: "#6B7280" }}
+            className="text-sm font-medium mb-3 inline-flex items-center gap-1 transition-colors"
+            style={{ color: "#2DD4BF" }}
           >
             ← Volver al panel
           </Link>

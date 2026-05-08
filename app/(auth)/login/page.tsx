@@ -96,7 +96,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm" style={{ color: "#6B7280" }}>
+          <p className="mt-4 text-center text-sm">
+            <Link href="/recuperar-contrasena" className="transition-colors" style={{ color: "#6B7280" }}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
+
+          <p className="mt-3 text-center text-sm" style={{ color: "#6B7280" }}>
             ¿No tenés cuenta?{" "}
             <Link href="/registro" className="font-medium transition-colors" style={{ color: "#2DD4BF" }}>
               Registrate
