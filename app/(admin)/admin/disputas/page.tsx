@@ -30,7 +30,7 @@ export default async function AdminDisputasPage() {
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <div className="flex items-center gap-3">
-          <Link href="/admin/dashboard" className="text-sm" style={{ color: "#6B7280" }}>
+          <Link href="/admin/dashboard" className="text-sm font-medium transition-colors" style={{ color: "#2DD4BF" }}>
             ← Panel
           </Link>
           <span className="text-white font-semibold">Disputas abiertas</span>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendPushToAllTransportistas } from "@/lib/push";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -17,13 +18,22 @@ export async function GET(req: NextRequest) {
   const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
   if (matchPublicar) {
     const cargaId = parseInt(matchPublicar[1]);
+    let carga: { titulo: string; origen: string; destino: string } | null = null;
     try {
-      await db.carga.update({
+      carga = await db.carga.update({
         where: { id: cargaId, estado: "PENDIENTE_PAGO" },
         data: { estado: "ACTIVA", pagado: true, mpPaymentId: paymentId ?? null },
+        select: { titulo: true, origen: true, destino: true },
       });
     } catch {
       return NextResponse.redirect(new URL("/empresa/cargas?error=pago", req.nextUrl));
+    }
+    if (carga) {
+      void sendPushToAllTransportistas({
+        title: "Nueva carga disponible",
+        body: `${carga.titulo} · ${carga.origen} → ${carga.destino}`,
+        url: "/transportista/cargas",
+      });
     }
     return NextResponse.redirect(new URL("/empresa/cargas?success=1", req.nextUrl));
   }

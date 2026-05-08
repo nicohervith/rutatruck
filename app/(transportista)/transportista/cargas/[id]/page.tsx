@@ -92,8 +92,8 @@ export default async function CargaPublicaPage({
         <div className="mb-6">
           <Link
             href="/transportista/cargas"
-            className="text-sm inline-block mb-3 transition-colors"
-            style={{ color: "#6B7280" }}
+            className="text-sm font-medium inline-flex items-center gap-1 mb-3 transition-colors"
+            style={{ color: "#2DD4BF" }}
           >
             ← Cargas disponibles
           </Link>
