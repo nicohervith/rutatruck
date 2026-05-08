@@ -108,6 +108,13 @@ export default async function CargasPage({
 
       <main className="max-w-2xl mx-auto px-6 py-10">
         <div className="mb-6">
+          <Link
+            href="/empresa/dashboard"
+            className="text-sm font-medium inline-flex items-center gap-1 mb-3 transition-colors"
+            style={{ color: "#2DD4BF" }}
+          >
+            ← Panel
+          </Link>
           <h1 className="text-2xl font-bold text-white">Mis cargas</h1>
           <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
             {cargas.length} carga{cargas.length !== 1 ? "s" : ""} publicada{cargas.length !== 1 ? "s" : ""}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
-import { getResend, FROM_EMAIL } from "@/lib/resend";
+import { sendEmail } from "@/lib/resend";
 
 export async function POST(req: NextRequest) {
   let body: { email?: string };
@@ -29,8 +29,7 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
   const resetUrl = `${baseUrl}/nueva-contrasena?token=${token}`;
 
-  await getResend().emails.send({
-    from: FROM_EMAIL,
+  await sendEmail({
     to: email,
     subject: "Recuperar contraseña — ClickCargo",
     html: `
