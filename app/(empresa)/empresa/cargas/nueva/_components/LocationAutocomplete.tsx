@@ -1,0 +1,122 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+interface Suggestion {
+  label: string;
+}
+
+interface Props {
+  id: string;
+  name: string;
+  placeholder?: string;
+  required?: boolean;
+  inputClass: string;
+  inputStyle: React.CSSProperties;
+  initialValue?: string;
+  onValueChange?: (value: string) => void;
+}
+
+async function fetchSuggestions(query: string): Promise<Suggestion[]> {
+  if (query.length < 2) return [];
+  const url = `https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(query)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.localidades ?? []).map((l: { nombre: string; provincia: { nombre: string } }) => ({
+    label: `${l.nombre}, ${l.provincia.nombre}`,
+  }));
+}
+
+export default function LocationAutocomplete({
+  id, name, placeholder, required, inputClass, inputStyle, initialValue = "", onValueChange,
+}: Props) {
+  const [value, setValue] = useState(initialValue);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.length < 2) { setSuggestions([]); setOpen(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      const results = await fetchSuggestions(value);
+      setSuggestions(results);
+      setOpen(results.length > 0);
+      setActive(-1);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [value]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function handleChange(newValue: string) {
+    setValue(newValue);
+    onValueChange?.(newValue);
+  }
+
+  function select(label: string) {
+    setValue(label);
+    onValueChange?.(label);
+    setOpen(false);
+    setActive(-1);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!open) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive(i => Math.max(i - 1, 0)); }
+    else if (e.key === "Enter" && active >= 0) { e.preventDefault(); select(suggestions[active].label); }
+    else if (e.key === "Escape") setOpen(false);
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        id={id}
+        name={name}
+        type="text"
+        required={required}
+        autoComplete="off"
+        value={value}
+        onChange={e => handleChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        className={inputClass}
+        style={inputStyle}
+        placeholder={placeholder}
+      />
+      {open && (
+        <ul
+          className="absolute z-50 w-full mt-1 rounded-lg border overflow-hidden shadow-lg"
+          style={{ backgroundColor: "#0F2020", borderColor: "#1E3838" }}
+        >
+          {suggestions.map((s, i) => (
+            <li
+              key={s.label}
+              onMouseDown={() => select(s.label)}
+              className="px-3 py-2 text-sm cursor-pointer transition-colors"
+              style={{
+                color: i === active ? "#2DD4BF" : "#E5E7EB",
+                backgroundColor: i === active ? "#1E3838" : "transparent",
+              }}
+              onMouseEnter={() => setActive(i)}
+            >
+              {s.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

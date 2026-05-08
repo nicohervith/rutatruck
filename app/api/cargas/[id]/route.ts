@@ -29,7 +29,7 @@ export async function PUT(
   const {
     titulo, origen, destino, tipoCarga,
     peso, volumen,
-    fechaCarga, fechaEntrega, tiempoEstimado,
+    fechaCarga, fechaCupo, preferenciaCamion,
     descripcion,
     contactoNombre, contactoTelefono, contactoEmail,
   } = body;
@@ -48,8 +48,8 @@ export async function PUT(
       peso: peso !== undefined && peso !== "" ? parseFloat(String(peso)) : null,
       volumen: volumen !== undefined && volumen !== "" ? parseFloat(String(volumen)) : null,
       fechaCarga: new Date(String(fechaCarga)),
-      fechaEntrega: fechaEntrega && String(fechaEntrega) !== "" ? new Date(String(fechaEntrega)) : null,
-      tiempoEstimado: tiempoEstimado && String(tiempoEstimado) !== "" ? String(tiempoEstimado) : null,
+      fechaCupo: fechaCupo && String(fechaCupo) !== "" ? new Date(String(fechaCupo)) : null,
+      preferenciaCamion: preferenciaCamion && String(preferenciaCamion) !== "" ? String(preferenciaCamion) : null,
       descripcion: descripcion && String(descripcion) !== "" ? String(descripcion) : null,
       contactoNombre: String(contactoNombre),
       contactoTelefono: String(contactoTelefono),

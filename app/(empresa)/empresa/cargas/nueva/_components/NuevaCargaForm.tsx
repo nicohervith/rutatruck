@@ -1,15 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import logoImage from "@/app/assets/Logo5.jpeg";
+import LocationAutocomplete from "./LocationAutocomplete";
+
+const DRAFT_KEY = "clickcargo-nueva-carga-draft";
 
 interface ContactoDefecto {
   nombre: string;
   email: string;
   telefono: string;
+}
+
+type Fields = {
+  titulo: string;
+  origen: string;
+  destino: string;
+  tipoCarga: string;
+  peso: string;
+  presupuesto: string;
+  fechaCarga: string;
+  fechaCupo: string;
+  preferenciaCamion: string;
+  descripcion: string;
+  contactoNombre: string;
+  contactoTelefono: string;
+  contactoEmail: string;
+};
+
+function makeDefaults(c: ContactoDefecto): Fields {
+  return {
+    titulo: "", origen: "", destino: "", tipoCarga: "",
+    peso: "", presupuesto: "", fechaCarga: "", fechaCupo: "",
+    preferenciaCamion: "", descripcion: "",
+    contactoNombre: c.nombre,
+    contactoTelefono: c.telefono,
+    contactoEmail: c.email,
+  };
 }
 
 export default function NuevaCargaForm({
@@ -21,26 +51,60 @@ export default function NuevaCargaForm({
   precioPublicacion: number;
   errorInicial?: string;
 }) {
-  const router = useRouter();
+  useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(errorInicial ?? null);
+  const [fields, setFields] = useState<Fields>(() => makeDefaults(contactoDefecto));
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<Fields>;
+        setFields(f => ({ ...f, ...parsed }));
+        setHasDraft(true);
+      }
+    } catch {}
+    setDraftLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!draftLoaded) return;
+    if (saveRef.current) clearTimeout(saveRef.current);
+    saveRef.current = setTimeout(() => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
+    }, 500);
+    return () => { if (saveRef.current) clearTimeout(saveRef.current); };
+  }, [fields, draftLoaded]);
+
+  function set(name: keyof Fields) {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setFields(f => ({ ...f, [name]: e.target.value }));
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(DRAFT_KEY);
+    setFields(makeDefaults(contactoDefecto));
+    setHasDraft(false);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setPending(true);
 
-    const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(fd.entries());
-
     try {
       const res = await fetch("/api/cargas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(fields),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al crear la carga");
+      localStorage.removeItem(DRAFT_KEY);
       window.location.href = data.url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");
@@ -51,7 +115,7 @@ export default function NuevaCargaForm({
   const inputClass =
     "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
   const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
-  const labelClass = "block text-sm font-medium mb-1" ;
+  const labelClass = "block text-sm font-medium mb-1";
   const labelStyle = { color: "#9CA3AF" };
 
   return (
@@ -61,7 +125,13 @@ export default function NuevaCargaForm({
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <Link href="/empresa/dashboard">
-          <Image src={logoImage} alt="ClickCargo" width={48} height={48} className="rounded-xl" />
+          <Image
+            src={logoImage}
+            alt="ClickCargo"
+            width={48}
+            height={48}
+            className="rounded-xl"
+          />
         </Link>
       </header>
 
@@ -74,11 +144,30 @@ export default function NuevaCargaForm({
           >
             ← Volver al panel
           </Link>
-          <h1 className="text-2xl font-semibold text-white">Publicar nueva carga</h1>
+          <h1 className="text-2xl font-semibold text-white">
+            Publicar nueva carga
+          </h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
-            Completá los datos del envío. Una vez procesado el pago de publicación, la carga quedará visible para transportistas.
+            Completá los datos del envío. Una vez procesado el pago de
+            publicación, la carga quedará visible para transportistas.
           </p>
         </div>
+
+        {hasDraft && (
+          <div
+            className="mb-4 flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm"
+            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33", color: "#2DD4BF" }}
+          >
+            <span>Borrador restaurado</span>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="text-xs underline opacity-70 hover:opacity-100 cursor-pointer"
+            >
+              Limpiar
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div
@@ -96,6 +185,8 @@ export default function NuevaCargaForm({
                 name="titulo"
                 type="text"
                 required
+                value={fields.titulo}
+                onChange={set("titulo")}
                 className={inputClass}
                 style={inputStyle}
                 placeholder="Ej: Transporte de soja — Córdoba a Rosario"
@@ -107,28 +198,30 @@ export default function NuevaCargaForm({
                 <label htmlFor="origen" className={labelClass} style={labelStyle}>
                   Origen *
                 </label>
-                <input
+                <LocationAutocomplete
                   id="origen"
                   name="origen"
-                  type="text"
                   required
-                  className={inputClass}
-                  style={inputStyle}
+                  inputClass={inputClass}
+                  inputStyle={inputStyle}
                   placeholder="Ciudad / Provincia"
+                  initialValue={fields.origen}
+                  onValueChange={v => setFields(f => ({ ...f, origen: v }))}
                 />
               </div>
               <div>
                 <label htmlFor="destino" className={labelClass} style={labelStyle}>
                   Destino *
                 </label>
-                <input
+                <LocationAutocomplete
                   id="destino"
                   name="destino"
-                  type="text"
                   required
-                  className={inputClass}
-                  style={inputStyle}
+                  inputClass={inputClass}
+                  inputStyle={inputStyle}
                   placeholder="Ciudad / Provincia"
+                  initialValue={fields.destino}
+                  onValueChange={v => setFields(f => ({ ...f, destino: v }))}
                 />
               </div>
             </div>
@@ -142,11 +235,14 @@ export default function NuevaCargaForm({
                   id="tipoCarga"
                   name="tipoCarga"
                   required
-                  defaultValue=""
+                  value={fields.tipoCarga}
+                  onChange={set("tipoCarga")}
                   className={inputClass}
                   style={inputStyle}
                 >
-                  <option value="" disabled style={{ backgroundColor: "#0F2020" }}>Seleccioná el tipo</option>
+                  <option value="" disabled style={{ backgroundColor: "#0F2020" }}>
+                    Seleccioná el tipo
+                  </option>
                   <option value="granos" style={{ backgroundColor: "#0F2020" }}>Granos</option>
                   <option value="frutas" style={{ backgroundColor: "#0F2020" }}>Frutas</option>
                   <option value="verduras" style={{ backgroundColor: "#0F2020" }}>Verduras</option>
@@ -164,6 +260,8 @@ export default function NuevaCargaForm({
                   type="number"
                   step="0.1"
                   min="0"
+                  value={fields.peso}
+                  onChange={set("peso")}
                   className={inputClass}
                   style={inputStyle}
                   placeholder="Ej: 28"
@@ -182,22 +280,26 @@ export default function NuevaCargaForm({
                   type="number"
                   step="0.01"
                   min="0"
+                  value={fields.presupuesto}
+                  onChange={set("presupuesto")}
                   className={inputClass}
                   style={inputStyle}
                   placeholder="Ej: 150000"
                 />
               </div>
               <div>
-                <label htmlFor="tiempoEstimado" className={labelClass} style={labelStyle}>
-                  Tiempo estimado del viaje
+                <label htmlFor="preferenciaCamion" className={labelClass} style={labelStyle}>
+                  Preferencia de camión
                 </label>
                 <input
-                  id="tiempoEstimado"
-                  name="tiempoEstimado"
+                  id="preferenciaCamion"
+                  name="preferenciaCamion"
                   type="text"
+                  value={fields.preferenciaCamion}
+                  onChange={set("preferenciaCamion")}
                   className={inputClass}
                   style={inputStyle}
-                  placeholder="Ej: 2 días"
+                  placeholder="Ej: Camión jaula, semiremolque, etc."
                 />
               </div>
             </div>
@@ -212,18 +314,22 @@ export default function NuevaCargaForm({
                   name="fechaCarga"
                   type="date"
                   required
+                  value={fields.fechaCarga}
+                  onChange={set("fechaCarga")}
                   className={inputClass}
                   style={{ ...inputStyle, colorScheme: "dark" }}
                 />
               </div>
               <div>
-                <label htmlFor="fechaEntrega" className={labelClass} style={labelStyle}>
-                  Fecha de entrega estimada
+                <label htmlFor="fechaCupo" className={labelClass} style={labelStyle}>
+                  Fecha de cupo
                 </label>
                 <input
-                  id="fechaEntrega"
-                  name="fechaEntrega"
+                  id="fechaCupo"
+                  name="fechaCupo"
                   type="date"
+                  value={fields.fechaCupo}
+                  onChange={set("fechaCupo")}
                   className={inputClass}
                   style={{ ...inputStyle, colorScheme: "dark" }}
                 />
@@ -238,6 +344,8 @@ export default function NuevaCargaForm({
                 id="descripcion"
                 name="descripcion"
                 rows={3}
+                value={fields.descripcion}
+                onChange={set("descripcion")}
                 className={inputClass}
                 style={inputStyle}
                 placeholder="Condiciones especiales, instrucciones de carga, etc."
@@ -260,7 +368,8 @@ export default function NuevaCargaForm({
                 name="contactoNombre"
                 type="text"
                 required
-                defaultValue={contactoDefecto.nombre}
+                value={fields.contactoNombre}
+                onChange={set("contactoNombre")}
                 className={inputClass}
                 style={inputStyle}
               />
@@ -276,7 +385,8 @@ export default function NuevaCargaForm({
                   name="contactoTelefono"
                   type="tel"
                   required
-                  defaultValue={contactoDefecto.telefono}
+                  value={fields.contactoTelefono}
+                  onChange={set("contactoTelefono")}
                   className={inputClass}
                   style={inputStyle}
                   placeholder="Ej: +54 9 351 000-0000"
@@ -291,7 +401,8 @@ export default function NuevaCargaForm({
                   name="contactoEmail"
                   type="email"
                   required
-                  defaultValue={contactoDefecto.email}
+                  value={fields.contactoEmail}
+                  onChange={set("contactoEmail")}
                   className={inputClass}
                   style={inputStyle}
                 />
@@ -307,9 +418,14 @@ export default function NuevaCargaForm({
 
           <div
             className="rounded-xl border px-4 py-3 text-sm"
-            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33", color: "#2DD4BF" }}
+            style={{
+              backgroundColor: "#2DD4BF0D",
+              borderColor: "#2DD4BF33",
+              color: "#2DD4BF",
+            }}
           >
-            Al continuar serás redirigido a MercadoPago para abonar la tarifa de publicación de{" "}
+            Al continuar serás redirigido a MercadoPago para abonar la tarifa de
+            publicación de{" "}
             <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
           </div>
 

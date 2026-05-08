@@ -36,8 +36,8 @@ model Carga {
   volumen                    Float?
   presupuesto                Float?
   fechaCarga                 DateTime
-  fechaEntrega               DateTime?
-  tiempoEstimado             String?
+  fechaCupo                  DateTime?
+  preferenciaCamion          String?
   descripcion                String?       @db.Text
   contactoNombre             String
   contactoTelefono           String
