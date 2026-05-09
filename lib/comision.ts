@@ -3,9 +3,19 @@ import { db } from "./db";
 export async function getComisionConfig() {
   return db.configApp.upsert({
     where: { id: 1 },
-    create: { id: 1, comisionTipo: "FIJO", comisionValor: 100 },
+    create: { id: 1, comisionTipo: "FIJO", comisionValor: 100, precioPublicacion: 500 },
     update: {},
   });
+}
+
+export async function getPrecioPublicacion(): Promise<number> {
+  const config = await db.configApp.upsert({
+    where: { id: 1 },
+    create: { id: 1, comisionTipo: "FIJO", comisionValor: 100, precioPublicacion: 500 },
+    update: {},
+    select: { precioPublicacion: true },
+  });
+  return config.precioPublicacion;
 }
 
 export function calcularComision(

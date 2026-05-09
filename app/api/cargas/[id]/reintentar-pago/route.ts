@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { crearPreferencia } from "@/lib/mercadopago";
+import { getPrecioPublicacion } from "@/lib/comision";
 
 export async function POST(
   req: NextRequest,
@@ -20,7 +21,7 @@ export async function POST(
   });
   if (!carga) return NextResponse.json({ error: "Carga no encontrada o ya fue pagada" }, { status: 404 });
 
-  const fee = parseFloat(process.env.MP_PRECIO_PUBLICACION ?? "500");
+  const fee = await getPrecioPublicacion();
   const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
 
   const preference = await crearPreferencia({
