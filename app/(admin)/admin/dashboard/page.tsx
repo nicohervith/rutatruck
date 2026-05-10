@@ -3,6 +3,7 @@ import { logout } from "@/app/actions/auth";
 import { db } from "@/lib/db";
 import { getComisionConfig } from "@/lib/comision";
 import ComisionForm from "./_components/ComisionForm";
+import PrecioPublicacionForm from "./_components/PrecioPublicacionForm";
 
 export default async function AdminDashboard() {
   const session = await verifySession();
@@ -76,6 +77,17 @@ export default async function AdminDashboard() {
               );
             })}
           </div>
+        </div>
+
+        <div
+          className="rounded-xl border p-6"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+        >
+          <h3 className="font-semibold text-white mb-1">Precio de publicación de carga</h3>
+          <p className="text-sm mb-5" style={{ color: "#6B7280" }}>
+            Monto que paga la empresa para publicar una carga.
+          </p>
+          <PrecioPublicacionForm precioPublicacion={comision.precioPublicacion} />
         </div>
 
         <div

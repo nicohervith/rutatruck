@@ -110,7 +110,8 @@ model PasswordResetToken {
 }
 
 model ConfigApp {
-  id            Int    @id @default(1)
-  comisionTipo  String @default("FIJO")
-  comisionValor Float  @default(5000)
+  id                 Int    @id @default(1)
+  comisionTipo       String @default("FIJO")
+  comisionValor      Float  @default(5000)
+  precioPublicacion  Float  @default(500)
 }

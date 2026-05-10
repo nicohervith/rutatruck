@@ -1,5 +1,6 @@
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { getPrecioPublicacion } from "@/lib/comision";
 import NuevaCargaForm from "./_components/NuevaCargaForm";
 
 export default async function NuevaCargaPage({
@@ -15,7 +16,7 @@ export default async function NuevaCargaPage({
     select: { name: true, email: true, phone: true },
   });
 
-  const precioPublicacion = parseFloat(process.env.MP_PRECIO_PUBLICACION ?? "500");
+  const precioPublicacion = await getPrecioPublicacion();
 
   return (
     <NuevaCargaForm
