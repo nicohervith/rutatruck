@@ -9,7 +9,7 @@ function getClient() {
 }
 
 export async function crearPreferencia(body: PreferenceRequest) {
-  if (process.env.NODE_ENV !== "production" && !process.env.MP_ACCESS_TOKEN) {
+  if (process.env.USE_PAYMENT_MOCK === "true") {
     const externalRef = body.external_reference ?? "mock";
     const mockBase = externalRef.startsWith("comision_carga_")
       ? `${process.env.NEXTAUTH_URL}/transportista/pago-mock`
@@ -26,7 +26,7 @@ export async function crearPreferencia(body: PreferenceRequest) {
 }
 
 export async function obtenerPago(paymentId: string) {
-  if (process.env.NODE_ENV !== "production" && !process.env.MP_ACCESS_TOKEN) {
+  if (process.env.USE_PAYMENT_MOCK === "true") {
     return {
       id: paymentId,
       status: "approved",
