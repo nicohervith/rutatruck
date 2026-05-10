@@ -1,11 +1,12 @@
 import Link from "next/link";
 
-export default function PagoMockTransportistaPage({
+export default async function PagoMockTransportistaPage({
   searchParams,
 }: {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  const ref = searchParams.ref ?? "";
+  const { ref: refParam } = await searchParams;
+  const ref = refParam ?? "";
   const cargaId = ref.replace("comision_carga_", "");
 
   return (

@@ -1,11 +1,12 @@
 import Link from "next/link";
 
-export default function PagoMockPage({
+export default async function PagoMockPage({
   searchParams,
 }: {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  const ref = searchParams.ref ?? "";
+  const { ref: refParam } = await searchParams;
+  const ref = refParam ?? "";
   const cargaId = ref.replace("publicar_", "");
 
   return (
