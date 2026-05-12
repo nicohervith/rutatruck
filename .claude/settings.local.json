@@ -47,7 +47,10 @@
       "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; npx tsc --noEmit 2>&1 | Select-Object -First 20; Write-Output \"EXIT:$LASTEXITCODE\")",
       "Bash(npx tsx *)",
       "Bash(npx @sentry/wizard@latest -i nextjs --saas)",
-      "Bash(dir D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\\\\empresa\\\\cargas\\\\[id]\\\\_components *)"
+      "Bash(dir D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\\\\empresa\\\\cargas\\\\[id]\\\\_components *)",
+      "Bash(badge)",
+      "Bash(logo\")",
+      "Bash(Copy-Item *)"
     ]
   }
 }
