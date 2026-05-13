@@ -14,7 +14,7 @@ const TIPO_LABELS: Record<string, string> = {
   otro: "Otro",
 };
 
-const TIPO_ICONS: Record<string, JSX.Element> = {
+const TIPO_ICONS = {
   granos: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1M4.22 4.22l.707.707M18.364 18.364l.707.707M3 12h1m16 0h1M4.927 19.073l.707-.707M18.364 5.636l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
