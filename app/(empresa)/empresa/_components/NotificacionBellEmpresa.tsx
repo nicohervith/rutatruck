@@ -16,7 +16,8 @@ export default function NotificacionBellEmpresa() {
   return (
     <Link
       href="/empresa/cargas"
-      className="relative inline-flex items-center text-gray-600 hover:text-gray-800 p-1"
+      className="relative inline-flex items-center p-1 transition-opacity hover:opacity-80"
+      style={{ color: "#C4DCDC" }}
       aria-label="Cargas con acción pendiente"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

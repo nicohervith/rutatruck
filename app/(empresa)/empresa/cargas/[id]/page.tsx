@@ -94,19 +94,24 @@ export default async function CargaDetallePage({
         <div className="mb-6">
           <Link
             href="/empresa/cargas"
-            className="text-sm font-medium inline-flex items-center gap-1 mb-3 transition-colors"
+            className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
             style={{ color: "#2DD4BF" }}
           >
-            ← Mis cargas
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </span>
+            Mis cargas
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-white">{carga.titulo}</h1>
+            <h1 className="text-3xl font-bold text-white">{carga.titulo}</h1>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
               {estado.label}
             </span>
           </div>
-          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
-            {carga.origen} → {carga.destino}
+          <p className="mt-1.5 text-base" style={{ color: "#A8C5C5" }}>
+            {carga.origen} <span style={{ color: "#2DD4BF" }}>→</span> {carga.destino}
           </p>
         </div>
 
@@ -155,7 +160,7 @@ export default async function CargaDetallePage({
             </div>
             {puedeDisputa && (
               <div className="mt-4 pt-4 border-t" style={{ borderColor: "#1E3838" }}>
-                <p className="text-xs mb-2" style={{ color: "#4B5563" }}>¿Hubo un problema con el viaje?</p>
+                <p className="text-xs mb-2" style={{ color: "#8BBDBD" }}>¿Hubo un problema con el viaje?</p>
                 <AbrirDisputaEmpresaButton cargaId={carga.id} />
               </div>
             )}
@@ -219,7 +224,7 @@ export default async function CargaDetallePage({
                   className="flex justify-between py-1.5 border-b last:border-0"
                   style={{ borderColor: "#1E3838" }}
                 >
-                  <span className="text-sm" style={{ color: "#6B7280" }}>{label}</span>
+                  <span className="text-sm" style={{ color: "#A8C5C5" }}>{label}</span>
                   <span className="text-sm font-medium text-white text-right max-w-[60%]">{value}</span>
                 </div>
               ))}
@@ -233,7 +238,7 @@ export default async function CargaDetallePage({
           >
             <h2 className="font-medium text-white mb-3">Transportista asignado</h2>
             <p className="font-medium text-white">{carga.transportistaAsignado.name}</p>
-            <p className="text-sm mt-0.5" style={{ color: "#6B7280" }}>{carga.transportistaAsignado.email}</p>
+            <p className="text-sm mt-0.5" style={{ color: "#A8C5C5" }}>{carga.transportistaAsignado.email}</p>
             {carga.transportistaAsignado.phone && (
               <div className="flex flex-wrap gap-3 mt-4">
                 <a
@@ -270,14 +275,14 @@ export default async function CargaDetallePage({
           <h2 className="font-medium text-white mb-4">
             Postulaciones
             {carga.postulaciones.length > 0 && (
-              <span className="ml-2 text-sm font-normal" style={{ color: "#4B5563" }}>
+              <span className="ml-2 text-sm font-normal" style={{ color: "#8BBDBD" }}>
                 ({carga.postulaciones.length})
               </span>
             )}
           </h2>
 
           {carga.postulaciones.length === 0 ? (
-            <p className="text-sm text-center py-6" style={{ color: "#4B5563" }}>
+            <p className="text-sm text-center py-6" style={{ color: "#8BBDBD" }}>
               Todavía no hay postulaciones para esta carga.
             </p>
           ) : (
@@ -296,16 +301,16 @@ export default async function CargaDetallePage({
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white">{p.transportista.name}</p>
-                      <p className="text-sm" style={{ color: "#6B7280" }}>{p.transportista.email}</p>
+                      <p className="text-sm" style={{ color: "#A8C5C5" }}>{p.transportista.email}</p>
                       {p.transportista.phone && (
-                        <p className="text-sm" style={{ color: "#6B7280" }}>{p.transportista.phone}</p>
+                        <p className="text-sm" style={{ color: "#A8C5C5" }}>{p.transportista.phone}</p>
                       )}
                       {p.mensaje && (
                         <p className="text-sm mt-2 italic" style={{ color: "#9CA3AF" }}>
                           "{p.mensaje}"
                         </p>
                       )}
-                      <p className="text-xs mt-1" style={{ color: "#4B5563" }}>
+                      <p className="text-xs mt-1" style={{ color: "#8BBDBD" }}>
                         Postulado el {p.createdAt.toLocaleDateString("es-AR")}
                       </p>
                     </div>

@@ -32,11 +32,11 @@ export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
   }, [open]);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative hidden md:block">
       <button
         onClick={() => setOpen((v) => !v)}
         className="p-2 rounded-lg transition-colors hover:bg-white/5"
-        style={{ color: "#9CA3AF" }}
+        style={{ color: "#C4DCDC" }}
         aria-label="Menú"
       >
         {open ? (

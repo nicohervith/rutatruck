@@ -16,7 +16,8 @@ export default function NotificacionBell() {
   return (
     <Link
       href="/transportista/postulaciones"
-      className="relative inline-flex items-center text-gray-600 hover:text-gray-800 p-1"
+      className="relative inline-flex items-center p-1 transition-opacity hover:opacity-80"
+      style={{ color: "#C4DCDC" }}
       aria-label="Mis postulaciones"
     >
       <svg
