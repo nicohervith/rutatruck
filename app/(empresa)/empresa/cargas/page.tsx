@@ -109,6 +109,7 @@ type EstadoConfig = {
   label: string;
   color: string;
   dot: string;
+  hex: string;
 };
 
 const ESTADO_CONFIG: Record<string, EstadoConfig> = {
@@ -116,41 +117,49 @@ const ESTADO_CONFIG: Record<string, EstadoConfig> = {
     label: "Pago pendiente",
     color: "bg-yellow-500/20 text-yellow-300",
     dot: "bg-yellow-400",
+    hex: "#FCD34D",
   },
   ACTIVA: {
     label: "Activa",
     color: "bg-green-500/20 text-green-300",
     dot: "bg-green-400",
+    hex: "#4ADE80",
   },
   PENDIENTE_PAGO_TRANSPORTISTA: {
     label: "Esperando pago",
     color: "bg-yellow-500/20 text-yellow-300",
     dot: "bg-yellow-400",
+    hex: "#FCD34D",
   },
   ASIGNADA: {
     label: "En viaje",
     color: "bg-blue-500/20 text-blue-300",
     dot: "bg-blue-400",
+    hex: "#60A5FA",
   },
   EN_CONFIRMACION: {
     label: "Confirmar completado",
     color: "bg-orange-500/20 text-orange-300",
     dot: "bg-orange-400",
+    hex: "#FB923C",
   },
   FINALIZADA: {
     label: "Finalizada",
     color: "bg-white/10 text-gray-400",
     dot: "bg-gray-600",
+    hex: "#9CA3AF",
   },
   CANCELADA: {
     label: "Cancelada",
     color: "bg-red-500/20 text-red-300",
     dot: "bg-red-400",
+    hex: "#F87171",
   },
   DISPUTA: {
     label: "En disputa",
     color: "bg-purple-500/20 text-purple-300",
     dot: "bg-purple-400",
+    hex: "#C084FC",
   },
 };
 
@@ -188,6 +197,7 @@ export default async function CargasPage({
       value: estado,
       label: ESTADO_CONFIG[estado]?.label ?? estado,
       count,
+      color: ESTADO_CONFIG[estado]?.hex,
     })),
   ];
 
