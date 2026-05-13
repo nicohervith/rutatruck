@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { JSX } from "react";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
@@ -197,7 +198,7 @@ export default async function TransportistasCargasPage({
           <div className="space-y-4">
             {cargas.map((carga: any) => {
               const yaPostulado = yaPostuladoEn.has(carga.id);
-              const tipoIcon = TIPO_ICONS[carga.tipoCarga] ?? TIPO_ICONS.otro;
+              const tipoIcon = TIPO_ICONS[carga.tipoCarga as keyof typeof TIPO_ICONS] ?? TIPO_ICONS.otro;
               return (
                 <Link
                   key={carga.id}
