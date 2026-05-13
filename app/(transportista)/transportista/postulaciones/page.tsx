@@ -138,7 +138,19 @@ export default async function MisPostulacionesPage({
 
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-white">Mis postulaciones</h1>
+          <Link
+            href="/transportista/dashboard"
+            className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
+            style={{ color: "#2DD4BF" }}
+          >
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </span>
+            Volver al panel
+          </Link>
+          <h1 className="text-3xl font-bold text-white">Mis postulaciones</h1>
         </div>
 
         {postulaciones.length > 0 && (
@@ -152,7 +164,7 @@ export default async function MisPostulacionesPage({
             className="rounded-xl border p-12 text-center"
             style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
           >
-            <p className="mb-4" style={{ color: "#6B7280" }}>Todavía no te postulaste a ninguna carga</p>
+            <p className="mb-4" style={{ color: "#A8C5C5" }}>Todavía no te postulaste a ninguna carga</p>
             <Link
               href="/transportista/cargas"
               className="font-medium rounded-lg px-6 py-2.5 transition-colors inline-block text-sm"
@@ -165,7 +177,7 @@ export default async function MisPostulacionesPage({
           <div className="space-y-3">
             {visible.length === 0 && (
               <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}>
-                <p className="text-sm" style={{ color: "#6B7280" }}>No hay postulaciones con ese estado.</p>
+                <p className="text-sm" style={{ color: "#A8C5C5" }}>No hay postulaciones con ese estado.</p>
               </div>
             )}
             {visible.map((p: any) => {
@@ -175,11 +187,16 @@ export default async function MisPostulacionesPage({
               const cargaCfg = CARGA_ESTADO_CONFIG[p.carga.estado];
 
               const cardStyle: React.CSSProperties = {
-                backgroundColor: "#112424",
-                borderColor: esNueva ? "#2DD4BF33" : "#1E3838",
-                ...(esAceptada && cargaCfg
-                  ? { borderLeftColor: cargaCfg.borderLeftColor, borderLeftWidth: "4px" }
-                  : {}),
+                backgroundColor:
+                  esAceptada && cargaCfg
+                    ? `${cargaCfg.borderLeftColor}18`
+                    : "#112424",
+                borderColor:
+                  esAceptada && cargaCfg
+                    ? `${cargaCfg.borderLeftColor}66`
+                    : esNueva
+                    ? "#2DD4BF33"
+                    : "#1E3838",
               };
 
               return (
@@ -212,10 +229,10 @@ export default async function MisPostulacionesPage({
                         </span>
                       )}
                     </div>
-                    <p className="text-sm ml-4" style={{ color: "#6B7280" }}>
+                    <p className="text-sm ml-4" style={{ color: "#A8C5C5" }}>
                       {p.carga.origen} → {p.carga.destino}
                     </p>
-                    <p className="text-xs mt-1 ml-4" style={{ color: "#4B5563" }}>
+                    <p className="text-xs mt-1 ml-4" style={{ color: "#8BBDBD" }}>
                       {p.carga.fechaCarga.toLocaleDateString("es-AR")} · {p.carga.tipoCarga}
                       {p.carga.presupuesto !== null && ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
                     </p>

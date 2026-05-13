@@ -1,4 +1,5 @@
 import PushNotificationSetup from "./transportista/_components/PushNotificationSetup";
+import { BottomTabBar } from "@/app/_components/BottomTabBar";
 
 export default function TransportistaGroupLayout({
   children,
@@ -8,7 +9,8 @@ export default function TransportistaGroupLayout({
   return (
     <>
       <PushNotificationSetup />
-      {children}
+      <div className="pb-16 md:pb-0">{children}</div>
+      <BottomTabBar role="transportista" />
     </>
   );
 }

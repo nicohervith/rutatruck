@@ -50,7 +50,19 @@
       "Bash(dir D:\\\\Programación\\\\rutatruck\\\\app\\\\\\(empresa\\)\\\\empresa\\\\cargas\\\\[id]\\\\_components *)",
       "Bash(badge)",
       "Bash(logo\")",
-      "Bash(Copy-Item *)"
+      "Bash(Copy-Item *)",
+      "Bash(dir D:\\\\Programación\\\\rutatruck *)",
+      "PowerShell(Get-ChildItem)",
+      "PowerShell(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\" -File -Recurse | Where-Object {$_.Name -match \"transportista\"} | Select-Object FullName)",
+      "PowerShell(@\\(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\" -Directory\\) | ForEach-Object { $_.Name })",
+      "PowerShell(@\\(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\app\" -File -Recurse\\) | Where-Object {$_.Name -match \"transportista\"} | ForEach-Object { $_.FullName })",
+      "PowerShell(@\\(Get-ChildItem \"D:\\\\Programación\\\\rutatruck\\\\app\" -Directory\\) | ForEach-Object { $_.Name })",
+      "PowerShell(head *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\app\" -Recurse -Filter \"page.tsx\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\app\" /s /b *.tsx)",
+      "Bash(findstr \"page\\\\.tsx\")"
     ]
   }
 }
