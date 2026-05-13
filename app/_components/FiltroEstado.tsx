@@ -6,6 +6,7 @@ interface Opcion {
   value: string;
   label: string;
   count?: number;
+  color?: string;
 }
 
 export default function FiltroEstado({
@@ -25,8 +26,9 @@ export default function FiltroEstado({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {opciones.map(({ value, label, count }) => {
+      {opciones.map(({ value, label, count, color }) => {
         const active = current === value;
+        const c = color ?? "#2DD4BF";
         return (
           <button
             key={value}
@@ -34,7 +36,7 @@ export default function FiltroEstado({
             className="text-xs font-medium px-3 py-1.5 rounded-full border transition-colors cursor-pointer"
             style={
               active
-                ? { borderColor: "#2DD4BF", color: "#2DD4BF", backgroundColor: "#2DD4BF15" }
+                ? { borderColor: c, color: c, backgroundColor: c + "20" }
                 : { borderColor: "#1E3838", color: "#6B7280", backgroundColor: "transparent" }
             }
           >
@@ -42,7 +44,7 @@ export default function FiltroEstado({
             {count !== undefined && (
               <span
                 className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs"
-                style={active ? { backgroundColor: "#2DD4BF30" } : { backgroundColor: "#ffffff10" }}
+                style={active ? { backgroundColor: c + "30" } : { backgroundColor: "#ffffff10" }}
               >
                 {count}
               </span>

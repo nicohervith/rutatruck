@@ -101,9 +101,10 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 border-t z-50 flex"
+      className="md:hidden fixed bottom-0 left-0 right-0 border-t z-50"
       style={{ backgroundColor: "#0A1A1A", borderColor: "#2DD4BF44" }}
     >
+      <div className="flex">
       {TABS[role].map((tab) => {
         const active = tabIsActive(tab.href, pathname);
         return (
@@ -144,6 +145,8 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
           <span className="text-[10px] font-semibold leading-none">Salir</span>
         </button>
       </form>
+      </div>
+      <div style={{ height: "env(safe-area-inset-bottom, 0px)" }} />
     </nav>
   );
 }

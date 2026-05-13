@@ -147,12 +147,17 @@ export default function NuevaCargaForm({
         <div className="mb-8">
           <Link
             href="/empresa/dashboard"
-            className="text-sm font-medium mb-3 inline-flex items-center gap-1 transition-colors"
+            className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
             style={{ color: "#2DD4BF" }}
           >
-            ← Volver al panel
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </span>
+            Volver al panel
           </Link>
-          <h1 className="text-2xl font-semibold text-white">
+          <h1 className="text-3xl font-bold text-white">
             Publicar nueva carga
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>

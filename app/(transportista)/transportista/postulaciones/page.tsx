@@ -59,14 +59,14 @@ const SORT_ORDER: Record<string, number> = {
 };
 
 const FILTER_OPCIONES = [
-  { value: "", label: "Todas" },
-  { value: "PAGAR", label: "Pagar comisión" },
-  { value: "ASIGNADA", label: "En viaje" },
-  { value: "EN_CONFIRMACION", label: "Aguardando conf." },
-  { value: "FINALIZADA", label: "Completadas" },
-  { value: "DISPUTA", label: "En disputa" },
-  { value: "PENDIENTE", label: "Sin respuesta" },
-  { value: "RECHAZADA", label: "No seleccionado" },
+  { value: "", label: "Todas", color: undefined },
+  { value: "PAGAR", label: "Pagar comisión", color: "#FCD34D" },
+  { value: "ASIGNADA", label: "En viaje", color: "#60A5FA" },
+  { value: "EN_CONFIRMACION", label: "Aguardando conf.", color: "#FB923C" },
+  { value: "FINALIZADA", label: "Completadas", color: "#4ADE80" },
+  { value: "DISPUTA", label: "En disputa", color: "#C084FC" },
+  { value: "PENDIENTE", label: "Sin respuesta", color: "#9CA3AF" },
+  { value: "RECHAZADA", label: "No seleccionado", color: "#6B7280" },
 ];
 
 function filtrarPostulaciones(postulaciones: any[], estado: string) {
