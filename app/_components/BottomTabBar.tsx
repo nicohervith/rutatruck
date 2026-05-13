@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 
 type Tab = {
   href: string;
   label: string;
   showNotif?: boolean;
-  icon: (active: boolean) => JSX.Element;
+  icon: (active: boolean) => ReactElement;
 };
 
 const TABS: Record<"transportista" | "empresa", Tab[]> = {
