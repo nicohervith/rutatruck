@@ -9,11 +9,13 @@ const LINKS = {
     { href: "/empresa/dashboard", label: "Dashboard" },
     { href: "/empresa/cargas", label: "Mis cargas" },
     { href: "/empresa/cargas/nueva", label: "Publicar carga" },
+    { href: "/empresa/historial", label: "Historial" },
   ],
   transportista: [
     { href: "/transportista/dashboard", label: "Dashboard" },
     { href: "/transportista/cargas", label: "Ver cargas" },
     { href: "/transportista/postulaciones", label: "Mis postulaciones" },
+    { href: "/transportista/historial", label: "Historial" },
   ],
 };
 

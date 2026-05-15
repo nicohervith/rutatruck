@@ -37,10 +37,14 @@ export default async function CargaPublicaPage({
   const cargaId = parseInt(id);
   if (isNaN(cargaId)) redirect("/transportista/cargas");
 
-  const [carga, miPostulacion] = await Promise.all([
+  const [carga, miPostulacion, user] = await Promise.all([
     db.carga.findUnique({ where: { id: cargaId } }),
     db.postulacion.findUnique({
       where: { cargaId_transportistaId: { cargaId, transportistaId: session.userId } },
+    }),
+    db.user.findUnique({
+      where: { id: session.userId },
+      select: { email: true, phone: true },
     }),
   ]);
 
@@ -158,6 +162,7 @@ export default async function CargaPublicaPage({
           <div className="space-y-2">
             {[
               ["Tipo", TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga],
+              carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
               carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
               carga.presupuesto !== null
@@ -252,7 +257,13 @@ export default async function CargaPublicaPage({
           </div>
         )}
 
-        {!soyAsignado && <PostularseButton cargaId={carga.id} miPostulacion={miPostulacion} />}
+        {!soyAsignado && (
+          <PostularseButton
+            cargaId={carga.id}
+            miPostulacion={miPostulacion}
+            contactoDefecto={{ email: user?.email ?? "", telefono: user?.phone ?? "" }}
+          />
+        )}
       </main>
     </div>
   );

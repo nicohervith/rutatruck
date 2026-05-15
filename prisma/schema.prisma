@@ -32,6 +32,7 @@ model Carga {
   origen                     String
   destino                    String
   tipoCarga                  String
+  tipoCargaDetalle           String?
   peso                       Float?
   volumen                    Float?
   presupuesto                Float?
@@ -63,6 +64,8 @@ model Postulacion {
   cargaId         Int
   transportistaId String
   mensaje         String?           @db.Text
+  contactoEmail   String?
+  contactoTelefono String?
   estado          EstadoPostulacion @default(PENDIENTE)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt

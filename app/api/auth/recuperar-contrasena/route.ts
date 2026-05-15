@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
   const resetUrl = `${baseUrl}/nueva-contrasena?token=${token}`;
 
-  await sendEmail({
+  const emailResult = await sendEmail({
     to: email,
     subject: "Recuperar contraseña — ClickCargo",
     html: `
@@ -67,6 +67,10 @@ export async function POST(req: NextRequest) {
       </html>
     `,
   });
+
+  if (emailResult.error) {
+    console.error("[recuperar-contrasena] Resend error:", emailResult.error);
+  }
 
   return NextResponse.json({ ok: true });
 }

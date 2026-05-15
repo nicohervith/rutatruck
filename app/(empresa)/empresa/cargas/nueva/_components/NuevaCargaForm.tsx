@@ -19,6 +19,7 @@ type Fields = {
   origen: string;
   destino: string;
   tipoCarga: string;
+  tipoCargaDetalle: string;
   peso: string;
   presupuesto: string;
   fechaCarga: string;
@@ -32,7 +33,7 @@ type Fields = {
 
 function makeDefaults(c: ContactoDefecto): Fields {
   return {
-    titulo: "", origen: "", destino: "", tipoCarga: "",
+    titulo: "", origen: "", destino: "", tipoCarga: "", tipoCargaDetalle: "",
     peso: "", presupuesto: "", fechaCarga: "", fechaCupo: "",
     preferenciaCamion: "", descripcion: "",
     contactoNombre: c.nombre,
@@ -63,6 +64,8 @@ export default function NuevaCargaForm({
       const saved = localStorage.getItem(DRAFT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<Fields>;
+        const contactKeysToSkip: (keyof Fields)[] = ["contactoNombre", "contactoTelefono", "contactoEmail"];
+        contactKeysToSkip.forEach(k => delete parsed[k]);
         setFields(f => ({ ...f, ...parsed }));
         setHasDraft(true);
       }
@@ -281,6 +284,31 @@ export default function NuevaCargaForm({
                 />
               </div>
             </div>
+
+            {fields.tipoCarga && (
+              <div>
+                <label htmlFor="tipoCargaDetalle" className={labelClass} style={labelStyle}>
+                  Especificación del tipo{" "}
+                  <span className="text-xs" style={{ color: "#6B7280" }}>(opcional)</span>
+                </label>
+                <input
+                  id="tipoCargaDetalle"
+                  name="tipoCargaDetalle"
+                  type="text"
+                  value={fields.tipoCargaDetalle}
+                  onChange={set("tipoCargaDetalle")}
+                  className={inputClass}
+                  style={inputStyle}
+                  placeholder={
+                    fields.tipoCarga === "granos" ? "Ej: Maíz, Soja, Trigo..." :
+                    fields.tipoCarga === "frutas" ? "Ej: Banana, Manzana, Pera..." :
+                    fields.tipoCarga === "verduras" ? "Ej: Tomate, Lechuga, Papa..." :
+                    fields.tipoCarga === "animales" ? "Ej: Bovinos, Porcinos, Ovinos..." :
+                    "Especificá el tipo de carga"
+                  }
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
