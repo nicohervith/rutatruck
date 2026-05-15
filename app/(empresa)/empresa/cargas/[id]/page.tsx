@@ -144,6 +144,7 @@ export default async function CargaDetallePage({
                     origen: carga.origen,
                     destino: carga.destino,
                     tipoCarga: carga.tipoCarga,
+                    tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
                     peso: carga.peso,
                     volumen: carga.volumen,
                     fechaCarga: toDateInput(carga.fechaCarga),
@@ -206,6 +207,7 @@ export default async function CargaDetallePage({
           <div className="space-y-2">
             {[
               ["Tipo de carga", carga.tipoCarga],
+              carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
               carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
@@ -301,9 +303,13 @@ export default async function CargaDetallePage({
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white">{p.transportista.name}</p>
-                      <p className="text-sm" style={{ color: "#A8C5C5" }}>{p.transportista.email}</p>
-                      {p.transportista.phone && (
-                        <p className="text-sm" style={{ color: "#A8C5C5" }}>{p.transportista.phone}</p>
+                      <p className="text-sm" style={{ color: "#A8C5C5" }}>
+                        {p.contactoEmail ?? p.transportista.email}
+                      </p>
+                      {(p.contactoTelefono ?? p.transportista.phone) && (
+                        <p className="text-sm" style={{ color: "#A8C5C5" }}>
+                          {p.contactoTelefono ?? p.transportista.phone}
+                        </p>
                       )}
                       {p.mensaje && (
                         <p className="text-sm mt-2 italic" style={{ color: "#9CA3AF" }}>

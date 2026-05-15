@@ -6,13 +6,16 @@ import { useRouter } from "next/navigation";
 interface Props {
   cargaId: number;
   miPostulacion: { id: number; estado: string; mensaje: string | null } | null;
+  contactoDefecto: { email: string; telefono: string };
 }
 
-export default function PostularseButton({ cargaId, miPostulacion }: Props) {
+export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
+  const [contactoEmail, setContactoEmail] = useState(contactoDefecto.email);
+  const [contactoTelefono, setContactoTelefono] = useState(contactoDefecto.telefono);
 
   if (miPostulacion) {
     const styleMap: Record<string, React.CSSProperties> = {
@@ -44,7 +47,12 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
       const res = await fetch("/api/postulaciones", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cargaId, mensaje: mensaje || undefined }),
+        body: JSON.stringify({
+          cargaId,
+          mensaje: mensaje || undefined,
+          contactoEmail,
+          contactoTelefono,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al postularse");
@@ -55,6 +63,12 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
     }
   }
 
+  const inputClass =
+    "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
+  const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+  const labelClass = "block text-sm font-medium mb-1";
+  const labelStyle = { color: "#9CA3AF" };
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -62,19 +76,53 @@ export default function PostularseButton({ cargaId, miPostulacion }: Props) {
       style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
     >
       <h2 className="font-medium text-white mb-4">Postularme a esta carga</h2>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1" style={{ color: "#9CA3AF" }}>
-          Mensaje para la empresa (opcional)
-        </label>
-        <textarea
-          value={mensaje}
-          onChange={(e) => setMensaje(e.target.value)}
-          rows={3}
-          className="w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm"
-          style={{ backgroundColor: "#0F2020", borderColor: "#1E3838" }}
-          placeholder="Presentate brevemente, indicá tu experiencia o disponibilidad..."
-        />
+
+      <div className="space-y-4 mb-4">
+        <div>
+          <label className={labelClass} style={labelStyle}>
+            Email de contacto *
+          </label>
+          <input
+            type="email"
+            required
+            value={contactoEmail}
+            onChange={(e) => setContactoEmail(e.target.value)}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="tu@email.com"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} style={labelStyle}>
+            Teléfono de contacto *
+          </label>
+          <input
+            type="tel"
+            required
+            value={contactoTelefono}
+            onChange={(e) => setContactoTelefono(e.target.value)}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Ej: +54 9 351 000-0000"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} style={labelStyle}>
+            Mensaje para la empresa (opcional)
+          </label>
+          <textarea
+            value={mensaje}
+            onChange={(e) => setMensaje(e.target.value)}
+            rows={3}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Presentate brevemente, indicá tu experiencia o disponibilidad..."
+          />
+        </div>
       </div>
+
       {error && (
         <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2 mb-4">
           {error}

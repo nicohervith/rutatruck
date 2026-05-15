@@ -172,7 +172,7 @@ export default async function CargasPage({
   const { success, error, estado: estadoFiltro = "" } = await searchParams;
 
   const cargas = await db.carga.findMany({
-    where: { empresaId: session.userId },
+    where: { empresaId: session.userId, estado: { not: "FINALIZADA" } },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { postulaciones: { where: { estado: "PENDIENTE" } } } },

@@ -10,6 +10,7 @@ interface CargaEditable {
   origen: string;
   destino: string;
   tipoCarga: string;
+  tipoCargaDetalle: string | null;
   peso: number | null;
   volumen: number | null;
   fechaCarga: string;
@@ -146,6 +147,14 @@ export default function EditarCargaPanel({ carga }: { carga: CargaEditable }) {
             <label htmlFor="edit-peso" className={labelClass} style={labelStyle}>Peso (toneladas)</label>
             <input id="edit-peso" name="peso" type="number" step="0.1" min="0" defaultValue={carga.peso ?? ""} className={inputClass} style={inputStyle} />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="edit-tipoCargaDetalle" className={labelClass} style={labelStyle}>
+            Especificación del tipo{" "}
+            <span className="text-xs" style={{ color: "#6B7280" }}>(opcional)</span>
+          </label>
+          <input id="edit-tipoCargaDetalle" name="tipoCargaDetalle" type="text" defaultValue={carga.tipoCargaDetalle ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: Maíz, Soja, Banana..." />
         </div>
 
         <div>

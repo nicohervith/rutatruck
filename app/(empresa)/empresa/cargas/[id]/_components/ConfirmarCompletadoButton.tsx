@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function ConfirmarCompletadoButton({ cargaId }: { cargaId: number }) {
   const router = useRouter();
@@ -9,13 +10,38 @@ export default function ConfirmarCompletadoButton({ cargaId }: { cargaId: number
   const [error, setError] = useState<string | null>(null);
 
   async function handleClick() {
-    if (!confirm("¿Confirmar que el viaje fue completado exitosamente?")) return;
+    const result = await Swal.fire({
+      title: "¿Confirmar viaje completado?",
+      text: "Esta acción marcará el viaje como finalizado exitosamente.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, confirmar",
+      cancelButtonText: "Volver",
+      background: "#112424",
+      color: "#ffffff",
+      confirmButtonColor: "#2DD4BF",
+      cancelButtonColor: "#1E3838",
+      iconColor: "#2DD4BF",
+    });
+
+    if (!result.isConfirmed) return;
+
     setError(null);
     setPending(true);
     try {
       const res = await fetch(`/api/cargas/${cargaId}/confirmar`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al confirmar");
+      await Swal.fire({
+        title: "Viaje confirmado",
+        text: "El viaje fue marcado como completado.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        background: "#112424",
+        color: "#ffffff",
+        confirmButtonColor: "#2DD4BF",
+        iconColor: "#4ADE80",
+      });
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");

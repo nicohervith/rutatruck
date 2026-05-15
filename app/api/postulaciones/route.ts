@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Solo transportistas pueden postularse" }, { status: 403 });
   }
 
-  let body: { cargaId: number; mensaje?: string };
+  let body: { cargaId: number; mensaje?: string; contactoEmail?: string; contactoTelefono?: string };
   try {
     body = await req.json();
   } catch {
@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
         cargaId: body.cargaId,
         transportistaId: session.userId,
         mensaje: body.mensaje ?? null,
+        contactoEmail: body.contactoEmail ?? null,
+        contactoTelefono: body.contactoTelefono ?? null,
       },
     });
     return NextResponse.json({ id: postulacion.id }, { status: 201 });
