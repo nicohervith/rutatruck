@@ -27,18 +27,18 @@ export default async function PagoMockPage({
         </p>
 
         <div className="flex flex-col gap-3 pt-2">
-          <Link
+          <a
             href={`/api/pagos/success?external_reference=publicar_${cargaId}&payment_id=mock-123&status=approved`}
             className="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-6 py-2.5 transition-colors"
           >
             ✅ Simular pago aprobado
-          </Link>
-          <Link
+          </a>
+          <a
             href={`/api/pagos/failure?external_reference=publicar_${cargaId}&status=failure`}
             className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg px-6 py-2.5 transition-colors"
           >
             ❌ Simular pago fallido
-          </Link>
+          </a>
           <Link
             href="/empresa/dashboard"
             className="text-sm transition-colors"
