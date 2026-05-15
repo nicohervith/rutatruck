@@ -17,7 +17,7 @@ export default async function EmpresaHistorialPage() {
   const session = await verifySession();
 
   const cargas = await db.carga.findMany({
-    where: { empresaId: session.userId, estado: "FINALIZADA" },
+    where: { empresaId: session.userId, estado: { in: ["FINALIZADA", "CANCELADA"] } },
     orderBy: { updatedAt: "desc" },
     include: {
       transportistaAsignado: { select: { name: true } },
@@ -55,7 +55,7 @@ export default async function EmpresaHistorialPage() {
           </Link>
           <h1 className="text-3xl font-bold text-white">Historial de cargas</h1>
           <p className="mt-1.5 text-base" style={{ color: "#A8C5C5" }}>
-            {cargas.length} carga{cargas.length !== 1 ? "s" : ""} finalizada{cargas.length !== 1 ? "s" : ""}
+            {cargas.length} carga{cargas.length !== 1 ? "s" : ""} en historial
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export default async function EmpresaHistorialPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <p style={{ color: "#A8C5C5" }}>Todavía no tenés cargas finalizadas.</p>
+            <p style={{ color: "#A8C5C5" }}>Todavía no tenés cargas finalizadas ni canceladas.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -84,15 +84,15 @@ export default async function EmpresaHistorialPage() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 bg-gray-500" />
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${carga.estado === "CANCELADA" ? "bg-red-400" : "bg-gray-500"}`} />
                         <h3 className="font-semibold text-white truncate">{carga.titulo}</h3>
                       </div>
                       <p className="text-sm ml-4" style={{ color: "#A8C5C5" }}>
                         {carga.origen} <span style={{ color: "#2DD4BF" }}>→</span> {carga.destino}
                       </p>
                     </div>
-                    <span className="text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 bg-white/10 text-gray-400">
-                      Finalizada
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 ${carga.estado === "CANCELADA" ? "bg-red-500/20 text-red-300" : "bg-white/10 text-gray-400"}`}>
+                      {carga.estado === "CANCELADA" ? "Cancelada" : "Finalizada"}
                     </span>
                   </div>
 

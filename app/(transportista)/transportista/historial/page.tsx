@@ -17,7 +17,7 @@ export default async function TransportistaHistorialPage() {
   const session = await verifySession();
 
   const cargas = await db.carga.findMany({
-    where: { transportistaAsignadoId: session.userId, estado: "FINALIZADA" },
+    where: { transportistaAsignadoId: session.userId, estado: { in: ["FINALIZADA", "CANCELADA"] } },
     orderBy: { updatedAt: "desc" },
   });
 
@@ -50,7 +50,7 @@ export default async function TransportistaHistorialPage() {
           </Link>
           <h1 className="text-3xl font-bold text-white">Historial de viajes</h1>
           <p className="mt-1.5 text-base" style={{ color: "#A8C5C5" }}>
-            {cargas.length} viaje{cargas.length !== 1 ? "s" : ""} completado{cargas.length !== 1 ? "s" : ""}
+            {cargas.length} viaje{cargas.length !== 1 ? "s" : ""} en historial
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default async function TransportistaHistorialPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0H3m10 0h1m4-8h1a2 2 0 012 2v6h-3M13 8h5l2 4" />
               </svg>
             </div>
-            <p style={{ color: "#A8C5C5" }}>Todavía no completaste ningún viaje.</p>
+            <p style={{ color: "#A8C5C5" }}>Todavía no tenés viajes completados ni cancelados.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -78,10 +78,21 @@ export default async function TransportistaHistorialPage() {
               >
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-4 h-4 flex-shrink-0" style={{ color: "#4ADE80" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#4ADE80" }}>Completado</span>
+                    {carga.estado === "CANCELADA" ? (
+                      <>
+                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: "#F87171" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#F87171" }}>Cancelado</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: "#4ADE80" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#4ADE80" }}>Completado</span>
+                      </>
+                    )}
                   </div>
 
                   <p className="text-xl font-bold text-white mb-1 leading-tight">
