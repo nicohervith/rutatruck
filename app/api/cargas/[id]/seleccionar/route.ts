@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
 import { DEADLINE_HORAS } from "@/lib/comision";
 
+const FREE_TIER = process.env.FREE_TIER === "true";
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -44,6 +46,30 @@ export async function POST(
       { error: "Postulación no encontrada" },
       { status: 404 },
     );
+  }
+
+  if (FREE_TIER) {
+    await db.$transaction([
+      db.carga.update({
+        where: { id: cargaId },
+        data: {
+          estado: "ASIGNADA",
+          transportistaAsignadoId: postulacion.transportistaId,
+        },
+      }),
+      db.postulacion.update({
+        where: { id: body.postulacionId },
+        data: { estado: "ACEPTADA" },
+      }),
+    ]);
+
+    sendPushToUser(postulacion.transportistaId, {
+      title: "¡Fuiste seleccionado!",
+      body: `Sos el transportista asignado para "${carga.titulo}". Contactate con la empresa para coordinar.`,
+      url: `/transportista/cargas/${cargaId}`,
+    }).catch(() => {});
+
+    return NextResponse.json({ ok: true });
   }
 
   const deadline = new Date(Date.now() + DEADLINE_HORAS() * 60 * 60 * 1000);

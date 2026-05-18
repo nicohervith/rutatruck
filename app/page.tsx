@@ -1,154 +1,110 @@
+import Image from "next/image";
 import Link from "next/link";
-import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import truckImg from "@/app/assets/Truck.png";
 
 export default function LandingPage() {
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-5 py-10"
-      style={{ backgroundColor: "#0C1E1E" }}
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundColor: "#060F0F" }}
     >
-      <div className="w-full max-w-sm flex flex-col gap-8">
+      {/* Phone-width container */}
+      <div
+        className="relative w-full sm:max-w-[420px] flex flex-col overflow-hidden"
+        style={{ minHeight: "100svh" }}
+      >
+        {/* Image section — upper portion only */}
+        <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "56svh" }}>
+          <Image
+            src={truckImg}
+            alt=""
+            fill
+            className="object-cover"
+            style={{ objectPosition: "center 45%" }}
+            priority
+            quality={88}
+          />
+          {/* Overlay: dark top for logo, light middle, dark fade to bottom */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(6,15,15,0.70) 0%, rgba(0,0,0,0.05) 42%, rgba(6,15,15,0.88) 85%, rgba(6,15,15,1) 100%)",
+            }}
+          />
 
-        {/* Logo */}
-        <div className="flex justify-center">
-          <LogoClickCargo size={52} />
+          {/* Logo inside image */}
+          <div className="absolute bottom-8 left-6">
+            <h1
+              className="font-black leading-none mb-1"
+              style={{ fontSize: "2.6rem", letterSpacing: "-0.01em" }}
+            >
+              <span style={{ color: "#2DD4BF" }}>CLICK</span>
+              <span className="text-white">CARGO</span>
+            </h1>
+            <p
+              className="uppercase tracking-widest font-medium"
+              style={{ fontSize: "0.65rem", color: "#2DD4BF", opacity: 0.85 }}
+            >
+              Red integral de cargas
+            </p>
+          </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">Elegí tu perfil</h1>
-          <div className="w-8 h-0.5 mx-auto mb-3" style={{ backgroundColor: "#2DD4BF" }} />
-          <p style={{ color: "#9CA3AF" }} className="text-sm">
-            Seleccioná cómo querés usar ClickCargo
-          </p>
-        </div>
-
-        {/* Role cards */}
-        <div className="flex flex-col gap-3">
+        {/* Dark section — buttons */}
+        <div
+          className="flex flex-col justify-center flex-1 px-6 py-8 gap-3"
+          style={{ backgroundColor: "#060F0F" }}
+        >
           <Link
             href="/registro?rol=transportista"
-            className="flex items-center gap-4 p-4 rounded-xl border transition-colors"
-            style={{ backgroundColor: "#112424", borderColor: "#2DD4BF33" }}
+            className="flex items-center gap-4 w-full px-5 py-4 rounded-2xl font-bold text-sm tracking-wide transition-opacity active:opacity-80"
+            style={{ backgroundColor: "rgba(255,255,255,0.93)", color: "#060F0F" }}
           >
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "#2DD4BF1A" }}
+            <span
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: "#2DD4BF22" }}
             >
-              <svg className="w-7 h-7" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0H3m10 0h1m4-8h1a2 2 0 012 2v6h-3M13 8h5l2 4" />
               </svg>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-white tracking-wide text-sm">TRANSPORTISTA</p>
-              <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
-                Encontrá cargas y viajes disponibles
-              </p>
-            </div>
-            <svg className="w-5 h-5 shrink-0" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
+            </span>
+            SOY TRANSPORTISTA
           </Link>
 
           <Link
             href="/registro?rol=empresa"
-            className="flex items-center gap-4 p-4 rounded-xl border transition-colors"
-            style={{ backgroundColor: "#0F1E2E", borderColor: "#3B82F633" }}
+            className="flex items-center gap-4 w-full px-5 py-4 rounded-2xl font-bold text-sm tracking-wide border transition-opacity active:opacity-80"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.06)",
+              color: "white",
+              borderColor: "rgba(255,255,255,0.15)",
+            }}
           >
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "#3B82F61A" }}
+            <span
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: "#3B82F618" }}
             >
-              <svg className="w-7 h-7" style={{ color: "#60A5FA" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-white tracking-wide text-sm">EMPRESA</p>
-              <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
-                Publicá cargas y conectá transportistas
-              </p>
-            </div>
-            <svg className="w-5 h-5 shrink-0" style={{ color: "#60A5FA" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
+            </span>
+            SOY EMPRESA
           </Link>
-        </div>
 
-        {/* Features */}
-        <div className="flex flex-col gap-3 w-fit mx-auto">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "#2DD4BF1A" }}
-            >
-              <svg className="w-4 h-4" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">Publicá cargas</p>
-              <p className="text-xs" style={{ color: "#6B7280" }}>Publicá tus viajes en minutos</p>
-            </div>
-          </div>
+          <p className="text-center text-sm pt-1">
+            <span style={{ color: "#9CA3AF" }}>Lanzamiento inicial </span>
+            <span className="font-bold" style={{ color: "#2DD4BF" }}>GRATIS por 60 días</span>
+          </p>
 
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "#2DD4BF1A" }}
-            >
-              <svg className="w-4 h-4" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">Conecta transportistas</p>
-              <p className="text-xs" style={{ color: "#6B7280" }}>Encontrá el camión ideal</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "#2DD4BF1A" }}
-            >
-              <svg className="w-4 h-4" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">Pagos seguros</p>
-              <p className="text-xs" style={{ color: "#6B7280" }}>Transacciones protegidas</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Login section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px" style={{ backgroundColor: "#1E3838" }} />
-            <p className="text-xs" style={{ color: "#6B7280" }}>¿Ya tenés cuenta?</p>
-            <div className="flex-1 h-px" style={{ backgroundColor: "#1E3838" }} />
-          </div>
-
-          <div className="flex gap-3">
-            <Link
-              href="/login"
-              className="flex-1 py-3 rounded-xl text-sm font-bold text-center transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
-            >
-              Ingresar
+          <p className="text-center text-xs" style={{ color: "#6B7280" }}>
+            ¿Ya tenés cuenta?{" "}
+            <Link href="/login" className="font-semibold" style={{ color: "#2DD4BF" }}>
+              Ingresá
             </Link>
-            <Link
-              href="/registro"
-              className="flex-1 py-3 rounded-xl text-sm font-semibold text-center border transition-colors"
-              style={{ borderColor: "#2DD4BF44", color: "#2DD4BF" }}
-            >
-              Registrarse
-            </Link>
-          </div>
+          </p>
         </div>
-
       </div>
     </div>
   );

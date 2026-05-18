@@ -13,6 +13,7 @@ interface CargaEditable {
   tipoCargaDetalle: string | null;
   peso: number | null;
   volumen: number | null;
+  presupuesto: number | null;
   fechaCarga: string;
   fechaCupo: string | null;
   preferenciaCamion: string | null;
@@ -28,7 +29,7 @@ const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
 const labelClass = "block text-sm font-medium mb-1";
 const labelStyle = { color: "#9CA3AF" };
 
-export default function EditarCargaPanel({ carga }: { carga: CargaEditable }) {
+export default function EditarCargaPanel({ carga, sinTransportista }: { carga: CargaEditable; sinTransportista: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -148,6 +149,13 @@ export default function EditarCargaPanel({ carga }: { carga: CargaEditable }) {
             <input id="edit-peso" name="peso" type="number" step="0.1" min="0" defaultValue={carga.peso ?? ""} className={inputClass} style={inputStyle} />
           </div>
         </div>
+
+        {sinTransportista && (
+          <div>
+            <label htmlFor="edit-presupuesto" className={labelClass} style={labelStyle}>Presupuesto ($)</label>
+            <input id="edit-presupuesto" name="presupuesto" type="number" step="0.01" min="0" defaultValue={carga.presupuesto ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: 150000" />
+          </div>
+        )}
 
         <div>
           <label htmlFor="edit-tipoCargaDetalle" className={labelClass} style={labelStyle}>

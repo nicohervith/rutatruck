@@ -9,7 +9,7 @@ export type FormState = { error?: string } | undefined;
 
 const dashboardByRole: Record<Role, string> = {
   EMPRESA: "/empresa/dashboard",
-  TRANSPORTISTA: "/transportista/dashboard",
+  TRANSPORTISTA: "/transportista/cargas",
   ADMIN: "/admin/dashboard",
 };
 

@@ -138,6 +138,7 @@ export default async function CargaDetallePage({
               )}
               {(puedeEditar || puedeCancelar) && (
                 <EditarCargaPanel
+                  sinTransportista={carga.transportistaAsignadoId === null}
                   carga={{
                     id: carga.id,
                     titulo: carga.titulo,
@@ -147,6 +148,7 @@ export default async function CargaDetallePage({
                     tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
                     peso: carga.peso,
                     volumen: carga.volumen,
+                    presupuesto: carga.presupuesto,
                     fechaCarga: toDateInput(carga.fechaCarga),
                     fechaCupo: toDateInput(carga.fechaCupo),
                     preferenciaCamion: carga.preferenciaCamion,

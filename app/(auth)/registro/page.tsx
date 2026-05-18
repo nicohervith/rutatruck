@@ -130,7 +130,14 @@ export default function RegistroPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm" style={{ color: "#6B7280" }}>
+          <div
+            className="mt-5 rounded-lg border px-4 py-3 text-center text-xs"
+            style={{ backgroundColor: "#2DD4BF08", borderColor: "#2DD4BF22", color: "#6B9E9E" }}
+          >
+            Durante los primeros 60 días, la plataforma es completamente gratuita.
+          </div>
+
+          <p className="mt-4 text-center text-sm" style={{ color: "#6B7280" }}>
             ¿Ya tenés cuenta?{" "}
             <Link href="/login" className="font-medium transition-colors" style={{ color: "#2DD4BF" }}>
               Ingresá

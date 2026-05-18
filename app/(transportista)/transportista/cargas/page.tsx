@@ -1,11 +1,11 @@
 import Link from "next/link";
-import type { JSX } from "react";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import CountdownTimer from "./[id]/_components/CountdownTimer";
+import { getIconoCarga } from "@/lib/iconos-carga";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -13,36 +13,6 @@ const TIPO_LABELS: Record<string, string> = {
   verduras: "Verduras",
   animales: "Animales",
   otro: "Otro",
-};
-
-const TIPO_ICONS = {
-  granos: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1M4.22 4.22l.707.707M18.364 18.364l.707.707M3 12h1m16 0h1M4.927 19.073l.707-.707M18.364 5.636l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-    </svg>
-  ),
-  frutas: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2c0 0-4 4-4 8a4 4 0 008 0c0-4-4-8-4-8z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2c0 0 2-2 4-1" />
-    </svg>
-  ),
-  verduras: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l4 9H3l2-5m4-4l4 9h-6m4-9l4 9h-6" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12v9" />
-    </svg>
-  ),
-  animales: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM6 7c0 1.1-.9 2-2 2S2 8.1 2 7s.9-2 2-2 2 .9 2 2zm2-4c0 1.1-.9 2-2 2S4 4.1 4 3s.9-2 2-2 2 .9 2 2zm8 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM12 10a5 5 0 00-5 5v1h10v-1a5 5 0 00-5-5z" />
-    </svg>
-  ),
-  otro: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
-  ),
 };
 
 export default async function TransportistasCargasPage({
@@ -198,7 +168,7 @@ export default async function TransportistasCargasPage({
           <div className="space-y-4">
             {cargas.map((carga: any) => {
               const yaPostulado = yaPostuladoEn.has(carga.id);
-              const tipoIcon = TIPO_ICONS[carga.tipoCarga as keyof typeof TIPO_ICONS] ?? TIPO_ICONS.otro;
+              const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
               return (
                 <Link
                   key={carga.id}
@@ -225,7 +195,7 @@ export default async function TransportistasCargasPage({
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                       <div className="flex items-start gap-2">
-                        <span className="mt-0.5 flex-shrink-0" style={{ color: "#2DD4BF" }}>{tipoIcon}</span>
+                        <span className="text-xl leading-none flex-shrink-0">{emoji}</span>
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#8BBDBD" }}>Tipo</p>
                           <p className="text-sm font-bold text-white">{TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}</p>

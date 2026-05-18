@@ -46,10 +46,12 @@ export default function NuevaCargaForm({
   contactoDefecto,
   precioPublicacion,
   errorInicial,
+  freeTier,
 }: {
   contactoDefecto: ContactoDefecto;
   precioPublicacion: number;
   errorInicial?: string;
+  freeTier?: boolean;
 }) {
   useRouter();
   const [pending, setPending] = useState(false);
@@ -112,10 +114,15 @@ export default function NuevaCargaForm({
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al crear la carga");
-      if (!data.url) throw new Error("No se recibió la URL de pago. Intentá de nuevo.");
 
       localStorage.removeItem(DRAFT_KEY);
-      window.location.href = data.url;
+      if (data.cargaId) {
+        window.location.href = `/empresa/cargas/${data.cargaId}`;
+      } else if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Respuesta inesperada del servidor. Intentá de nuevo.");
+      }
     } catch (err: unknown) {
       clearTimeout(timeout);
       const msg =
@@ -164,8 +171,9 @@ export default function NuevaCargaForm({
             Publicar nueva carga
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
-            Completá los datos del envío. Una vez procesado el pago de
-            publicación, la carga quedará visible para transportistas.
+            {freeTier
+              ? "Completá los datos del envío. La carga quedará visible para transportistas de inmediato."
+              : "Completá los datos del envío. Una vez procesado el pago de publicación, la carga quedará visible para transportistas."}
           </p>
         </div>
 
@@ -457,18 +465,20 @@ export default function NuevaCargaForm({
             </p>
           )}
 
-          <div
-            className="rounded-xl border px-4 py-3 text-sm"
-            style={{
-              backgroundColor: "#2DD4BF0D",
-              borderColor: "#2DD4BF33",
-              color: "#2DD4BF",
-            }}
-          >
-            Al continuar serás redirigido a MercadoPago para abonar la tarifa de
-            publicación de{" "}
-            <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
-          </div>
+          {!freeTier && (
+            <div
+              className="rounded-xl border px-4 py-3 text-sm"
+              style={{
+                backgroundColor: "#2DD4BF0D",
+                borderColor: "#2DD4BF33",
+                color: "#2DD4BF",
+              }}
+            >
+              Al continuar serás redirigido a MercadoPago para abonar la tarifa de
+              publicación de{" "}
+              <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-4">
             <Link
@@ -484,7 +494,7 @@ export default function NuevaCargaForm({
               className="font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
               style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
             >
-              {pending ? "Procesando..." : "Ir al pago →"}
+              {pending ? "Procesando..." : freeTier ? "Publicar carga →" : "Ir al pago →"}
             </button>
           </div>
         </form>

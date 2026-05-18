@@ -62,7 +62,8 @@
       "Bash(Select-Object FullName)",
       "Bash(Sort-Object FullName)",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\app\" /s /b *.tsx)",
-      "Bash(findstr \"page\\\\.tsx\")"
+      "Bash(findstr \"page\\\\.tsx\")",
+      "Bash(findstr /R \"USE_PAYMENT_MOCK\\\\|MP_\\\\|PAGO\\\\|PAYMENT\" \"D:\\\\Programación\\\\rutatruck\\\\.env*\")"
     ]
   }
 }
