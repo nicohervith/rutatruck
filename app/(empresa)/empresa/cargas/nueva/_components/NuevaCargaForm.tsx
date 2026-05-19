@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
-import LocationAutocomplete from "./LocationAutocomplete";
+import LocationPicker, { type Location } from "./LocationPicker";
 
 const DRAFT_KEY = "clickcargo-nueva-carga-draft";
 
@@ -17,7 +17,11 @@ interface ContactoDefecto {
 type Fields = {
   titulo: string;
   origen: string;
+  origenLat: string;
+  origenLng: string;
   destino: string;
+  destinoLat: string;
+  destinoLng: string;
   tipoCarga: string;
   tipoCargaDetalle: string;
   peso: string;
@@ -36,7 +40,11 @@ function makeDefaults(c: ContactoDefecto): Fields {
   return {
     titulo: "",
     origen: "",
+    origenLat: "",
+    origenLng: "",
     destino: "",
+    destinoLat: "",
+    destinoLng: "",
     tipoCarga: "",
     tipoCargaDetalle: "",
     peso: "",
@@ -119,6 +127,8 @@ export default function NuevaCargaForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!fields.origen) { setError("Seleccioná el origen."); return; }
+    if (!fields.destino) { setError("Seleccioná el destino."); return; }
     setPending(true);
 
     const controller = new AbortController();
@@ -257,42 +267,42 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="origen"
-                  className={labelClass}
-                  style={labelStyle}
-                >
+                <label className={labelClass} style={labelStyle}>
                   Origen *
                 </label>
-                <LocationAutocomplete
-                  id="origen"
-                  name="origen"
-                  required
-                  inputClass={inputClass}
-                  inputStyle={inputStyle}
-                  placeholder="Ciudad / Provincia"
-                  initialValue={fields.origen}
-                  onValueChange={(v) => setFields((f) => ({ ...f, origen: v }))}
+                <LocationPicker
+                  value={
+                    fields.origen && fields.origenLat && fields.origenLng
+                      ? { name: fields.origen, lat: parseFloat(fields.origenLat), lng: parseFloat(fields.origenLng) }
+                      : null
+                  }
+                  onChange={(loc: Location | null) =>
+                    setFields((f) => ({
+                      ...f,
+                      origen: loc?.name ?? "",
+                      origenLat: loc ? String(loc.lat) : "",
+                      origenLng: loc ? String(loc.lng) : "",
+                    }))
+                  }
                 />
               </div>
               <div>
-                <label
-                  htmlFor="destino"
-                  className={labelClass}
-                  style={labelStyle}
-                >
+                <label className={labelClass} style={labelStyle}>
                   Destino *
                 </label>
-                <LocationAutocomplete
-                  id="destino"
-                  name="destino"
-                  required
-                  inputClass={inputClass}
-                  inputStyle={inputStyle}
-                  placeholder="Ciudad / Provincia"
-                  initialValue={fields.destino}
-                  onValueChange={(v) =>
-                    setFields((f) => ({ ...f, destino: v }))
+                <LocationPicker
+                  value={
+                    fields.destino && fields.destinoLat && fields.destinoLng
+                      ? { name: fields.destino, lat: parseFloat(fields.destinoLat), lng: parseFloat(fields.destinoLng) }
+                      : null
+                  }
+                  onChange={(loc: Location | null) =>
+                    setFields((f) => ({
+                      ...f,
+                      destino: loc?.name ?? "",
+                      destinoLat: loc ? String(loc.lat) : "",
+                      destinoLng: loc ? String(loc.lng) : "",
+                    }))
                   }
                 />
               </div>

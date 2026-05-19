@@ -31,7 +31,11 @@ model Carga {
   id                         Int           @id @default(autoincrement())
   titulo                     String
   origen                     String
+  origenLat                  Float?
+  origenLng                  Float?
   destino                    String
+  destinoLat                 Float?
+  destinoLng                 Float?
   tipoCarga                  String
   tipoCargaDetalle           String?
   peso                       Float?

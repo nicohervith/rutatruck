@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
   const {
     titulo,
     origen,
+    origenLat,
+    origenLng,
     destino,
+    destinoLat,
+    destinoLng,
     tipoCarga,
     tipoCargaDetalle,
     peso,
@@ -63,7 +67,11 @@ export async function POST(req: NextRequest) {
   const cargaData = {
     titulo,
     origen,
+    origenLat: origenLat ? parseFloat(origenLat as string) : null,
+    origenLng: origenLng ? parseFloat(origenLng as string) : null,
     destino,
+    destinoLat: destinoLat ? parseFloat(destinoLat as string) : null,
+    destinoLng: destinoLng ? parseFloat(destinoLng as string) : null,
     tipoCarga,
     tipoCargaDetalle: tipoCargaDetalle || null,
     peso: peso ? parseFloat(peso) : null,
