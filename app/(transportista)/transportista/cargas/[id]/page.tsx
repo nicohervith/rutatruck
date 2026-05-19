@@ -62,8 +62,8 @@ export default async function CargaPublicaPage({
     redirect(`/transportista/cargas/${cargaId}`);
   }
 
-  const soyAsignado = carga.transportistaAsignadoId === session.userId;
   const soyAceptado = miPostulacion?.estado === "ACEPTADA";
+  const soyAsignado = carga.transportistaAsignadoId === session.userId || soyAceptado;
   const waPhone = formatWhatsApp(carga.contactoTelefono);
   const waMsg = encodeURIComponent(
     `Hola ${carga.contactoNombre}, soy el transportista seleccionado para la carga "${carga.titulo}". Me comunico para coordinar los detalles.`,
@@ -262,6 +262,8 @@ export default async function CargaPublicaPage({
             cargaId={carga.id}
             miPostulacion={miPostulacion}
             contactoDefecto={{ email: user?.email ?? "", telefono: user?.phone ?? "" }}
+            cantidadCamiones={carga.cantidadCamiones ?? 1}
+            esFlota={session.role === "TRANSPORTISTA_FLOTA"}
           />
         )}
       </main>

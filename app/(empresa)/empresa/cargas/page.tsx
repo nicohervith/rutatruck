@@ -418,7 +418,7 @@ export default async function CargasPage({
                         ? { backgroundColor: "#FB923C", color: "#fff" }
                         : pendientes > 0
                           ? { backgroundColor: "var(--primary)", color: "#0C1E1E" }
-                          : { backgroundColor: "var(--primary-10)", color: "var(--primary)" }
+                          : { backgroundColor: "var(--primary-27)", color: "var(--primary)" }
                     }
                   >
                     {needsAction ? (

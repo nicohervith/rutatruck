@@ -117,8 +117,9 @@ export default function RegistroPage() {
               style={inputStyle}
             >
               <option value="" disabled style={{ backgroundColor: "#0C1A1A" }}>Seleccioná tu tipo de cuenta</option>
-              <option value="EMPRESA" style={{ backgroundColor: "#0C1A1A" }}>Empresa de transporte / Cargador</option>
-              <option value="TRANSPORTISTA" style={{ backgroundColor: "#0C1A1A" }}>Transportista / Camionero</option>
+              <option value="EMPRESA" style={{ backgroundColor: "#0C1A1A" }}>Empresa — publico cargas</option>
+              <option value="TRANSPORTISTA" style={{ backgroundColor: "#0C1A1A" }}>Transportista — tengo un camión</option>
+              <option value="TRANSPORTISTA_FLOTA" style={{ backgroundColor: "#0C1A1A" }}>Transportista flota — tengo 2 o más camiones</option>
             </select>
           </div>
 

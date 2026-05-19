@@ -48,46 +48,56 @@ export async function POST(
     );
   }
 
+  // Accept this postulacion
+  await db.postulacion.update({
+    where: { id: body.postulacionId },
+    data: { estado: "ACEPTADA" },
+  });
+
+  // Calculate total covered after this acceptance
+  const aceptadas = await db.postulacion.findMany({
+    where: { cargaId, estado: "ACEPTADA" },
+    select: { camionesCubiertos: true },
+  });
+  const totalCubiertos = aceptadas.reduce((sum, p) => sum + p.camionesCubiertos, 0);
+  const convocatoriaCubierta = totalCubiertos >= carga.cantidadCamiones;
+
   if (FREE_TIER) {
-    await db.$transaction([
-      db.carga.update({
+    if (convocatoriaCubierta) {
+      await db.carga.update({
         where: { id: cargaId },
         data: {
           estado: "ASIGNADA",
-          transportistaAsignadoId: postulacion.transportistaId,
+          // For single-camion compat: set transportistaAsignadoId
+          ...(carga.cantidadCamiones === 1
+            ? { transportistaAsignadoId: postulacion.transportistaId }
+            : {}),
         },
-      }),
-      db.postulacion.update({
-        where: { id: body.postulacionId },
-        data: { estado: "ACEPTADA" },
-      }),
-    ]);
+      });
+    }
 
     sendPushToUser(postulacion.transportistaId, {
       title: "¡Fuiste seleccionado!",
-      body: `Sos el transportista asignado para "${carga.titulo}". Contactate con la empresa para coordinar.`,
+      body: convocatoriaCubierta
+        ? `Sos el transportista asignado para "${carga.titulo}". Contactate con la empresa para coordinar.`
+        : `Fuiste aceptado para "${carga.titulo}". La empresa está coordinando los transportistas restantes.`,
       url: `/transportista/cargas/${cargaId}`,
     }).catch(() => {});
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones });
   }
 
+  // Non-FREE_TIER: only support single-camion payment flow for now
   const deadline = new Date(Date.now() + DEADLINE_HORAS() * 60 * 60 * 1000);
 
-  await db.$transaction([
-    db.carga.update({
-      where: { id: cargaId },
-      data: {
-        estado: "PENDIENTE_PAGO_TRANSPORTISTA",
-        transportistaAsignadoId: postulacion.transportistaId,
-        transportistaPagoDeadline: deadline,
-      },
-    }),
-    db.postulacion.update({
-      where: { id: body.postulacionId },
-      data: { estado: "ACEPTADA" },
-    }),
-  ]);
+  await db.carga.update({
+    where: { id: cargaId },
+    data: {
+      estado: "PENDIENTE_PAGO_TRANSPORTISTA",
+      transportistaAsignadoId: postulacion.transportistaId,
+      transportistaPagoDeadline: deadline,
+    },
+  });
 
   sendPushToUser(postulacion.transportistaId, {
     title: "¡Fuiste seleccionado!",
@@ -95,5 +105,5 @@ export async function POST(
     url: `/transportista/cargas/${cargaId}`,
   }).catch(() => {});
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones });
 }

@@ -5,41 +5,81 @@ import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 
-const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
-  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-500/20 text-yellow-300" },
-  ACTIVA: { label: "Activa", color: "bg-green-500/20 text-green-300" },
-  ASIGNADA: { label: "Asignada", color: "bg-blue-500/20 text-blue-300" },
-  EN_CONFIRMACION: { label: "Confirmar completado", color: "bg-orange-500/20 text-orange-300" },
-  FINALIZADA: { label: "Finalizada", color: "bg-white/10 text-gray-400" },
-  CANCELADA: { label: "Cancelada", color: "bg-red-500/20 text-red-300" },
-  DISPUTA: { label: "En disputa", color: "bg-purple-500/20 text-purple-300" },
+const ESTADO_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
+  PENDIENTE_PAGO:              { label: "Pago pendiente",        bg: "#FEF3C7", text: "#92400E" },
+  ACTIVA:                      { label: "Activa",                bg: "#DCFCE7", text: "#166534" },
+  PENDIENTE_PAGO_TRANSPORTISTA:{ label: "Esperando pago",        bg: "#FEF3C7", text: "#92400E" },
+  ASIGNADA:                    { label: "Asignada",              bg: "#DBEAFE", text: "#1E40AF" },
+  EN_CONFIRMACION:             { label: "Confirmar completado",  bg: "#FFEDD5", text: "#9A3412" },
+  FINALIZADA:                  { label: "Finalizada",            bg: "#F3F4F6", text: "#6B7280" },
+  CANCELADA:                   { label: "Cancelada",             bg: "#FEE2E2", text: "#991B1B" },
+  DISPUTA:                     { label: "En disputa",            bg: "#F3E8FF", text: "#6B21A8" },
 };
 
 export default async function EmpresaDashboard() {
   const session = await verifySession();
 
-  const cargas = await db.carga.findMany({
-    where: { empresaId: session.userId },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: {
-      _count: { select: { postulaciones: { where: { estado: "PENDIENTE" } } } },
-    },
-  });
+  const [cargas, totalCargas, totalPostulaciones, totalActivas, totalFinalizadas] = await Promise.all([
+    db.carga.findMany({
+      where: { empresaId: session.userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: {
+        _count: { select: { postulaciones: { where: { estado: "PENDIENTE" } } } },
+      },
+    }),
+    db.carga.count({ where: { empresaId: session.userId } }),
+    db.postulacion.count({
+      where: { carga: { empresaId: session.userId }, estado: "PENDIENTE" },
+    }),
+    db.carga.count({ where: { empresaId: session.userId, estado: "ACTIVA" } }),
+    db.carga.count({ where: { empresaId: session.userId, estado: "FINALIZADA" } }),
+  ]);
 
-  const totalCargas = await db.carga.count({ where: { empresaId: session.userId } });
-  const totalPostulaciones = await db.postulacion.count({
-    where: { carga: { empresaId: session.userId }, estado: "PENDIENTE" },
-  });
-  const totalFinalizadas = await db.carga.count({
-    where: { empresaId: session.userId, estado: "FINALIZADA" },
-  });
+  const acciones = [
+    {
+      href: "/empresa/cargas/nueva",
+      label: "Publicar carga",
+      sublabel: "Nueva convocatoria de transportistas",
+      count: null,
+      primary: true,
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 4v16m8-8H4" />
+        </svg>
+      ),
+    },
+    {
+      href: "/empresa/cargas",
+      label: "Mis cargas",
+      sublabel: `${totalCargas} publicada${totalCargas !== 1 ? "s" : ""} en total`,
+      count: totalPostulaciones,
+      primary: false,
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+      ),
+    },
+    {
+      href: "/empresa/historial",
+      label: "Historial",
+      sublabel: `${totalFinalizadas} viaje${totalFinalizadas !== 1 ? "s" : ""} finalizado${totalFinalizadas !== 1 ? "s" : ""}`,
+      count: null,
+      primary: false,
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <LogoClickCargo />
         <div className="flex items-center gap-2">
@@ -48,194 +88,112 @@ export default async function EmpresaDashboard() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-6 py-10">
+      <main className="max-w-lg mx-auto px-5 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Panel de Empresa</h2>
-          <p className="mt-2 text-base" style={{ color: "#374151" }}>
+          <h1 className="text-2xl font-black text-gray-900">Panel de empresa</h1>
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             Publicá cargas y gestioná tus transportistas
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 mb-8">
-          <Link
-            href="/empresa/cargas/nueva"
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--primary)", color: "var(--page-bg)" }}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Publicar carga
-          </Link>
-          <Link
-            href="/empresa/cargas"
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base border-2 transition-colors hover:bg-[var(--primary-5)]"
-            style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 10h16M4 14h16M4 18h16"
-              />
-            </svg>
-            Mis cargas
-            {totalPostulaciones > 0 && (
-              <span
-                className="ml-1 text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
-              >
-                {totalPostulaciones} pendientes
-              </span>
-            )}
-          </Link>
-        </div>
-
+        {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            {
-              label: "Publicadas",
-              value: totalCargas,
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              ),
-            },
-            {
-              label: "Postulaciones",
-              value: totalPostulaciones,
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-              ),
-            },
-            {
-              label: "Completados",
-              value: totalFinalizadas,
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
-              ),
-            },
-          ].map(({ label, value, icon }) => (
+            { label: "Publicadas",   value: totalCargas,        color: "var(--primary)" },
+            { label: "Activas",      value: totalActivas,       color: "#22C55E" },
+            { label: "Finalizadas",  value: totalFinalizadas,   color: "#6B7280" },
+          ].map(({ label, value, color }) => (
             <div
               key={label}
-              className="rounded-xl border p-4 text-center flex flex-col items-center gap-2"
-              style={{
-                backgroundColor: "#FFFFFF",
-                borderColor: "var(--primary-20)",
-              }}
+              className="rounded-2xl border p-4 text-center"
+              style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
             >
-              <span style={{ color: "var(--primary)" }}>{icon}</span>
-              <p className="text-3xl font-bold text-gray-900">{value}</p>
-              <p className="text-sm font-medium" style={{ color: "#C4DCDC" }}>
-                {label}
-              </p>
+              <p className="text-3xl font-black" style={{ color }}>{value}</p>
+              <p className="text-xs font-medium mt-1" style={{ color: "#6B7280" }}>{label}</p>
             </div>
           ))}
         </div>
 
+        {/* Nav cards */}
+        <div className="flex flex-col gap-3 mb-8">
+          {acciones.map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="flex items-center gap-4 w-full px-5 py-4 rounded-2xl transition-opacity active:opacity-80"
+              style={
+                a.primary
+                  ? { backgroundColor: "var(--primary)", color: "#FFFFFF" }
+                  : { backgroundColor: "#FFFFFF", color: "#111827", border: "1px solid #E2E8E8" }
+              }
+            >
+              <span
+                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={
+                  a.primary
+                    ? { backgroundColor: "rgba(255,255,255,0.15)" }
+                    : { backgroundColor: "var(--primary-10)" }
+                }
+              >
+                <span style={{ color: a.primary ? "#FFFFFF" : "var(--primary)" }}>
+                  {a.icon}
+                </span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm">{a.label}</p>
+                <p className="text-xs mt-0.5 opacity-70">{a.sublabel}</p>
+              </div>
+              {a.count != null && a.count > 0 && (
+                <span
+                  className="text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                >
+                  {a.count} pend.
+                </span>
+              )}
+              <svg className="w-4 h-4 flex-shrink-0 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          ))}
+        </div>
+
+        {/* Recent cargas */}
         {cargas.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium" style={{ color: "#9CA3AF" }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                 Últimas cargas
               </h3>
-              <Link
-                href="/empresa/cargas"
-                className="text-xs transition-colors"
-                style={{ color: "var(--primary)" }}
-              >
+              <Link href="/empresa/cargas" className="text-xs font-medium transition-colors" style={{ color: "var(--primary)" }}>
                 Ver todas →
               </Link>
             </div>
             <div className="space-y-2">
               {cargas.map((carga: any) => {
-                const estado = ESTADO_LABELS[carga.estado] ?? {
-                  label: carga.estado,
-                  color: "bg-white/10 text-gray-400",
-                };
+                const cfg = ESTADO_CONFIG[carga.estado] ?? { label: carga.estado, bg: "#F3F4F6", text: "#6B7280" };
                 const pendientes = carga._count.postulaciones;
                 return (
                   <Link
                     key={carga.id}
                     href={`/empresa/cargas/${carga.id}`}
-                    className="rounded-xl border p-4 flex items-center justify-between gap-3 transition-all block hover:border-[var(--primary-20)]"
-                    style={{
-                      backgroundColor: "#FFFFFF",
-                      borderColor: "#E2E8E8",
-                    }}
+                    className="rounded-xl border p-4 flex items-center justify-between gap-3 block transition-all hover:shadow-sm"
+                    style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate">
-                        {carga.titulo}
-                      </p>
-                      <p
-                        className="text-xs mt-0.5"
-                        style={{ color: "#374151" }}
-                      >
+                      <p className="font-semibold text-gray-900 text-sm truncate">{carga.titulo}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
                         {carga.origen} → {carga.destino}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {pendientes > 0 && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-orange-500/20 text-orange-300">
-                          {pendientes}
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
+                          {pendientes} pend.
                         </span>
                       )}
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}
-                      >
-                        {estado.label}
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: cfg.bg, color: cfg.text }}>
+                        {cfg.label}
                       </span>
                     </div>
                   </Link>

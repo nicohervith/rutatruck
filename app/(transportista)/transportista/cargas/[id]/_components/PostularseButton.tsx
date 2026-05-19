@@ -7,15 +7,19 @@ interface Props {
   cargaId: number;
   miPostulacion: { id: number; estado: string; mensaje: string | null } | null;
   contactoDefecto: { email: string; telefono: string };
+  cantidadCamiones?: number;
+  esFlota?: boolean;
 }
 
-export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto }: Props) {
+export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
   const [contactoEmail, setContactoEmail] = useState(contactoDefecto.email);
   const [contactoTelefono, setContactoTelefono] = useState(contactoDefecto.telefono);
+  const [camionesCubiertos, setCamionesCubiertos] = useState("1");
+  const [precioOfrecido, setPrecioOfrecido] = useState("");
 
   if (miPostulacion) {
     const styleMap: Record<string, React.CSSProperties> = {
@@ -52,6 +56,8 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
           mensaje: mensaje || undefined,
           contactoEmail,
           contactoTelefono,
+          camionesCubiertos: esFlota ? Math.max(1, parseInt(camionesCubiertos) || 1) : 1,
+          precioOfrecido: precioOfrecido ? parseFloat(precioOfrecido) : undefined,
         }),
       });
       const data = await res.json();
@@ -78,6 +84,24 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
       <h2 className="font-medium text-gray-900 mb-4">Postularme a esta carga</h2>
 
       <div className="space-y-4 mb-4">
+        {esFlota && cantidadCamiones > 1 && (
+          <div>
+            <label className={labelClass} style={labelStyle}>
+              ¿Cuántos camiones podés cubrir? *{" "}
+              <span className="text-xs" style={{ color: "#6B7280" }}>(máx. {cantidadCamiones})</span>
+            </label>
+            <input
+              type="number"
+              required
+              min="1"
+              max={cantidadCamiones}
+              value={camionesCubiertos}
+              onChange={(e) => setCamionesCubiertos(e.target.value)}
+              className={inputClass}
+              style={inputStyle}
+            />
+          </div>
+        )}
         <div>
           <label className={labelClass} style={labelStyle}>
             Email de contacto *
@@ -105,6 +129,23 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
             className={inputClass}
             style={inputStyle}
             placeholder="Ej: +54 9 351 000-0000"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} style={labelStyle}>
+            Tu precio por tonelada ($){" "}
+            <span className="text-xs" style={{ color: "#6B7280" }}>(opcional — para negociar)</span>
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={precioOfrecido}
+            onChange={(e) => setPrecioOfrecido(e.target.value)}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Ej: 5000"
           />
         </div>
 

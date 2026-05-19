@@ -21,6 +21,7 @@ type Fields = {
   tipoCarga: string;
   tipoCargaDetalle: string;
   peso: string;
+  cantidadCamiones: string;
   presupuesto: string;
   fechaCarga: string;
   fechaCupo: string;
@@ -39,6 +40,7 @@ function makeDefaults(c: ContactoDefecto): Fields {
     tipoCarga: "",
     tipoCargaDetalle: "",
     peso: "",
+    cantidadCamiones: "1",
     presupuesto: "",
     fechaCarga: "",
     fechaCupo: "",
@@ -294,6 +296,25 @@ export default function NuevaCargaForm({
                   }
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="cantidadCamiones" className={labelClass} style={labelStyle}>
+                ¿Cuántos camiones necesitás? *
+              </label>
+              <input
+                id="cantidadCamiones"
+                name="cantidadCamiones"
+                type="number"
+                required
+                min="1"
+                step="1"
+                value={fields.cantidadCamiones}
+                onChange={set("cantidadCamiones")}
+                className={inputClass}
+                style={inputStyle}
+                placeholder="1"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
