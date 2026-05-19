@@ -69,7 +69,7 @@ export default async function TransportistasCargasPage({
   const yaPostuladoIds = misPostulaciones.map((p: { cargaId: number }) => p.cargaId);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
+    <div className="h-dvh flex flex-col overflow-hidden" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-4 py-4 flex items-center justify-between border-b"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
