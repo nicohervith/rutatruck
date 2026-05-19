@@ -24,7 +24,7 @@ export default function DisputaActions({ cargaId }: { cargaId: number }) {
         onClick={() => resolver("finalizar")}
         disabled={pending}
         className="text-xs font-medium rounded-lg px-3 py-1.5 disabled:opacity-50 cursor-pointer transition-colors"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
       >
         Finalizar viaje
       </button>

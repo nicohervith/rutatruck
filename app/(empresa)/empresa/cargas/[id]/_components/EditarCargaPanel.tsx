@@ -24,8 +24,8 @@ interface CargaEditable {
 }
 
 const inputClass =
-  "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
-const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+  "w-full rounded-lg border px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm";
+const inputStyle = { backgroundColor: "#F9FAFB", borderColor: "#E2E8E8" };
 const labelClass = "block text-sm font-medium mb-1";
 const labelStyle = { color: "#9CA3AF" };
 
@@ -84,7 +84,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
         confirmButtonText: "Aceptar",
         background: "#112424",
         color: "#ffffff",
-        confirmButtonColor: "#2DD4BF",
+        confirmButtonColor: "var(--primary)",
         iconColor: "#4ADE80",
       });
       router.refresh();
@@ -99,7 +99,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
         <button
           onClick={() => setOpen(true)}
           className="text-sm font-medium rounded-lg px-4 py-2 transition-colors cursor-pointer border"
-          style={{ borderColor: "#2DD4BF33", color: "#2DD4BF", backgroundColor: "#2DD4BF0D" }}
+          style={{ borderColor: "var(--primary-20)", color: "var(--primary)", backgroundColor: "var(--primary-5)" }}
         >
           Editar carga
         </button>
@@ -115,7 +115,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
 
   return (
     <div className="w-full">
-      <h3 className="font-medium text-white mb-4">Editar carga</h3>
+      <h3 className="font-medium text-gray-900 mb-4">Editar carga</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="edit-titulo" className={labelClass} style={labelStyle}>Título *</label>
@@ -137,11 +137,11 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
           <div>
             <label htmlFor="edit-tipoCarga" className={labelClass} style={labelStyle}>Tipo de carga *</label>
             <select id="edit-tipoCarga" name="tipoCarga" required defaultValue={carga.tipoCarga} className={inputClass} style={inputStyle}>
-              <option value="granos" style={{ backgroundColor: "#0F2020" }}>Granos</option>
-              <option value="frutas" style={{ backgroundColor: "#0F2020" }}>Frutas</option>
-              <option value="verduras" style={{ backgroundColor: "#0F2020" }}>Verduras</option>
-              <option value="animales" style={{ backgroundColor: "#0F2020" }}>Animales</option>
-              <option value="otro" style={{ backgroundColor: "#0F2020" }}>Otro</option>
+              <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>Granos</option>
+              <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>Frutas</option>
+              <option value="verduras" style={{ backgroundColor: "#F9FAFB" }}>Verduras</option>
+              <option value="animales" style={{ backgroundColor: "#F9FAFB" }}>Animales</option>
+              <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>Otro</option>
             </select>
           </div>
           <div>
@@ -173,11 +173,11 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="edit-fechaCarga" className={labelClass} style={labelStyle}>Fecha de carga *</label>
-            <input id="edit-fechaCarga" name="fechaCarga" type="date" required defaultValue={carga.fechaCarga} className={inputClass} style={{ ...inputStyle, colorScheme: "dark" }} />
+            <input id="edit-fechaCarga" name="fechaCarga" type="date" required defaultValue={carga.fechaCarga} className={inputClass} style={{ ...inputStyle, colorScheme: "light" }} />
           </div>
           <div>
             <label htmlFor="edit-fechaCupo" className={labelClass} style={labelStyle}>Fecha de cupo</label>
-            <input id="edit-fechaCupo" name="fechaCupo" type="date" defaultValue={carga.fechaCupo ?? ""} className={inputClass} style={{ ...inputStyle, colorScheme: "dark" }} />
+            <input id="edit-fechaCupo" name="fechaCupo" type="date" defaultValue={carga.fechaCupo ?? ""} className={inputClass} style={{ ...inputStyle, colorScheme: "light" }} />
           </div>
         </div>
 
@@ -218,7 +218,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
             type="submit"
             disabled={pending}
             className="text-sm font-medium rounded-lg px-5 py-2.5 transition-colors cursor-pointer disabled:opacity-60"
-            style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+            style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
           >
             {pending ? "Guardando..." : "Guardar cambios"}
           </button>

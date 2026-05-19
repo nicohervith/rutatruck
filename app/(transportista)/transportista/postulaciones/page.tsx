@@ -120,12 +120,12 @@ export default async function MisPostulacionesPage({
   const visible = filtrarPostulaciones(sorted, estadoFiltro);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <AutoRefresh url="/api/postulaciones/hash" />
       <MarkNotificacionesVistas />
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <Link href="/transportista/dashboard">
           <LogoClickCargo />
@@ -141,16 +141,16 @@ export default async function MisPostulacionesPage({
           <Link
             href="/transportista/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "var(--primary)" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </span>
             Volver al panel
           </Link>
-          <h1 className="text-3xl font-bold text-white">Mis postulaciones</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Mis postulaciones</h1>
         </div>
 
         {postulaciones.length > 0 && (
@@ -162,13 +162,13 @@ export default async function MisPostulacionesPage({
         {postulaciones.length === 0 ? (
           <div
             className="rounded-xl border p-12 text-center"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <p className="mb-4" style={{ color: "#A8C5C5" }}>Todavía no te postulaste a ninguna carga</p>
+            <p className="mb-4" style={{ color: "#374151" }}>Todavía no te postulaste a ninguna carga</p>
             <Link
               href="/transportista/cargas"
               className="font-medium rounded-lg px-6 py-2.5 transition-colors inline-block text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+              style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
             >
               Ver cargas disponibles
             </Link>
@@ -176,8 +176,8 @@ export default async function MisPostulacionesPage({
         ) : (
           <div className="space-y-3">
             {visible.length === 0 && (
-              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}>
-                <p className="text-sm" style={{ color: "#A8C5C5" }}>No hay postulaciones con ese estado.</p>
+              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}>
+                <p className="text-sm" style={{ color: "#374151" }}>No hay postulaciones con ese estado.</p>
               </div>
             )}
             {visible.map((p: any) => {
@@ -195,7 +195,7 @@ export default async function MisPostulacionesPage({
                   esAceptada && cargaCfg
                     ? `${cargaCfg.borderLeftColor}66`
                     : esNueva
-                    ? "#2DD4BF33"
+                    ? "var(--primary-20)"
                     : "#1E3838",
               };
 
@@ -203,18 +203,18 @@ export default async function MisPostulacionesPage({
                 <Link
                   key={p.id}
                   href={`/transportista/cargas/${p.carga.id}`}
-                  className={`rounded-xl border p-5 flex items-start justify-between gap-4 hover:border-[#2DD4BF33] transition-all block ${esRechazada ? "opacity-50" : ""} ${esNueva ? "ring-1 ring-[#2DD4BF20]" : ""}`}
+                  className={`rounded-xl border p-5 flex items-start justify-between gap-4 hover:border-[var(--primary-20)] transition-all block ${esRechazada ? "opacity-50" : ""} ${esNueva ? "ring-1 ring-[var(--primary-13)]" : ""}`}
                   style={cardStyle}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       {esNueva && (
-                        <span className="flex h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#2DD4BF" }} />
+                        <span className="flex h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--primary)" }} />
                       )}
                       {esAceptada && cargaCfg && !esNueva && (
                         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cargaCfg.dot}`} />
                       )}
-                      <h3 className="font-medium text-white truncate">{p.carga.titulo}</h3>
+                      <h3 className="font-medium text-gray-900 truncate">{p.carga.titulo}</h3>
                       {esAceptada && cargaCfg ? (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cargaCfg.color}`}>
                           {cargaCfg.label}
@@ -229,17 +229,17 @@ export default async function MisPostulacionesPage({
                         </span>
                       )}
                     </div>
-                    <p className="text-sm ml-4" style={{ color: "#A8C5C5" }}>
+                    <p className="text-sm ml-4" style={{ color: "#374151" }}>
                       {p.carga.origen} → {p.carga.destino}
                     </p>
-                    <p className="text-xs mt-1 ml-4" style={{ color: "#8BBDBD" }}>
+                    <p className="text-xs mt-1 ml-4" style={{ color: "#6B7280" }}>
                       {p.carga.fechaCarga.toLocaleDateString("es-AR")} · {p.carga.tipoCarga}
                       {p.carga.presupuesto !== null && ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     {esNueva && (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ color: "#2DD4BF", backgroundColor: "#2DD4BF1A" }}>
+                      <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ color: "var(--primary)", backgroundColor: "var(--primary-10)" }}>
                         ¡Nuevo!
                       </span>
                     )}

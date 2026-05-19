@@ -44,10 +44,10 @@ export default async function TransportistasCargasPage({
   const yaPostuladoEn = new Set(misPostulaciones.map((p: any) => p.cargaId));
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-4 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <LogoClickCargo />
         <div className="flex items-center gap-2">
@@ -61,11 +61,11 @@ export default async function TransportistasCargasPage({
           <Link
             href="/transportista/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
             <span
               className="flex items-center justify-center w-8 h-8 rounded-full border-2"
-              style={{ borderColor: "#2DD4BF" }}
+              style={{ borderColor: "var(--primary)" }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -73,8 +73,8 @@ export default async function TransportistasCargasPage({
             </span>
             Volver al panel
           </Link>
-          <h1 className="text-3xl font-bold text-white">Cargas disponibles</h1>
-          <p className="mt-1.5 text-base" style={{ color: "#A8C5C5" }}>
+          <h1 className="text-3xl font-bold text-gray-900">Cargas disponibles</h1>
+          <p className="mt-1.5 text-base" style={{ color: "#374151" }}>
             {cargas.length} carga{cargas.length !== 1 ? "s" : ""} activa{cargas.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -82,12 +82,12 @@ export default async function TransportistasCargasPage({
         {pago === "1" && (
           <div
             className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
-            style={{ backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33" }}
+            style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
           >
-            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
               ¡Comisión pagada! El viaje está activado.
             </p>
           </div>
@@ -96,12 +96,12 @@ export default async function TransportistasCargasPage({
         {success === "1" && (
           <div
             className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
-            style={{ backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33" }}
+            style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
           >
-            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
               ¡Postulación enviada! La empresa te contactará si te selecciona.
             </p>
           </div>
@@ -137,7 +137,7 @@ export default async function TransportistasCargasPage({
                     )}
                   </div>
                   <div className="p-4">
-                    <p className="text-base font-bold text-white mb-1">
+                    <p className="text-base font-bold text-gray-900 mb-1">
                       {carga.origen} → {carga.destino}
                     </p>
                     <p className="text-xs" style={{ color: "#9CA3AF" }}>
@@ -160,9 +160,9 @@ export default async function TransportistasCargasPage({
         {cargas.length === 0 ? (
           <div
             className="rounded-xl border p-12 text-center"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <p style={{ color: "#A8C5C5" }}>No hay cargas disponibles en este momento.</p>
+            <p style={{ color: "#374151" }}>No hay cargas disponibles en este momento.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -173,82 +173,68 @@ export default async function TransportistasCargasPage({
                 <Link
                   key={carga.id}
                   href={`/transportista/cargas/${carga.id}`}
-                  className="rounded-xl border block overflow-hidden hover:border-[#2DD4BF55] transition-all"
-                  style={{ backgroundColor: "#112424", borderColor: "#2DD4BF22" }}
+                  className="rounded-xl border block overflow-hidden hover:border-[var(--primary-33)] transition-all"
+                  style={{ backgroundColor: "#FFFFFF", borderColor: "var(--primary-13)" }}
                 >
                   <div className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg className="w-4 h-4 flex-shrink-0" style={{ color: "#2DD4BF" }} fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                      </svg>
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#2DD4BF" }}>Ruta</span>
-                      {yaPostulado && (
-                        <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
-                          ✓ Postulado
+                    {/* Badge postulado — arriba */}
+                    {yaPostulado && (
+                      <div className="mb-3">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)", border: "1px solid var(--primary-20)" }}>
+                          ✓ Ya me postulé
                         </span>
+                      </div>
+                    )}
+
+                    {/* Tipo (izq) + Precio (der) — misma altura */}
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-4xl leading-none flex-shrink-0">{emoji}</span>
+                        <div className="min-w-0">
+                          <p className="text-xl font-black text-gray-900 leading-tight">{TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}</p>
+                          {carga.tipoCargaDetalle && (
+                            <p className="text-sm font-medium mt-0.5 truncate" style={{ color: "#6B7280" }}>{carga.tipoCargaDetalle}</p>
+                          )}
+                        </div>
+                      </div>
+                      {carga.presupuesto !== null && (
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Precio</p>
+                          <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                            ${carga.presupuesto.toLocaleString("es-AR")}
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    <p className="text-xl font-bold text-white mb-4 leading-tight">
-                      {carga.origen} <span style={{ color: "#2DD4BF" }}>→</span> {carga.destino}
+                    {/* Ruta */}
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--primary)" }} fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                      </svg>
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>Ruta</span>
+                    </div>
+                    <p className="text-lg font-bold text-gray-900 mb-4 leading-tight">
+                      {carga.origen} <span style={{ color: "var(--primary)" }}>→</span> {carga.destino}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-                      <div className="flex items-start gap-2">
-                        <span className="text-xl leading-none flex-shrink-0">{emoji}</span>
+                    <div className="flex items-end justify-between">
+                      {carga.peso !== null ? (
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#8BBDBD" }}>Tipo</p>
-                          <p className="text-sm font-bold text-white">{TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Toneladas</p>
+                          <p className="text-sm font-bold text-gray-900">{carga.peso} tn</p>
                         </div>
-                      </div>
-
-                      {carga.peso !== null && (
-                        <div className="flex items-start gap-2">
-                          <span className="mt-0.5 flex-shrink-0" style={{ color: "#2DD4BF" }}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                            </svg>
-                          </span>
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#8BBDBD" }}>Toneladas</p>
-                            <p className="text-sm font-bold text-white">{carga.peso} tn</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {carga.presupuesto !== null && (
-                        <div className="flex items-start gap-2">
-                          <span className="mt-0.5 flex-shrink-0" style={{ color: "#2DD4BF" }}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </span>
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#8BBDBD" }}>Precio</p>
-                            <p className="text-sm font-bold" style={{ color: "#2DD4BF" }}>
-                              ${carga.presupuesto.toLocaleString("es-AR")}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-start gap-2">
-                        <span className="mt-0.5 flex-shrink-0" style={{ color: "#2DD4BF" }}>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </span>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#8BBDBD" }}>Fecha</p>
-                          <p className="text-sm font-bold text-white">{carga.fechaCarga.toLocaleDateString("es-AR")}</p>
-                        </div>
+                      ) : <div />}
+                      <div className="text-right">
+                        <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Fecha</p>
+                        <p className="text-sm font-bold text-gray-900">{carga.fechaCarga.toLocaleDateString("es-AR")}</p>
                       </div>
                     </div>
                   </div>
 
                   <div
                     className="px-5 py-3.5 flex items-center justify-center gap-2 font-semibold text-sm"
-                    style={{ backgroundColor: yaPostulado ? "#2DD4BF1A" : "#2DD4BF", color: yaPostulado ? "#2DD4BF" : "#0C1E1E" }}
+                    style={{ backgroundColor: yaPostulado ? "var(--primary-27)" : "var(--primary)", color: yaPostulado ? "var(--primary)" : "#FFFFFF" }}
                   >
                     {yaPostulado ? (
                       <>

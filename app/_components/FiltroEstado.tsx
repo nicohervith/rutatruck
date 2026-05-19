@@ -28,7 +28,7 @@ export default function FiltroEstado({
     <div className="flex flex-wrap gap-2">
       {opciones.map(({ value, label, count, color }) => {
         const active = current === value;
-        const c = color ?? "#2DD4BF";
+        const c = color ?? "var(--primary)";
         return (
           <button
             key={value}

@@ -24,27 +24,27 @@ export default function LandingPage() {
             priority
             quality={88}
           />
-          {/* Overlay: dark top for logo, light middle, dark fade to bottom */}
+          {/* Overlay: dark top for logo, clear middle for truck, dark fade to bottom */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to bottom, rgba(6,15,15,0.70) 0%, rgba(0,0,0,0.05) 42%, rgba(6,15,15,0.88) 85%, rgba(6,15,15,1) 100%)",
+                "linear-gradient(to bottom, rgba(6,15,15,0.82) 0%, rgba(0,0,0,0.0) 45%, rgba(6,15,15,0.88) 85%, rgba(6,15,15,1) 100%)",
             }}
           />
 
-          {/* Logo inside image */}
-          <div className="absolute bottom-8 left-6">
+          {/* Logo — top center */}
+          <div className="absolute top-8 left-0 right-0 flex flex-col items-center">
             <h1
               className="font-black leading-none mb-1"
               style={{ fontSize: "2.6rem", letterSpacing: "-0.01em" }}
             >
-              <span style={{ color: "#2DD4BF" }}>CLICK</span>
+              <span style={{ color: "#4ADE80" }}>CLICK</span>
               <span className="text-white">CARGO</span>
             </h1>
             <p
               className="uppercase tracking-widest font-medium"
-              style={{ fontSize: "0.65rem", color: "#2DD4BF", opacity: 0.85 }}
+              style={{ fontSize: "0.65rem", color: "#4ADE80", opacity: 0.9 }}
             >
               Red integral de cargas
             </p>
@@ -63,7 +63,7 @@ export default function LandingPage() {
           >
             <span
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: "#2DD4BF22" }}
+              style={{ backgroundColor: "var(--primary-13)" }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -93,14 +93,19 @@ export default function LandingPage() {
             SOY EMPRESA
           </Link>
 
-          <p className="text-center text-sm pt-1">
-            <span style={{ color: "#9CA3AF" }}>Lanzamiento inicial </span>
-            <span className="font-bold" style={{ color: "#2DD4BF" }}>GRATIS por 60 días</span>
-          </p>
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <span className="text-sm" style={{ color: "#9CA3AF" }}>Lanzamiento inicial</span>
+            <span
+              className="text-sm font-black px-2.5 py-0.5 rounded-full"
+              style={{ backgroundColor: "#4ADE8022", color: "#4ADE80", border: "1px solid #4ADE8044" }}
+            >
+              GRATIS 60 días
+            </span>
+          </div>
 
           <p className="text-center text-xs" style={{ color: "#6B7280" }}>
             ¿Ya tenés cuenta?{" "}
-            <Link href="/login" className="font-semibold" style={{ color: "#2DD4BF" }}>
+            <Link href="/login" className="font-semibold" style={{ color: "#4ADE80" }}>
               Ingresá
             </Link>
           </p>

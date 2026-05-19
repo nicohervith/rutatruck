@@ -98,10 +98,10 @@ export default async function AdminDashboard() {
                   className="rounded-xl border p-4 text-center flex flex-col items-center gap-2"
                   style={{
                     backgroundColor: alert ? "#2D1B3A" : "#112424",
-                    borderColor: alert ? "#7C3AED55" : "#2DD4BF33",
+                    borderColor: alert ? "#7C3AED55" : "var(--primary-20)",
                   }}
                 >
-                  <span style={{ color: alert ? "#C084FC" : "#2DD4BF" }}>{icon}</span>
+                  <span style={{ color: alert ? "#C084FC" : "var(--primary)" }}>{icon}</span>
                   <p className="text-3xl font-bold" style={{ color: alert ? "#C084FC" : "white" }}>{value}</p>
                   <p className="text-sm font-medium" style={{ color: alert ? "#A855F7" : "#C4DCDC" }}>{label}</p>
                 </div>
@@ -149,7 +149,7 @@ export default async function AdminDashboard() {
           <h3 className="font-semibold text-white mb-1">Crear usuario admin</h3>
           <p className="text-sm mb-3" style={{ color: "#A8C5C5" }}>
             Desde terminal con{" "}
-            <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: "#0F2020", color: "#2DD4BF" }}>
+            <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: "#0F2020", color: "var(--primary)" }}>
               ADMIN_SETUP_SECRET
             </code>{" "}
             configurado en env:

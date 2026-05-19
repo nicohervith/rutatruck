@@ -120,7 +120,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 border-t z-50"
-      style={{ backgroundColor: "#0A1A1A", borderColor: "#2DD4BF44" }}
+      style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E7EB" }}
     >
       <div className="flex">
       {TABS[role].map((tab) => {
@@ -130,7 +130,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
             key={tab.href}
             href={tab.href}
             className="flex-1 relative flex flex-col items-center justify-center py-3 gap-1 transition-colors"
-            style={{ color: active ? "#2DD4BF" : "#6B7280" }}
+            style={{ color: active ? "var(--primary)" : "#6B7280" }}
           >
             <span className="relative">
               {tab.icon(active)}
@@ -140,11 +140,13 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
                 </span>
               )}
             </span>
-            <span className="text-[10px] font-semibold leading-none">{tab.label}</span>
+            <span className="text-[10px] font-semibold leading-none">
+              {tab.label}
+            </span>
             {active && (
               <span
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-                style={{ backgroundColor: "#2DD4BF" }}
+                style={{ backgroundColor: "#06342A" }}
               />
             )}
           </Link>

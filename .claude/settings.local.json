@@ -63,7 +63,8 @@
       "Bash(Sort-Object FullName)",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\app\" /s /b *.tsx)",
       "Bash(findstr \"page\\\\.tsx\")",
-      "Bash(findstr /R \"USE_PAYMENT_MOCK\\\\|MP_\\\\|PAGO\\\\|PAYMENT\" \"D:\\\\Programación\\\\rutatruck\\\\.env*\")"
+      "Bash(findstr /R \"USE_PAYMENT_MOCK\\\\|MP_\\\\|PAGO\\\\|PAYMENT\" \"D:\\\\Programación\\\\rutatruck\\\\.env*\")",
+      "PowerShell(Start-Process -FilePath \"powershell\" -ArgumentList \"-NoProfile\", \"-Command\", \"cd 'D:\\\\Programación\\\\rutatruck'; npx next dev --port 3000 2>&1 | Tee-Object -FilePath 'C:\\\\Users\\\\Nico\\\\AppData\\\\Local\\\\Temp\\\\nextdev.log'\" -WindowStyle Normal)"
     ]
   }
 }

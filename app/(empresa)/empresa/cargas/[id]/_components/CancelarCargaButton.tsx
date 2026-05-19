@@ -38,7 +38,7 @@ export default function CancelarCargaButton({ cargaId }: { cargaId: number }) {
         confirmButtonText: "Aceptar",
         background: "#112424",
         color: "#ffffff",
-        confirmButtonColor: "#2DD4BF",
+        confirmButtonColor: "var(--primary)",
         iconColor: "#4ADE80",
       });
       router.refresh();

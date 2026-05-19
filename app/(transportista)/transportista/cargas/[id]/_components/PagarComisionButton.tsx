@@ -36,7 +36,7 @@ export default function PagarComisionButton({
         onClick={handleClick}
         disabled={pending}
         className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />

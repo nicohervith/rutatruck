@@ -37,7 +37,7 @@ export default function ReintentarPagoButton({ cargaId }: { cargaId: number }) {
         onClick={handleClick}
         disabled={pending}
         className="inline-flex items-center gap-2 font-medium rounded-lg px-4 py-2.5 text-sm transition-colors disabled:opacity-60 cursor-pointer"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
       >
         {pending ? (
           <>

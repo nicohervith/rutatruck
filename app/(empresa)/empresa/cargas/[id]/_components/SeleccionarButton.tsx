@@ -25,9 +25,9 @@ export default function SeleccionarButton({ cargaId, postulacionId, transportist
       cancelButtonText: "Cancelar",
       background: "#112424",
       color: "#ffffff",
-      confirmButtonColor: "#2DD4BF",
+      confirmButtonColor: "var(--primary)",
       cancelButtonColor: "#1E3838",
-      iconColor: "#2DD4BF",
+      iconColor: "var(--primary)",
     });
 
     if (!result.isConfirmed) return;
@@ -49,7 +49,7 @@ export default function SeleccionarButton({ cargaId, postulacionId, transportist
         confirmButtonText: "Aceptar",
         background: "#112424",
         color: "#ffffff",
-        confirmButtonColor: "#2DD4BF",
+        confirmButtonColor: "var(--primary)",
         iconColor: "#4ADE80",
       });
       router.refresh();
@@ -65,7 +65,7 @@ export default function SeleccionarButton({ cargaId, postulacionId, transportist
         onClick={handleClick}
         disabled={pending}
         className="flex items-center gap-2 font-semibold rounded-xl px-5 py-2.5 text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

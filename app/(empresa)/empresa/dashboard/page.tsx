@@ -36,10 +36,10 @@ export default async function EmpresaDashboard() {
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <LogoClickCargo />
         <div className="flex items-center gap-2">
@@ -50,8 +50,8 @@ export default async function EmpresaDashboard() {
 
       <main className="max-w-lg mx-auto px-6 py-10">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white">Panel de Empresa</h2>
-          <p className="mt-2 text-base" style={{ color: "#A8C5C5" }}>
+          <h2 className="text-3xl font-bold text-gray-900">Panel de Empresa</h2>
+          <p className="mt-2 text-base" style={{ color: "#374151" }}>
             Publicá cargas y gestioná tus transportistas
           </p>
         </div>
@@ -60,24 +60,47 @@ export default async function EmpresaDashboard() {
           <Link
             href="/empresa/cargas/nueva"
             className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+            style={{ backgroundColor: "var(--primary)", color: "var(--page-bg)" }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Publicar carga
           </Link>
           <Link
             href="/empresa/cargas"
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base border-2 transition-colors hover:bg-[#2DD4BF0D]"
-            style={{ borderColor: "#2DD4BF", color: "#2DD4BF" }}
+            className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-semibold text-base border-2 transition-colors hover:bg-[var(--primary-5)]"
+            style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 10h16M4 14h16M4 18h16"
+              />
             </svg>
             Mis cargas
             {totalPostulaciones > 0 && (
-              <span className="ml-1 text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}>
+              <span
+                className="ml-1 text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
+              >
                 {totalPostulaciones} pendientes
               </span>
             )}
@@ -90,8 +113,18 @@ export default async function EmpresaDashboard() {
               label: "Publicadas",
               value: totalCargas,
               icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
                 </svg>
               ),
             },
@@ -99,8 +132,18 @@ export default async function EmpresaDashboard() {
               label: "Postulaciones",
               value: totalPostulaciones,
               icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
               ),
             },
@@ -108,8 +151,18 @@ export default async function EmpresaDashboard() {
               label: "Completados",
               value: totalFinalizadas,
               icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
                 </svg>
               ),
             },
@@ -117,11 +170,16 @@ export default async function EmpresaDashboard() {
             <div
               key={label}
               className="rounded-xl border p-4 text-center flex flex-col items-center gap-2"
-              style={{ backgroundColor: "#112424", borderColor: "#2DD4BF33" }}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderColor: "var(--primary-20)",
+              }}
             >
-              <span style={{ color: "#2DD4BF" }}>{icon}</span>
-              <p className="text-3xl font-bold text-white">{value}</p>
-              <p className="text-sm font-medium" style={{ color: "#C4DCDC" }}>{label}</p>
+              <span style={{ color: "var(--primary)" }}>{icon}</span>
+              <p className="text-3xl font-bold text-gray-900">{value}</p>
+              <p className="text-sm font-medium" style={{ color: "#C4DCDC" }}>
+                {label}
+              </p>
             </div>
           ))}
         </div>
@@ -129,25 +187,42 @@ export default async function EmpresaDashboard() {
         {cargas.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium" style={{ color: "#9CA3AF" }}>Últimas cargas</h3>
-              <Link href="/empresa/cargas" className="text-xs transition-colors" style={{ color: "#2DD4BF" }}>
+              <h3 className="text-sm font-medium" style={{ color: "#9CA3AF" }}>
+                Últimas cargas
+              </h3>
+              <Link
+                href="/empresa/cargas"
+                className="text-xs transition-colors"
+                style={{ color: "var(--primary)" }}
+              >
                 Ver todas →
               </Link>
             </div>
             <div className="space-y-2">
               {cargas.map((carga: any) => {
-                const estado = ESTADO_LABELS[carga.estado] ?? { label: carga.estado, color: "bg-white/10 text-gray-400" };
+                const estado = ESTADO_LABELS[carga.estado] ?? {
+                  label: carga.estado,
+                  color: "bg-white/10 text-gray-400",
+                };
                 const pendientes = carga._count.postulaciones;
                 return (
                   <Link
                     key={carga.id}
                     href={`/empresa/cargas/${carga.id}`}
-                    className="rounded-xl border p-4 flex items-center justify-between gap-3 transition-all block hover:border-[#2DD4BF33]"
-                    style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+                    className="rounded-xl border p-4 flex items-center justify-between gap-3 transition-all block hover:border-[var(--primary-20)]"
+                    style={{
+                      backgroundColor: "#FFFFFF",
+                      borderColor: "#E2E8E8",
+                    }}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-white text-sm truncate">{carga.titulo}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#A8C5C5" }}>
+                      <p className="font-medium text-gray-900 text-sm truncate">
+                        {carga.titulo}
+                      </p>
+                      <p
+                        className="text-xs mt-0.5"
+                        style={{ color: "#374151" }}
+                      >
                         {carga.origen} → {carga.destino}
                       </p>
                     </div>
@@ -157,7 +232,9 @@ export default async function EmpresaDashboard() {
                           {pendientes}
                         </span>
                       )}
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}
+                      >
                         {estado.label}
                       </span>
                     </div>

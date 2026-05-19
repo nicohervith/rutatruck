@@ -99,7 +99,7 @@ export default function LocationAutocomplete({
       {open && (
         <ul
           className="absolute z-50 w-full mt-1 rounded-lg border overflow-hidden shadow-lg"
-          style={{ backgroundColor: "#0F2020", borderColor: "#1E3838" }}
+          style={{ backgroundColor: "#F9FAFB", borderColor: "#E2E8E8" }}
         >
           {suggestions.map((s, i) => (
             <li
@@ -107,7 +107,7 @@ export default function LocationAutocomplete({
               onMouseDown={() => select(s.label)}
               className="px-3 py-2 text-sm cursor-pointer transition-colors"
               style={{
-                color: i === active ? "#2DD4BF" : "#E5E7EB",
+                color: i === active ? "var(--primary)" : "#E5E7EB",
                 backgroundColor: i === active ? "#1E3838" : "transparent",
               }}
               onMouseEnter={() => setActive(i)}

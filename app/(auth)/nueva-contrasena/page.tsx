@@ -21,7 +21,7 @@ function NuevaContrasenaForm() {
     if (!token) setError("El enlace no es válido.");
   }, [token]);
 
-  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
+  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm";
   const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,9 +53,9 @@ function NuevaContrasenaForm() {
         <div className="text-center space-y-4">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center mx-auto"
-            style={{ backgroundColor: "#2DD4BF20" }}
+            style={{ backgroundColor: "var(--primary-13)" }}
           >
-            <svg className="w-7 h-7" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-7 h-7" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -131,7 +131,7 @@ function NuevaContrasenaForm() {
               type="submit"
               disabled={pending || !token}
               className="w-full font-medium rounded-lg py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+              style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
             >
               {pending ? "Guardando..." : "Guardar nueva contraseña"}
             </button>

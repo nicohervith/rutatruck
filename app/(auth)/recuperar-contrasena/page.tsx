@@ -10,7 +10,7 @@ export default function RecuperarContrasenaPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
+  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm";
   const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,9 +47,9 @@ export default function RecuperarContrasenaPage() {
             <div className="text-center space-y-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mx-auto"
-                style={{ backgroundColor: "#2DD4BF20" }}
+                style={{ backgroundColor: "var(--primary-13)" }}
               >
-                <svg className="w-7 h-7" style={{ color: "#2DD4BF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-7 h-7" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -60,7 +60,7 @@ export default function RecuperarContrasenaPage() {
               <Link
                 href="/login"
                 className="inline-block text-sm font-medium transition-colors"
-                style={{ color: "#2DD4BF" }}
+                style={{ color: "var(--primary)" }}
               >
                 Volver al inicio de sesión
               </Link>
@@ -100,14 +100,14 @@ export default function RecuperarContrasenaPage() {
                   type="submit"
                   disabled={pending}
                   className="w-full font-medium rounded-lg py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
-                  style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+                  style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
                 >
                   {pending ? "Enviando..." : "Enviar enlace"}
                 </button>
               </form>
 
               <p className="mt-6 text-center text-sm" style={{ color: "#6B7280" }}>
-                <Link href="/login" className="font-medium transition-colors" style={{ color: "#2DD4BF" }}>
+                <Link href="/login" className="font-medium transition-colors" style={{ color: "var(--primary)" }}>
                   ← Volver al inicio de sesión
                 </Link>
               </p>

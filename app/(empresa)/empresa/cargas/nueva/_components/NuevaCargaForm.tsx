@@ -33,9 +33,17 @@ type Fields = {
 
 function makeDefaults(c: ContactoDefecto): Fields {
   return {
-    titulo: "", origen: "", destino: "", tipoCarga: "", tipoCargaDetalle: "",
-    peso: "", presupuesto: "", fechaCarga: "", fechaCupo: "",
-    preferenciaCamion: "", descripcion: "",
+    titulo: "",
+    origen: "",
+    destino: "",
+    tipoCarga: "",
+    tipoCargaDetalle: "",
+    peso: "",
+    presupuesto: "",
+    fechaCarga: "",
+    fechaCupo: "",
+    preferenciaCamion: "",
+    descripcion: "",
     contactoNombre: c.nombre,
     contactoTelefono: c.telefono,
     contactoEmail: c.email,
@@ -56,7 +64,9 @@ export default function NuevaCargaForm({
   useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(errorInicial ?? null);
-  const [fields, setFields] = useState<Fields>(() => makeDefaults(contactoDefecto));
+  const [fields, setFields] = useState<Fields>(() =>
+    makeDefaults(contactoDefecto),
+  );
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,9 +76,13 @@ export default function NuevaCargaForm({
       const saved = localStorage.getItem(DRAFT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<Fields>;
-        const contactKeysToSkip: (keyof Fields)[] = ["contactoNombre", "contactoTelefono", "contactoEmail"];
-        contactKeysToSkip.forEach(k => delete parsed[k]);
-        setFields(f => ({ ...f, ...parsed }));
+        const contactKeysToSkip: (keyof Fields)[] = [
+          "contactoNombre",
+          "contactoTelefono",
+          "contactoEmail",
+        ];
+        contactKeysToSkip.forEach((k) => delete parsed[k]);
+        setFields((f) => ({ ...f, ...parsed }));
         setHasDraft(true);
       }
     } catch {}
@@ -81,12 +95,17 @@ export default function NuevaCargaForm({
     saveRef.current = setTimeout(() => {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
     }, 500);
-    return () => { if (saveRef.current) clearTimeout(saveRef.current); };
+    return () => {
+      if (saveRef.current) clearTimeout(saveRef.current);
+    };
   }, [fields, draftLoaded]);
 
   function set(name: keyof Fields) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-      setFields(f => ({ ...f, [name]: e.target.value }));
+    return (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => setFields((f) => ({ ...f, [name]: e.target.value }));
   }
 
   function clearDraft() {
@@ -129,24 +148,24 @@ export default function NuevaCargaForm({
         err instanceof Error && err.name === "AbortError"
           ? "La conexión tardó demasiado. Revisá tu conexión e intentá de nuevo."
           : err instanceof Error
-          ? err.message
-          : "Error inesperado";
+            ? err.message
+            : "Error inesperado";
       setError(msg);
       setPending(false);
     }
   }
 
   const inputClass =
-    "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
-  const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+    "w-full rounded-lg border px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm";
+  const inputStyle = { backgroundColor: "#F9FAFB", borderColor: "#E2E8E8" };
   const labelClass = "block text-sm font-medium mb-1";
   const labelStyle = { color: "#9CA3AF" };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <Link href="/empresa/dashboard">
           <LogoClickCargo />
@@ -158,16 +177,29 @@ export default function NuevaCargaForm({
           <Link
             href="/empresa/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            <span
+              className="flex items-center justify-center w-8 h-8 rounded-full border-2"
+              style={{ borderColor: "var(--primary)" }}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </span>
             Volver al panel
           </Link>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-gray-900">
             Publicar nueva carga
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
@@ -180,7 +212,11 @@ export default function NuevaCargaForm({
         {hasDraft && (
           <div
             className="mb-4 flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm"
-            style={{ backgroundColor: "#2DD4BF0D", borderColor: "#2DD4BF33", color: "#2DD4BF" }}
+            style={{
+              backgroundColor: "var(--primary-5)",
+              borderColor: "var(--primary-20)",
+              color: "var(--primary)",
+            }}
           >
             <span>Borrador restaurado</span>
             <button
@@ -196,9 +232,9 @@ export default function NuevaCargaForm({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div
             className="rounded-xl border p-6 space-y-4"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <h2 className="font-medium text-white">Datos de la carga</h2>
+            <h2 className="font-medium text-gray-900">Datos de la carga</h2>
 
             <div>
               <label htmlFor="titulo" className={labelClass} style={labelStyle}>
@@ -219,7 +255,11 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="origen" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="origen"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Origen *
                 </label>
                 <LocationAutocomplete
@@ -230,11 +270,15 @@ export default function NuevaCargaForm({
                   inputStyle={inputStyle}
                   placeholder="Ciudad / Provincia"
                   initialValue={fields.origen}
-                  onValueChange={v => setFields(f => ({ ...f, origen: v }))}
+                  onValueChange={(v) => setFields((f) => ({ ...f, origen: v }))}
                 />
               </div>
               <div>
-                <label htmlFor="destino" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="destino"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Destino *
                 </label>
                 <LocationAutocomplete
@@ -245,14 +289,20 @@ export default function NuevaCargaForm({
                   inputStyle={inputStyle}
                   placeholder="Ciudad / Provincia"
                   initialValue={fields.destino}
-                  onValueChange={v => setFields(f => ({ ...f, destino: v }))}
+                  onValueChange={(v) =>
+                    setFields((f) => ({ ...f, destino: v }))
+                  }
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="tipoCarga" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="tipoCarga"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Tipo de carga *
                 </label>
                 <select
@@ -264,14 +314,34 @@ export default function NuevaCargaForm({
                   className={inputClass}
                   style={inputStyle}
                 >
-                  <option value="" disabled style={{ backgroundColor: "#0F2020" }}>
+                  <option
+                    value=""
+                    disabled
+                    style={{ backgroundColor: "#F9FAFB" }}
+                  >
                     Seleccioná el tipo
                   </option>
-                  <option value="granos" style={{ backgroundColor: "#0F2020" }}>Granos</option>
-                  <option value="frutas" style={{ backgroundColor: "#0F2020" }}>Frutas</option>
-                  <option value="verduras" style={{ backgroundColor: "#0F2020" }}>Verduras</option>
-                  <option value="animales" style={{ backgroundColor: "#0F2020" }}>Animales</option>
-                  <option value="otro" style={{ backgroundColor: "#0F2020" }}>Otro</option>
+                  <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
+                    Granos
+                  </option>
+                  <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
+                    Frutas
+                  </option>
+                  <option
+                    value="verduras"
+                    style={{ backgroundColor: "#F9FAFB" }}
+                  >
+                    Verduras
+                  </option>
+                  <option
+                    value="animales"
+                    style={{ backgroundColor: "#F9FAFB" }}
+                  >
+                    Animales
+                  </option>
+                  <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
+                    Otro
+                  </option>
                 </select>
               </div>
               <div>
@@ -295,9 +365,15 @@ export default function NuevaCargaForm({
 
             {fields.tipoCarga && (
               <div>
-                <label htmlFor="tipoCargaDetalle" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="tipoCargaDetalle"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Especificación del tipo{" "}
-                  <span className="text-xs" style={{ color: "#6B7280" }}>(opcional)</span>
+                  <span className="text-xs" style={{ color: "#6B7280" }}>
+                    (opcional)
+                  </span>
                 </label>
                 <input
                   id="tipoCargaDetalle"
@@ -308,11 +384,15 @@ export default function NuevaCargaForm({
                   className={inputClass}
                   style={inputStyle}
                   placeholder={
-                    fields.tipoCarga === "granos" ? "Ej: Maíz, Soja, Trigo..." :
-                    fields.tipoCarga === "frutas" ? "Ej: Banana, Manzana, Pera..." :
-                    fields.tipoCarga === "verduras" ? "Ej: Tomate, Lechuga, Papa..." :
-                    fields.tipoCarga === "animales" ? "Ej: Bovinos, Porcinos, Ovinos..." :
-                    "Especificá el tipo de carga"
+                    fields.tipoCarga === "granos"
+                      ? "Ej: Maíz, Soja, Trigo..."
+                      : fields.tipoCarga === "frutas"
+                        ? "Ej: Banana, Manzana, Pera..."
+                        : fields.tipoCarga === "verduras"
+                          ? "Ej: Tomate, Lechuga, Papa..."
+                          : fields.tipoCarga === "animales"
+                            ? "Ej: Bovinos, Porcinos, Ovinos..."
+                            : "Especificá el tipo de carga"
                   }
                 />
               </div>
@@ -320,7 +400,11 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="presupuesto" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="presupuesto"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Presupuesto ofrecido ($)
                 </label>
                 <input
@@ -337,7 +421,11 @@ export default function NuevaCargaForm({
                 />
               </div>
               <div>
-                <label htmlFor="preferenciaCamion" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="preferenciaCamion"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Preferencia de camión
                 </label>
                 <input
@@ -355,7 +443,11 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="fechaCarga" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="fechaCarga"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Fecha de carga *
                 </label>
                 <input
@@ -366,11 +458,15 @@ export default function NuevaCargaForm({
                   value={fields.fechaCarga}
                   onChange={set("fechaCarga")}
                   className={inputClass}
-                  style={{ ...inputStyle, colorScheme: "dark" }}
+                  style={{ ...inputStyle, colorScheme: "light" }}
                 />
               </div>
               <div>
-                <label htmlFor="fechaCupo" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="fechaCupo"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Fecha de cupo
                 </label>
                 <input
@@ -380,13 +476,17 @@ export default function NuevaCargaForm({
                   value={fields.fechaCupo}
                   onChange={set("fechaCupo")}
                   className={inputClass}
-                  style={{ ...inputStyle, colorScheme: "dark" }}
+                  style={{ ...inputStyle, colorScheme: "light" }}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="descripcion" className={labelClass} style={labelStyle}>
+              <label
+                htmlFor="descripcion"
+                className={labelClass}
+                style={labelStyle}
+              >
                 Descripción adicional
               </label>
               <textarea
@@ -404,12 +504,16 @@ export default function NuevaCargaForm({
 
           <div
             className="rounded-xl border p-6 space-y-4"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <h2 className="font-medium text-white">Datos de contacto</h2>
+            <h2 className="font-medium text-gray-900">Datos de contacto</h2>
 
             <div>
-              <label htmlFor="contactoNombre" className={labelClass} style={labelStyle}>
+              <label
+                htmlFor="contactoNombre"
+                className={labelClass}
+                style={labelStyle}
+              >
                 Nombre de contacto *
               </label>
               <input
@@ -426,7 +530,11 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="contactoTelefono" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="contactoTelefono"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Teléfono *
                 </label>
                 <input
@@ -442,7 +550,11 @@ export default function NuevaCargaForm({
                 />
               </div>
               <div>
-                <label htmlFor="contactoEmail" className={labelClass} style={labelStyle}>
+                <label
+                  htmlFor="contactoEmail"
+                  className={labelClass}
+                  style={labelStyle}
+                >
                   Email *
                 </label>
                 <input
@@ -469,13 +581,13 @@ export default function NuevaCargaForm({
             <div
               className="rounded-xl border px-4 py-3 text-sm"
               style={{
-                backgroundColor: "#2DD4BF0D",
-                borderColor: "#2DD4BF33",
-                color: "#2DD4BF",
+                backgroundColor: "var(--primary-5)",
+                borderColor: "var(--primary-20)",
+                color: "var(--primary)",
               }}
             >
-              Al continuar serás redirigido a MercadoPago para abonar la tarifa de
-              publicación de{" "}
+              Al continuar serás redirigido a MercadoPago para abonar la tarifa
+              de publicación de{" "}
               <strong>${precioPublicacion.toLocaleString("es-AR")}</strong>.
             </div>
           )}
@@ -492,9 +604,16 @@ export default function NuevaCargaForm({
               type="submit"
               disabled={pending}
               className="font-medium rounded-lg px-6 py-2.5 transition-colors cursor-pointer disabled:opacity-60 text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--text-white)",
+              }}
             >
-              {pending ? "Procesando..." : freeTier ? "Publicar carga →" : "Ir al pago →"}
+              {pending
+                ? "Procesando..."
+                : freeTier
+                  ? "Publicar carga →"
+                  : "Ir al pago →"}
             </button>
           </div>
         </form>
