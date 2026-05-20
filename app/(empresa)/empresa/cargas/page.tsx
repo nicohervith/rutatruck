@@ -1,11 +1,12 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import type { JSX } from "react";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import FiltroEstado from "@/app/_components/FiltroEstado";
+import { getIconoCarga } from "@/lib/iconos-carga";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -15,99 +16,10 @@ const TIPO_LABELS: Record<string, string> = {
   otro: "Otro",
 };
 
-const TIPO_ICONS: Record<string, JSX.Element> = {
-  granos: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 3v1m0 16v1M4.22 4.22l.707.707M18.364 18.364l.707.707M3 12h1m16 0h1M4.927 19.073l.707-.707M18.364 5.636l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"
-      />
-    </svg>
-  ),
-  frutas: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 2c0 0-4 4-4 8a4 4 0 008 0c0-4-4-8-4-8z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 2c0 0 2-2 4-1"
-      />
-    </svg>
-  ),
-  verduras: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 3l4 9H3l2-5m4-4l4 9h-6m4-9l4 9h-6"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 12v9"
-      />
-    </svg>
-  ),
-  animales: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M20 7c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM6 7c0 1.1-.9 2-2 2S2 8.1 2 7s.9-2 2-2 2 .9 2 2zm2-4c0 1.1-.9 2-2 2S4 4.1 4 3s.9-2 2-2 2 .9 2 2zm8 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM12 10a5 5 0 00-5 5v1h10v-1a5 5 0 00-5-5z"
-      />
-    </svg>
-  ),
-  otro: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-      />
-    </svg>
-  ),
-};
-
 type EstadoConfig = {
   label: string;
-  color: string;
+  badgeStyle: CSSProperties;
+  cardBorder: string;
   dot: string;
   hex: string;
 };
@@ -115,49 +27,57 @@ type EstadoConfig = {
 const ESTADO_CONFIG: Record<string, EstadoConfig> = {
   PENDIENTE_PAGO: {
     label: "Pago pendiente",
-    color: "bg-yellow-500/20 text-yellow-300",
+    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ACTIVA: {
     label: "Activa",
-    color: "bg-green-500/20 text-green-300",
+    badgeStyle: { backgroundColor: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0" },
+    cardBorder: "#BBF7D0",
     dot: "bg-green-400",
     hex: "#4ADE80",
   },
   PENDIENTE_PAGO_TRANSPORTISTA: {
     label: "Esperando pago",
-    color: "bg-yellow-500/20 text-yellow-300",
+    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ASIGNADA: {
     label: "En viaje",
-    color: "bg-blue-500/20 text-blue-300",
+    badgeStyle: { backgroundColor: "#DBEAFE", color: "#1D4ED8", border: "1px solid #BFDBFE" },
+    cardBorder: "#BFDBFE",
     dot: "bg-blue-400",
     hex: "#60A5FA",
   },
   EN_CONFIRMACION: {
     label: "Confirmar completado",
-    color: "bg-orange-500/20 text-orange-300",
+    badgeStyle: { backgroundColor: "#FFEDD5", color: "#C2410C", border: "1px solid #FED7AA" },
+    cardBorder: "#FED7AA",
     dot: "bg-orange-400",
     hex: "#FB923C",
   },
   FINALIZADA: {
     label: "Finalizada",
-    color: "bg-white/10 text-gray-400",
+    badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+    cardBorder: "#E5E7EB",
     dot: "bg-gray-600",
     hex: "#9CA3AF",
   },
   CANCELADA: {
     label: "Cancelada",
-    color: "bg-red-500/20 text-red-300",
+    badgeStyle: { backgroundColor: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA" },
+    cardBorder: "#FECACA",
     dot: "bg-red-400",
     hex: "#F87171",
   },
   DISPUTA: {
     label: "En disputa",
-    color: "bg-purple-500/20 text-purple-300",
+    badgeStyle: { backgroundColor: "#F3E8FF", color: "#7E22CE", border: "1px solid #E9D5FF" },
+    cardBorder: "#E9D5FF",
     dot: "bg-purple-400",
     hex: "#C084FC",
   },
@@ -197,7 +117,7 @@ export default async function CargasPage({
       value: estado,
       label: ESTADO_CONFIG[estado]?.label ?? estado,
       count,
-      color: ESTADO_CONFIG[estado]?.hex,
+      activeStyle: ESTADO_CONFIG[estado]?.badgeStyle,
     })),
   ];
 
@@ -206,10 +126,10 @@ export default async function CargasPage({
     : sorted;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <header
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
+        style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <Link href="/empresa/dashboard">
           <LogoClickCargo />
@@ -225,11 +145,11 @@ export default async function CargasPage({
           <Link
             href="/empresa/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
             <span
               className="flex items-center justify-center w-8 h-8 rounded-full border-2"
-              style={{ borderColor: "#2DD4BF" }}
+              style={{ borderColor: "var(--primary)" }}
             >
               <svg
                 className="w-4 h-4"
@@ -247,8 +167,8 @@ export default async function CargasPage({
             </span>
             Volver al panel
           </Link>
-          <h1 className="text-3xl font-bold text-white">Mis cargas</h1>
-          <p className="text-base mt-1.5" style={{ color: "#A8C5C5" }}>
+          <h1 className="text-3xl font-bold text-gray-900">Mis cargas</h1>
+          <p className="text-base mt-1.5" style={{ color: "#374151" }}>
             {cargas.length} carga{cargas.length !== 1 ? "s" : ""} publicada
             {cargas.length !== 1 ? "s" : ""}
           </p>
@@ -263,11 +183,11 @@ export default async function CargasPage({
         {success === "1" && (
           <div
             className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
-            style={{ backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33" }}
+            style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
-              style={{ color: "#2DD4BF" }}
+              style={{ color: "var(--primary)" }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -279,7 +199,7 @@ export default async function CargasPage({
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <p className="text-sm font-medium" style={{ color: "#2DD4BF" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
               ¡Carga publicada exitosamente! Los transportistas ya pueden verla.
             </p>
           </div>
@@ -297,15 +217,15 @@ export default async function CargasPage({
         {cargas.length === 0 ? (
           <div
             className="rounded-xl border p-12 text-center"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <p className="mb-6" style={{ color: "#A8C5C5" }}>
+            <p className="mb-6" style={{ color: "#374151" }}>
               Todavía no publicaste cargas
             </p>
             <Link
               href="/empresa/cargas/nueva"
               className="inline-flex items-center gap-2 font-semibold rounded-xl px-6 py-3.5 transition-opacity hover:opacity-90 text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+              style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
             >
               <svg
                 className="w-4 h-4"
@@ -328,9 +248,9 @@ export default async function CargasPage({
             {visible.length === 0 && (
               <div
                 className="rounded-xl border p-10 text-center"
-                style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+                style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
               >
-                <p className="text-sm" style={{ color: "#A8C5C5" }}>
+                <p className="text-sm" style={{ color: "#374151" }}>
                   No hay cargas con ese estado.
                 </p>
               </div>
@@ -338,24 +258,23 @@ export default async function CargasPage({
             {visible.map((carga: any) => {
               const cfg = ESTADO_CONFIG[carga.estado] ?? {
                 label: carga.estado,
-                color: "bg-white/10 text-gray-400",
+                badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+                cardBorder: "#E5E7EB",
                 dot: "bg-gray-600",
               };
               const pendientes = carga._count.postulaciones;
               const needsAction = carga.estado === "EN_CONFIRMACION";
 
-              const tipoIcon =
-                TIPO_ICONS[carga.tipoCarga as keyof typeof TIPO_ICONS] ?? TIPO_ICONS.otro;
-                
+              const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
 
               return (
                 <Link
                   key={carga.id}
                   href={`/empresa/cargas/${carga.id}`}
-                  className={`rounded-xl border block overflow-hidden transition-all hover:border-[#2DD4BF55] ${needsAction ? "ring-1 ring-orange-500/40" : ""}`}
+                  className={`rounded-xl border block overflow-hidden transition-all ${needsAction ? "ring-1 ring-orange-500/40" : ""}`}
                   style={{
-                    backgroundColor: "#112424",
-                    borderColor: needsAction ? "#FB923C55" : "#2DD4BF22",
+                    backgroundColor: "#FFFFFF",
+                    borderColor: cfg.cardBorder,
                   }}
                 >
                   <div className="p-5">
@@ -365,21 +284,22 @@ export default async function CargasPage({
                           <span
                             className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`}
                           />
-                          <h3 className="font-semibold text-white truncate">
+                          <h3 className="font-semibold text-gray-900 truncate">
                             {carga.titulo}
                           </h3>
                         </div>
                         <p
                           className="text-sm ml-4"
-                          style={{ color: "#A8C5C5" }}
+                          style={{ color: "#374151" }}
                         >
                           {carga.origen}{" "}
-                          <span style={{ color: "#2DD4BF" }}>→</span>{" "}
+                          <span style={{ color: "var(--primary)" }}>→</span>{" "}
                           {carga.destino}
                         </p>
                       </div>
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 ${cfg.color}`}
+                        className="text-xs font-medium px-2 py-1 rounded-full flex-shrink-0"
+                        style={cfg.badgeStyle}
                       >
                         {cfg.label}
                       </span>
@@ -387,20 +307,15 @@ export default async function CargasPage({
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-4 ml-4">
                       <div className="flex items-start gap-2">
-                        <span
-                          className="mt-0.5 flex-shrink-0"
-                          style={{ color: "#2DD4BF" }}
-                        >
-                          {tipoIcon}
-                        </span>
+                        <span className="text-xl leading-none flex-shrink-0">{emoji}</span>
                         <div>
                           <p
                             className="text-xs font-semibold uppercase tracking-wide mb-0.5"
-                            style={{ color: "#8BBDBD" }}
+                            style={{ color: "#6B7280" }}
                           >
                             Tipo
                           </p>
-                          <p className="text-sm font-bold text-white">
+                          <p className="text-sm font-bold text-gray-900">
                             {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}
                           </p>
                         </div>
@@ -409,7 +324,7 @@ export default async function CargasPage({
                         <div className="flex items-start gap-2">
                           <span
                             className="mt-0.5 flex-shrink-0"
-                            style={{ color: "#2DD4BF" }}
+                            style={{ color: "var(--primary)" }}
                           >
                             <svg
                               className="w-4 h-4"
@@ -428,11 +343,11 @@ export default async function CargasPage({
                           <div>
                             <p
                               className="text-xs font-semibold uppercase tracking-wide mb-0.5"
-                              style={{ color: "#8BBDBD" }}
+                              style={{ color: "#6B7280" }}
                             >
                               Toneladas
                             </p>
-                            <p className="text-sm font-bold text-white">
+                            <p className="text-sm font-bold text-gray-900">
                               {carga.peso} tn
                             </p>
                           </div>
@@ -442,7 +357,7 @@ export default async function CargasPage({
                         <div className="flex items-start gap-2">
                           <span
                             className="mt-0.5 flex-shrink-0"
-                            style={{ color: "#2DD4BF" }}
+                            style={{ color: "var(--primary)" }}
                           >
                             <svg
                               className="w-4 h-4"
@@ -461,13 +376,13 @@ export default async function CargasPage({
                           <div>
                             <p
                               className="text-xs font-semibold uppercase tracking-wide mb-0.5"
-                              style={{ color: "#8BBDBD" }}
+                              style={{ color: "#6B7280" }}
                             >
                               Precio
                             </p>
                             <p
                               className="text-sm font-bold"
-                              style={{ color: "#2DD4BF" }}
+                              style={{ color: "var(--primary)" }}
                             >
                               ${carga.presupuesto.toLocaleString("es-AR")}
                             </p>
@@ -477,7 +392,7 @@ export default async function CargasPage({
                       <div className="flex items-start gap-2">
                         <span
                           className="mt-0.5 flex-shrink-0"
-                          style={{ color: "#2DD4BF" }}
+                          style={{ color: "var(--primary)" }}
                         >
                           <svg
                             className="w-4 h-4"
@@ -496,11 +411,11 @@ export default async function CargasPage({
                         <div>
                           <p
                             className="text-xs font-semibold uppercase tracking-wide mb-0.5"
-                            style={{ color: "#8BBDBD" }}
+                            style={{ color: "#6B7280" }}
                           >
                             Fecha
                           </p>
-                          <p className="text-sm font-bold text-white">
+                          <p className="text-sm font-bold text-gray-900">
                             {carga.fechaCarga.toLocaleDateString("es-AR")}
                           </p>
                         </div>
@@ -514,8 +429,8 @@ export default async function CargasPage({
                       needsAction
                         ? { backgroundColor: "#FB923C", color: "#fff" }
                         : pendientes > 0
-                          ? { backgroundColor: "#2DD4BF", color: "#0C1E1E" }
-                          : { backgroundColor: "#2DD4BF1A", color: "#2DD4BF" }
+                          ? { backgroundColor: "var(--primary)", color: "#0C1E1E" }
+                          : { backgroundColor: "var(--primary-27)", color: "var(--primary)" }
                     }
                   >
                     {needsAction ? (

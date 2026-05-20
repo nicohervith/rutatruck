@@ -34,7 +34,7 @@ export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
   }, [open]);
 
   return (
-    <div ref={ref} className="relative hidden md:block">
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
         className="p-2 rounded-lg transition-colors hover:bg-white/5"

@@ -2,7 +2,7 @@ import "server-only";
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
 
-export type Role = "EMPRESA" | "TRANSPORTISTA" | "ADMIN";
+export type Role = "EMPRESA" | "TRANSPORTISTA" | "TRANSPORTISTA_FLOTA" | "ADMIN";
 
 export interface SessionPayload extends JWTPayload {
   userId: string;

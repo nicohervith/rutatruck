@@ -28,7 +28,7 @@ export async function PUT(
 
   const {
     titulo, origen, destino, tipoCarga, tipoCargaDetalle,
-    peso, volumen,
+    peso, volumen, presupuesto,
     fechaCarga, fechaCupo, preferenciaCamion,
     descripcion,
     contactoNombre, contactoTelefono, contactoEmail,
@@ -48,6 +48,9 @@ export async function PUT(
       tipoCargaDetalle: tipoCargaDetalle && String(tipoCargaDetalle) !== "" ? String(tipoCargaDetalle) : null,
       peso: peso !== undefined && peso !== "" ? parseFloat(String(peso)) : null,
       volumen: volumen !== undefined && volumen !== "" ? parseFloat(String(volumen)) : null,
+      ...(carga.transportistaAsignadoId === null && {
+        presupuesto: presupuesto !== undefined && presupuesto !== "" ? parseFloat(String(presupuesto)) : null,
+      }),
       fechaCarga: new Date(String(fechaCarga)),
       fechaCupo: fechaCupo && String(fechaCupo) !== "" ? new Date(String(fechaCupo)) : null,
       preferenciaCamion: preferenciaCamion && String(preferenciaCamion) !== "" ? String(preferenciaCamion) : null,

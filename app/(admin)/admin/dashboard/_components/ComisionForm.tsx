@@ -34,7 +34,7 @@ export default function ComisionForm({
     }
   }
 
-  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]";
+  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]";
   const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
 
   return (
@@ -75,7 +75,7 @@ export default function ComisionForm({
         type="submit"
         disabled={pending}
         className="w-full py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
       >
         {pending ? "Guardando..." : "Guardar configuración"}
       </button>

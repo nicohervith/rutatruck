@@ -7,21 +7,25 @@ interface Props {
   cargaId: number;
   miPostulacion: { id: number; estado: string; mensaje: string | null } | null;
   contactoDefecto: { email: string; telefono: string };
+  cantidadCamiones?: number;
+  esFlota?: boolean;
 }
 
-export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto }: Props) {
+export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
   const [contactoEmail, setContactoEmail] = useState(contactoDefecto.email);
   const [contactoTelefono, setContactoTelefono] = useState(contactoDefecto.telefono);
+  const [camionesCubiertos, setCamionesCubiertos] = useState("1");
+  const [precioOfrecido, setPrecioOfrecido] = useState("");
 
   if (miPostulacion) {
     const styleMap: Record<string, React.CSSProperties> = {
-      PENDIENTE: { backgroundColor: "#2DD4BF1A", borderColor: "#2DD4BF33", color: "#2DD4BF" },
+      PENDIENTE: { backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)", color: "var(--primary)" },
       ACEPTADA: { backgroundColor: "#4ADE801A", borderColor: "#4ADE8033", color: "#4ADE80" },
-      RECHAZADA: { backgroundColor: "#FFFFFF0A", borderColor: "#1E3838", color: "#6B7280" },
+      RECHAZADA: { backgroundColor: "#FFFFFF0A", borderColor: "#E2E8E8", color: "#6B7280" },
     };
     const labelMap: Record<string, string> = {
       PENDIENTE: "Tu postulación está pendiente. La empresa te contactará si te selecciona.",
@@ -52,11 +56,13 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
           mensaje: mensaje || undefined,
           contactoEmail,
           contactoTelefono,
+          camionesCubiertos: esFlota ? Math.max(1, parseInt(camionesCubiertos) || 1) : 1,
+          precioOfrecido: precioOfrecido ? parseFloat(precioOfrecido) : undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error al postularse");
-      router.push(`/transportista/cargas?success=1`);
+      router.push(`/transportista/cargas/${cargaId}/exito`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");
       setPending(false);
@@ -64,8 +70,8 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
   }
 
   const inputClass =
-    "w-full rounded-lg border px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF] focus:border-transparent text-sm";
-  const inputStyle = { backgroundColor: "#0F2020", borderColor: "#1E3838" };
+    "w-full rounded-lg border px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm";
+  const inputStyle = { backgroundColor: "#F9FAFB", borderColor: "#E2E8E8" };
   const labelClass = "block text-sm font-medium mb-1";
   const labelStyle = { color: "#9CA3AF" };
 
@@ -73,11 +79,29 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
     <form
       onSubmit={handleSubmit}
       className="rounded-xl border p-6"
-      style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+      style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
     >
-      <h2 className="font-medium text-white mb-4">Postularme a esta carga</h2>
+      <h2 className="font-medium text-gray-900 mb-4">Postularme a esta carga</h2>
 
       <div className="space-y-4 mb-4">
+        {esFlota && cantidadCamiones > 1 && (
+          <div>
+            <label className={labelClass} style={labelStyle}>
+              ¿Cuántos camiones podés cubrir? *{" "}
+              <span className="text-xs" style={{ color: "#6B7280" }}>(máx. {cantidadCamiones})</span>
+            </label>
+            <input
+              type="number"
+              required
+              min="1"
+              max={cantidadCamiones}
+              value={camionesCubiertos}
+              onChange={(e) => setCamionesCubiertos(e.target.value)}
+              className={inputClass}
+              style={inputStyle}
+            />
+          </div>
+        )}
         <div>
           <label className={labelClass} style={labelStyle}>
             Email de contacto *
@@ -110,6 +134,23 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
 
         <div>
           <label className={labelClass} style={labelStyle}>
+            Tu precio por tonelada ($){" "}
+            <span className="text-xs" style={{ color: "#6B7280" }}>(opcional — para negociar)</span>
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={precioOfrecido}
+            onChange={(e) => setPrecioOfrecido(e.target.value)}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Ej: 5000"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} style={labelStyle}>
             Mensaje para la empresa (opcional)
           </label>
           <textarea
@@ -132,7 +173,7 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
         type="submit"
         disabled={pending}
         className="w-full flex items-center justify-center gap-2 font-semibold rounded-xl px-6 py-4 text-base transition-opacity hover:opacity-90 cursor-pointer disabled:opacity-60"
-        style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+        style={{ backgroundColor: "var(--primary)", color: "#FFFFFF" }}
       >
         {pending ? "Enviando..." : "Enviar postulación"}
       </button>

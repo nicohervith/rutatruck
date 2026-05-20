@@ -38,9 +38,9 @@ export default async function AdminDisputasPage() {
           <Link
             href="/admin/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "var(--primary)" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
@@ -142,7 +142,7 @@ export default async function AdminDisputasPage() {
                     <Link
                       href={`/empresa/cargas/${carga.id}`}
                       className="text-xs underline"
-                      style={{ color: "#2DD4BF" }}
+                      style={{ color: "var(--primary)" }}
                     >
                       Ver carga →
                     </Link>

@@ -23,6 +23,7 @@ model User {
 enum Role {
   EMPRESA
   TRANSPORTISTA
+  TRANSPORTISTA_FLOTA
   ADMIN
 }
 
@@ -30,7 +31,11 @@ model Carga {
   id                         Int           @id @default(autoincrement())
   titulo                     String
   origen                     String
+  origenLat                  Float?
+  origenLng                  Float?
   destino                    String
+  destinoLat                 Float?
+  destinoLng                 Float?
   tipoCarga                  String
   tipoCargaDetalle           String?
   peso                       Float?
@@ -43,6 +48,7 @@ model Carga {
   contactoNombre             String
   contactoTelefono           String
   contactoEmail              String
+  cantidadCamiones           Int           @default(1)
   estado                     EstadoCarga   @default(PENDIENTE_PAGO)
   pagado                     Boolean       @default(false)
   mpPaymentId                String?
@@ -66,12 +72,15 @@ model Postulacion {
   mensaje         String?           @db.Text
   contactoEmail   String?
   contactoTelefono String?
-  estado          EstadoPostulacion @default(PENDIENTE)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  carga           Carga             @relation(fields: [cargaId], references: [id])
-  transportista   User              @relation(fields: [transportistaId], references: [id])
-  vistaTransportista Boolean        @default(false)
+  estado             EstadoPostulacion @default(PENDIENTE)
+  camionesCubiertos  Int              @default(1)
+  precioOfrecido     Float?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  carga              Carga             @relation(fields: [cargaId], references: [id])
+  transportista      User              @relation(fields: [transportistaId], references: [id])
+  vistaTransportista Boolean           @default(false)
+  vistaEmpresa       Boolean           @default(false)
 
   @@unique([cargaId, transportistaId])
 }

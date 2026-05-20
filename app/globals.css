@@ -3,21 +3,37 @@
 :root {
   --background: #FBFAF8;
   --foreground: #171717;
+
+  /* ── Color primario ───────────────────────────────────────
+     Cambiar SOLO --primary actualiza toda la app automáticamente
+     ────────────────────────────────────────────────────── */
+  --primary: #06342A;
+  --primary-hover: #052820;
+
+  /* Variantes semitransparentes — se recalculan solas */
+  --primary-5:  color-mix(in srgb, var(--primary)  5%, transparent);
+  --primary-10: color-mix(in srgb, var(--primary) 10%, transparent);
+  --primary-13: color-mix(in srgb, var(--primary) 13%, transparent);
+  --primary-20: color-mix(in srgb, var(--primary) 20%, transparent);
+  --primary-27: color-mix(in srgb, var(--primary) 27%, transparent);
+  --primary-33: color-mix(in srgb, var(--primary) 33%, transparent);
+
+  /* Layout */
+  --page-bg:   #F2F5F5;
+  --card-bg:   #FFFFFF;
+  --header-bg: #0A1A1A;
+  --border:    #E2E8E8;
+
+  /* Texto */
+  --text:           #111827;
+  --text-secondary: #374151;
+  --text-muted:     #6B7280;
+  --text-white: #FFFFFF;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand: #4A8A90;
-  --color-brand-dark: #3d7479;
-  --color-brand-light: #eef6f7;
-  --color-second-brand:#3F7881;
-  --color-brand-border: #c8e0e2;
-  --color-brand-navy: #1B3A4B;
-  --color-brand-navy-dark: #142d3a;
-  --color-landing-bg: #0C1E1E;
-  --color-landing-teal: #2DD4BF;
-  --color-landing-teal-dark: #22b5a0;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

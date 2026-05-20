@@ -26,6 +26,7 @@ export default async function NuevaCargaPage({
         telefono: user?.phone ?? "",
       }}
       precioPublicacion={precioPublicacion}
+      freeTier={process.env.FREE_TIER === "true"}
       errorInicial={
         error === "pago_cancelado"
           ? "El pago fue cancelado. Podés intentarlo nuevamente."

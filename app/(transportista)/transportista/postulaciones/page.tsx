@@ -8,43 +8,40 @@ import MarkNotificacionesVistas from "../_components/MarkNotificacionesVistas";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import FiltroEstado from "@/app/_components/FiltroEstado";
 
-type CargaEstadoConfig = {
+type EstadoConfig = {
   label: string;
-  color: string;
+  bg: string;
+  text: string;
   dot: string;
-  borderLeftColor: string;
+  cardBg: string;
+  cardBorder: string;
 };
 
-const CARGA_ESTADO_CONFIG: Record<string, CargaEstadoConfig> = {
+const ESTADO_CONFIG: Record<string, EstadoConfig> = {
   PENDIENTE_PAGO_TRANSPORTISTA: {
     label: "Pagar comisión",
-    color: "bg-yellow-500/20 text-yellow-300",
-    dot: "bg-yellow-400",
-    borderLeftColor: "#FCD34D",
+    bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B",
+    cardBg: "#FFFBEB", cardBorder: "#FDE68A",
   },
   ASIGNADA: {
     label: "En viaje",
-    color: "bg-blue-500/20 text-blue-300",
-    dot: "bg-blue-400",
-    borderLeftColor: "#60A5FA",
+    bg: "#DBEAFE", text: "#1E40AF", dot: "#3B82F6",
+    cardBg: "#EFF6FF", cardBorder: "#BFDBFE",
   },
   EN_CONFIRMACION: {
     label: "Esperando confirmación",
-    color: "bg-orange-500/20 text-orange-300",
-    dot: "bg-orange-400",
-    borderLeftColor: "#FB923C",
+    bg: "#FFEDD5", text: "#9A3412", dot: "#F97316",
+    cardBg: "#FFF7ED", cardBorder: "#FED7AA",
   },
   FINALIZADA: {
     label: "Viaje completado",
-    color: "bg-green-500/20 text-green-300",
-    dot: "bg-green-400",
-    borderLeftColor: "#4ADE80",
+    bg: "#DCFCE7", text: "#166534", dot: "#22C55E",
+    cardBg: "#F0FDF4", cardBorder: "#BBF7D0",
   },
   DISPUTA: {
     label: "En disputa",
-    color: "bg-purple-500/20 text-purple-300",
-    dot: "bg-purple-400",
-    borderLeftColor: "#C084FC",
+    bg: "#F3E8FF", text: "#6B21A8", dot: "#A855F7",
+    cardBg: "#FAF5FF", cardBorder: "#E9D5FF",
   },
 };
 
@@ -60,11 +57,11 @@ const SORT_ORDER: Record<string, number> = {
 
 const FILTER_OPCIONES = [
   { value: "", label: "Todas", color: undefined },
-  { value: "PAGAR", label: "Pagar comisión", color: "#FCD34D" },
-  { value: "ASIGNADA", label: "En viaje", color: "#60A5FA" },
-  { value: "EN_CONFIRMACION", label: "Aguardando conf.", color: "#FB923C" },
-  { value: "FINALIZADA", label: "Completadas", color: "#4ADE80" },
-  { value: "DISPUTA", label: "En disputa", color: "#C084FC" },
+  { value: "PAGAR", label: "Pagar comisión", color: "#F59E0B" },
+  { value: "ASIGNADA", label: "En viaje", color: "#3B82F6" },
+  { value: "EN_CONFIRMACION", label: "Aguardando conf.", color: "#F97316" },
+  { value: "FINALIZADA", label: "Completadas", color: "#22C55E" },
+  { value: "DISPUTA", label: "En disputa", color: "#A855F7" },
   { value: "PENDIENTE", label: "Sin respuesta", color: "#9CA3AF" },
   { value: "RECHAZADA", label: "No seleccionado", color: "#6B7280" },
 ];
@@ -120,7 +117,7 @@ export default async function MisPostulacionesPage({
   const visible = filtrarPostulaciones(sorted, estadoFiltro);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0C1E1E" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <AutoRefresh url="/api/postulaciones/hash" />
       <MarkNotificacionesVistas />
       <header
@@ -136,21 +133,24 @@ export default async function MisPostulacionesPage({
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
+      <main className="max-w-2xl mx-auto px-5 py-8">
         <div className="mb-6">
           <Link
             href="/transportista/dashboard"
             className="inline-flex items-center gap-2 mb-4 font-semibold text-sm transition-colors hover:opacity-80"
-            style={{ color: "#2DD4BF" }}
+            style={{ color: "var(--primary)" }}
           >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "#2DD4BF" }}>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full border-2" style={{ borderColor: "var(--primary)" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </span>
             Volver al panel
           </Link>
-          <h1 className="text-3xl font-bold text-white">Mis postulaciones</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Mis postulaciones</h1>
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
+            {postulaciones.length} postulación{postulaciones.length !== 1 ? "es" : ""}
+          </p>
         </div>
 
         {postulaciones.length > 0 && (
@@ -162,13 +162,13 @@ export default async function MisPostulacionesPage({
         {postulaciones.length === 0 ? (
           <div
             className="rounded-xl border p-12 text-center"
-            style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
-            <p className="mb-4" style={{ color: "#A8C5C5" }}>Todavía no te postulaste a ninguna carga</p>
+            <p className="mb-4" style={{ color: "#374151" }}>Todavía no te postulaste a ninguna carga</p>
             <Link
               href="/transportista/cargas"
               className="font-medium rounded-lg px-6 py-2.5 transition-colors inline-block text-sm"
-              style={{ backgroundColor: "#2DD4BF", color: "#0C1E1E" }}
+              style={{ backgroundColor: "var(--primary)", color: "#FFFFFF" }}
             >
               Ver cargas disponibles
             </Link>
@@ -176,83 +176,100 @@ export default async function MisPostulacionesPage({
         ) : (
           <div className="space-y-3">
             {visible.length === 0 && (
-              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}>
-                <p className="text-sm" style={{ color: "#A8C5C5" }}>No hay postulaciones con ese estado.</p>
+              <div className="rounded-xl border p-10 text-center" style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}>
+                <p className="text-sm" style={{ color: "#6B7280" }}>No hay postulaciones con ese estado.</p>
               </div>
             )}
             {visible.map((p: any) => {
               const esAceptada = p.estado === "ACEPTADA";
               const esRechazada = p.estado === "RECHAZADA";
+              const esPendiente = p.estado === "PENDIENTE";
               const esNueva = esAceptada && !p.vistaTransportista;
-              const cargaCfg = CARGA_ESTADO_CONFIG[p.carga.estado];
+              const cfg = ESTADO_CONFIG[p.carga.estado];
 
-              const cardStyle: React.CSSProperties = {
-                backgroundColor:
-                  esAceptada && cargaCfg
-                    ? `${cargaCfg.borderLeftColor}18`
-                    : "#112424",
-                borderColor:
-                  esAceptada && cargaCfg
-                    ? `${cargaCfg.borderLeftColor}66`
-                    : esNueva
-                    ? "#2DD4BF33"
-                    : "#1E3838",
-              };
+              const cardBg = esAceptada && cfg ? cfg.cardBg : "#FFFFFF";
+              const cardBorder = esAceptada && cfg ? cfg.cardBorder : "#E2E8E8";
 
               return (
                 <Link
                   key={p.id}
                   href={`/transportista/cargas/${p.carga.id}`}
-                  className={`rounded-xl border p-5 flex items-start justify-between gap-4 hover:border-[#2DD4BF33] transition-all block ${esRechazada ? "opacity-50" : ""} ${esNueva ? "ring-1 ring-[#2DD4BF20]" : ""}`}
-                  style={cardStyle}
+                  className={`rounded-xl border block overflow-hidden transition-all hover:shadow-sm ${esRechazada ? "opacity-60" : ""}`}
+                  style={{ backgroundColor: cardBg, borderColor: cardBorder }}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      {esNueva && (
-                        <span className="flex h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#2DD4BF" }} />
-                      )}
-                      {esAceptada && cargaCfg && !esNueva && (
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cargaCfg.dot}`} />
-                      )}
-                      <h3 className="font-medium text-white truncate">{p.carga.titulo}</h3>
-                      {esAceptada && cargaCfg ? (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cargaCfg.color}`}>
-                          {cargaCfg.label}
-                        </span>
-                      ) : (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
-                          esRechazada
-                            ? "bg-white/10 text-gray-400"
-                            : "bg-yellow-500/20 text-yellow-300"
-                        }`}>
-                          {esRechazada ? "No seleccionado" : "Pendiente"}
-                        </span>
-                      )}
+                  {/* Franja superior de color para cargas aceptadas */}
+                  {esAceptada && cfg && (
+                    <div className="h-1" style={{ backgroundColor: cfg.dot }} />
+                  )}
+
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        {/* Estado badge + nuevo */}
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {esNueva && (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)" }}>
+                              ¡Nuevo!
+                            </span>
+                          )}
+                          {esAceptada && cfg ? (
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: cfg.bg, color: cfg.text }}>
+                              {cfg.label}
+                            </span>
+                          ) : esPendiente ? (
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: "#F3F4F6", color: "#6B7280" }}>
+                              Pendiente de respuesta
+                            </span>
+                          ) : esRechazada ? (
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
+                              No seleccionado
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Título */}
+                        <p className="font-bold text-gray-900 leading-tight">{p.carga.titulo}</p>
+
+                        {/* Ruta */}
+                        <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
+                          {p.carga.origen}{" "}
+                          <span style={{ color: "var(--primary)" }}>→</span>{" "}
+                          {p.carga.destino}
+                        </p>
+
+                        {/* Meta */}
+                        <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          <span className="text-xs" style={{ color: "#9CA3AF" }}>
+                            {p.carga.fechaCarga.toLocaleDateString("es-AR")}
+                          </span>
+                          <span className="text-xs" style={{ color: "#9CA3AF" }}>·</span>
+                          <span className="text-xs capitalize" style={{ color: "#9CA3AF" }}>
+                            {p.carga.tipoCarga}
+                          </span>
+                          {p.carga.presupuesto !== null && (
+                            <>
+                              <span className="text-xs" style={{ color: "#9CA3AF" }}>·</span>
+                              <span className="text-xs font-semibold" style={{ color: "var(--primary)" }}>
+                                ${p.carga.presupuesto.toLocaleString("es-AR")}
+                              </span>
+                            </>
+                          )}
+                          {p.precioOfrecido != null && (
+                            <>
+                              <span className="text-xs" style={{ color: "#9CA3AF" }}>·</span>
+                              <span className="text-xs font-semibold" style={{ color: "#0369A1" }}>
+                                Mi oferta: ${p.precioOfrecido.toLocaleString("es-AR")}/tn
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Flecha */}
+                      <svg className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: "#9CA3AF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
-                    <p className="text-sm ml-4" style={{ color: "#A8C5C5" }}>
-                      {p.carga.origen} → {p.carga.destino}
-                    </p>
-                    <p className="text-xs mt-1 ml-4" style={{ color: "#8BBDBD" }}>
-                      {p.carga.fechaCarga.toLocaleDateString("es-AR")} · {p.carga.tipoCarga}
-                      {p.carga.presupuesto !== null && ` · $${p.carga.presupuesto.toLocaleString("es-AR")}`}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {esNueva && (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ color: "#2DD4BF", backgroundColor: "#2DD4BF1A" }}>
-                        ¡Nuevo!
-                      </span>
-                    )}
-                    {esAceptada && p.carga.estado === "FINALIZADA" && (
-                      <span className="text-xs font-medium text-green-300 bg-green-500/20 px-2 py-1 rounded-full">
-                        ✓ Completado
-                      </span>
-                    )}
-                    {esAceptada && p.carga.estado === "EN_CONFIRMACION" && (
-                      <span className="text-xs font-medium text-orange-300 bg-orange-500/20 px-2 py-1 rounded-full">
-                        Aguardando empresa
-                      </span>
-                    )}
                   </div>
                 </Link>
               );

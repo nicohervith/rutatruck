@@ -9,7 +9,8 @@ export type FormState = { error?: string } | undefined;
 
 const dashboardByRole: Record<Role, string> = {
   EMPRESA: "/empresa/dashboard",
-  TRANSPORTISTA: "/transportista/dashboard",
+  TRANSPORTISTA: "/transportista/cargas",
+  TRANSPORTISTA_FLOTA: "/transportista/cargas",
   ADMIN: "/admin/dashboard",
 };
 
@@ -25,7 +26,7 @@ export async function signup(
   if (!name || !email || !password || !role) {
     return { error: "Todos los campos son requeridos" };
   }
-  if (!["EMPRESA", "TRANSPORTISTA"].includes(role)) {
+  if (!["EMPRESA", "TRANSPORTISTA", "TRANSPORTISTA_FLOTA"].includes(role)) {
     return { error: "Rol inválido" };
   }
   if (password.length < 6) {

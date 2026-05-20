@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { crearPreferencia } from "@/lib/mercadopago";
 import { getPrecioPublicacion } from "@/lib/comision";
 
+const FREE_TIER = process.env.FREE_TIER === "true";
+
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
@@ -26,11 +28,16 @@ export async function POST(req: NextRequest) {
   const {
     titulo,
     origen,
+    origenLat,
+    origenLng,
     destino,
+    destinoLat,
+    destinoLng,
     tipoCarga,
     tipoCargaDetalle,
     peso,
     volumen,
+    cantidadCamiones,
     presupuesto,
     fechaCarga,
     fechaCupo,
@@ -57,28 +64,47 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const cargaData = {
+    titulo,
+    origen,
+    origenLat: origenLat ? parseFloat(origenLat as string) : null,
+    origenLng: origenLng ? parseFloat(origenLng as string) : null,
+    destino,
+    destinoLat: destinoLat ? parseFloat(destinoLat as string) : null,
+    destinoLng: destinoLng ? parseFloat(destinoLng as string) : null,
+    tipoCarga,
+    tipoCargaDetalle: tipoCargaDetalle || null,
+    peso: peso ? parseFloat(peso) : null,
+    volumen: volumen ? parseFloat(volumen) : null,
+    cantidadCamiones: cantidadCamiones ? Math.max(1, parseInt(cantidadCamiones)) : 1,
+    presupuesto: presupuesto ? parseFloat(presupuesto) : null,
+    fechaCarga: new Date(fechaCarga),
+    fechaCupo: fechaCupo ? new Date(fechaCupo) : null,
+    preferenciaCamion: preferenciaCamion || null,
+    descripcion: descripcion || null,
+    contactoNombre,
+    contactoTelefono,
+    contactoEmail,
+    empresaId: session.userId,
+  };
+
+  if (FREE_TIER) {
+    let carga;
+    try {
+      carga = await db.carga.create({
+        data: { ...cargaData, estado: "ACTIVA", pagado: true },
+      });
+    } catch (err) {
+      console.error("[POST /api/cargas] Error Prisma:", err);
+      return NextResponse.json({ error: "Error al guardar la carga" }, { status: 500 });
+    }
+    return NextResponse.json({ cargaId: carga.id }, { status: 201 });
+  }
+
    let carga;
    try {
      carga = await db.carga.create({
-       data: {
-         titulo,
-         origen,
-         destino,
-         tipoCarga,
-         tipoCargaDetalle: tipoCargaDetalle || null,
-         peso: peso ? parseFloat(peso) : null,
-         volumen: volumen ? parseFloat(volumen) : null,
-         presupuesto: presupuesto ? parseFloat(presupuesto) : null,
-         fechaCarga: new Date(fechaCarga),
-         fechaCupo: fechaCupo ? new Date(fechaCupo) : null,
-         preferenciaCamion: preferenciaCamion || null,
-         descripcion: descripcion || null,
-         contactoNombre,
-         contactoTelefono,
-         contactoEmail,
-         empresaId: session.userId,
-         estado: "PENDIENTE_PAGO",
-       },
+       data: { ...cargaData, estado: "PENDIENTE_PAGO" },
      });
    } catch (err) {
      console.error("[POST /api/cargas] Error Prisma:", err);
