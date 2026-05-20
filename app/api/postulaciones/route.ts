@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
 
   const carga = await db.carga.findUnique({
     where: { id: body.cargaId, estado: "ACTIVA" },
+    select: { id: true, titulo: true, empresaId: true },
   });
 
   if (!carga) {
@@ -42,6 +44,13 @@ export async function POST(req: NextRequest) {
         precioOfrecido: body.precioOfrecido ?? null,
       },
     });
+
+    sendPushToUser(carga.empresaId, {
+      title: "Nueva postulación",
+      body: `Un transportista se postuló a "${carga.titulo}"`,
+      url: `/empresa/cargas/${carga.id}`,
+    }).catch(() => {});
+
     return NextResponse.json({ id: postulacion.id }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Ya te postulaste a esta carga" }, { status: 409 });

@@ -4,6 +4,14 @@ import { useState, useEffect, useRef } from "react";
 
 interface Suggestion {
   label: string;
+  lat: number;
+  lng: number;
+}
+
+export interface LocationSelection {
+  label: string;
+  lat: number;
+  lng: number;
 }
 
 interface Props {
@@ -15,21 +23,28 @@ interface Props {
   inputStyle: React.CSSProperties;
   initialValue?: string;
   onValueChange?: (value: string) => void;
+  onLocationSelect?: (loc: LocationSelection) => void;
 }
 
 async function fetchSuggestions(query: string): Promise<Suggestion[]> {
   if (query.length < 2) return [];
-  const url = `https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(query)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
+  const url = `https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(query)}&max=8&campos=nombre,provincia.nombre,centroide&orden=nombre`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
-  return (data.localidades ?? []).map((l: { nombre: string; provincia: { nombre: string } }) => ({
+  return (data.localidades ?? []).map((l: {
+    nombre: string;
+    provincia: { nombre: string };
+    centroide: { lat: number; lon: number };
+  }) => ({
     label: `${l.nombre}, ${l.provincia.nombre}`,
+    lat: l.centroide.lat,
+    lng: l.centroide.lon,
   }));
 }
 
 export default function LocationAutocomplete({
-  id, name, placeholder, required, inputClass, inputStyle, initialValue = "", onValueChange,
+  id, name, placeholder, required, inputClass, inputStyle, initialValue = "", onValueChange, onLocationSelect,
 }: Props) {
   const [value, setValue] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -65,9 +80,10 @@ export default function LocationAutocomplete({
     onValueChange?.(newValue);
   }
 
-  function select(label: string) {
-    setValue(label);
-    onValueChange?.(label);
+  function select(s: Suggestion) {
+    setValue(s.label);
+    onValueChange?.(s.label);
+    onLocationSelect?.({ label: s.label, lat: s.lat, lng: s.lng });
     setOpen(false);
     setActive(-1);
   }
@@ -76,7 +92,7 @@ export default function LocationAutocomplete({
     if (!open) return;
     if (e.key === "ArrowDown") { e.preventDefault(); setActive(i => Math.min(i + 1, suggestions.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive(i => Math.max(i - 1, 0)); }
-    else if (e.key === "Enter" && active >= 0) { e.preventDefault(); select(suggestions[active].label); }
+    else if (e.key === "Enter" && active >= 0) { e.preventDefault(); select(suggestions[active]); }
     else if (e.key === "Escape") setOpen(false);
   }
 
@@ -104,11 +120,11 @@ export default function LocationAutocomplete({
           {suggestions.map((s, i) => (
             <li
               key={s.label}
-              onMouseDown={() => select(s.label)}
+              onMouseDown={() => select(s)}
               className="px-3 py-2 text-sm cursor-pointer transition-colors"
               style={{
-                color: i === active ? "var(--primary)" : "#E5E7EB",
-                backgroundColor: i === active ? "#1E3838" : "transparent",
+                color: i === active ? "var(--primary)" : "#374151",
+                backgroundColor: i === active ? "var(--primary-10)" : "transparent",
               }}
               onMouseEnter={() => setActive(i)}
             >

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
@@ -17,7 +18,8 @@ const TIPO_LABELS: Record<string, string> = {
 
 type EstadoConfig = {
   label: string;
-  color: string;
+  badgeStyle: CSSProperties;
+  cardBorder: string;
   dot: string;
   hex: string;
 };
@@ -25,49 +27,57 @@ type EstadoConfig = {
 const ESTADO_CONFIG: Record<string, EstadoConfig> = {
   PENDIENTE_PAGO: {
     label: "Pago pendiente",
-    color: "bg-yellow-500/20 text-yellow-300",
+    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ACTIVA: {
     label: "Activa",
-    color: "bg-green-500/20 text-green-300",
+    badgeStyle: { backgroundColor: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0" },
+    cardBorder: "#BBF7D0",
     dot: "bg-green-400",
     hex: "#4ADE80",
   },
   PENDIENTE_PAGO_TRANSPORTISTA: {
     label: "Esperando pago",
-    color: "bg-yellow-500/20 text-yellow-300",
+    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ASIGNADA: {
     label: "En viaje",
-    color: "bg-blue-500/20 text-blue-300",
+    badgeStyle: { backgroundColor: "#DBEAFE", color: "#1D4ED8", border: "1px solid #BFDBFE" },
+    cardBorder: "#BFDBFE",
     dot: "bg-blue-400",
     hex: "#60A5FA",
   },
   EN_CONFIRMACION: {
     label: "Confirmar completado",
-    color: "bg-orange-500/20 text-orange-300",
+    badgeStyle: { backgroundColor: "#FFEDD5", color: "#C2410C", border: "1px solid #FED7AA" },
+    cardBorder: "#FED7AA",
     dot: "bg-orange-400",
     hex: "#FB923C",
   },
   FINALIZADA: {
     label: "Finalizada",
-    color: "bg-white/10 text-gray-400",
+    badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+    cardBorder: "#E5E7EB",
     dot: "bg-gray-600",
     hex: "#9CA3AF",
   },
   CANCELADA: {
     label: "Cancelada",
-    color: "bg-red-500/20 text-red-300",
+    badgeStyle: { backgroundColor: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA" },
+    cardBorder: "#FECACA",
     dot: "bg-red-400",
     hex: "#F87171",
   },
   DISPUTA: {
     label: "En disputa",
-    color: "bg-purple-500/20 text-purple-300",
+    badgeStyle: { backgroundColor: "#F3E8FF", color: "#7E22CE", border: "1px solid #E9D5FF" },
+    cardBorder: "#E9D5FF",
     dot: "bg-purple-400",
     hex: "#C084FC",
   },
@@ -107,7 +117,7 @@ export default async function CargasPage({
       value: estado,
       label: ESTADO_CONFIG[estado]?.label ?? estado,
       count,
-      color: ESTADO_CONFIG[estado]?.hex,
+      activeStyle: ESTADO_CONFIG[estado]?.badgeStyle,
     })),
   ];
 
@@ -248,7 +258,8 @@ export default async function CargasPage({
             {visible.map((carga: any) => {
               const cfg = ESTADO_CONFIG[carga.estado] ?? {
                 label: carga.estado,
-                color: "bg-white/10 text-gray-400",
+                badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+                cardBorder: "#E5E7EB",
                 dot: "bg-gray-600",
               };
               const pendientes = carga._count.postulaciones;
@@ -260,10 +271,10 @@ export default async function CargasPage({
                 <Link
                   key={carga.id}
                   href={`/empresa/cargas/${carga.id}`}
-                  className={`rounded-xl border block overflow-hidden transition-all hover:border-[var(--primary-33)] ${needsAction ? "ring-1 ring-orange-500/40" : ""}`}
+                  className={`rounded-xl border block overflow-hidden transition-all ${needsAction ? "ring-1 ring-orange-500/40" : ""}`}
                   style={{
                     backgroundColor: "#FFFFFF",
-                    borderColor: needsAction ? "#FB923C55" : "var(--primary-13)",
+                    borderColor: cfg.cardBorder,
                   }}
                 >
                   <div className="p-5">
@@ -287,7 +298,8 @@ export default async function CargasPage({
                         </p>
                       </div>
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full flex-shrink-0 ${cfg.color}`}
+                        className="text-xs font-medium px-2 py-1 rounded-full flex-shrink-0"
+                        style={cfg.badgeStyle}
                       >
                         {cfg.label}
                       </span>

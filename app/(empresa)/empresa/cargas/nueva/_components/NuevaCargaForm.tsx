@@ -17,7 +17,11 @@ interface ContactoDefecto {
 type Fields = {
   titulo: string;
   origen: string;
+  origenLat: string;
+  origenLng: string;
   destino: string;
+  destinoLat: string;
+  destinoLng: string;
   tipoCarga: string;
   tipoCargaDetalle: string;
   peso: string;
@@ -36,7 +40,11 @@ function makeDefaults(c: ContactoDefecto): Fields {
   return {
     titulo: "",
     origen: "",
+    origenLat: "",
+    origenLng: "",
     destino: "",
+    destinoLat: "",
+    destinoLng: "",
     tipoCarga: "",
     tipoCargaDetalle: "",
     peso: "",
@@ -73,19 +81,22 @@ export default function NuevaCargaForm({
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const MEANINGFUL_KEYS: (keyof Fields)[] = ["titulo", "origen", "destino", "tipoCarga", "descripcion"];
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<Fields>;
-        const contactKeysToSkip: (keyof Fields)[] = [
-          "contactoNombre",
-          "contactoTelefono",
-          "contactoEmail",
-        ];
-        contactKeysToSkip.forEach((k) => delete parsed[k]);
-        setFields((f) => ({ ...f, ...parsed }));
-        setHasDraft(true);
+        const hasMeaningful = MEANINGFUL_KEYS.some((k) => !!parsed[k]);
+        if (hasMeaningful) {
+          const contactKeysToSkip: (keyof Fields)[] = ["contactoNombre", "contactoTelefono", "contactoEmail"];
+          contactKeysToSkip.forEach((k) => delete parsed[k]);
+          setFields((f) => ({ ...f, ...parsed }));
+          setHasDraft(true);
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+        }
       }
     } catch {}
     setDraftLoaded(true);
@@ -95,7 +106,12 @@ export default function NuevaCargaForm({
     if (!draftLoaded) return;
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
+      const hasMeaningful = MEANINGFUL_KEYS.some((k) => !!fields[k]);
+      if (hasMeaningful) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
     }, 500);
     return () => {
       if (saveRef.current) clearTimeout(saveRef.current);
@@ -119,6 +135,8 @@ export default function NuevaCargaForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!fields.origen) { setError("Seleccioná el origen."); return; }
+    if (!fields.destino) { setError("Seleccioná el destino."); return; }
     setPending(true);
 
     const controller = new AbortController();
@@ -257,42 +275,52 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="origen"
-                  className={labelClass}
-                  style={labelStyle}
-                >
+                <label htmlFor="origen" className={labelClass} style={labelStyle}>
                   Origen *
                 </label>
                 <LocationAutocomplete
                   id="origen"
                   name="origen"
+                  placeholder="Ej: Córdoba, Córdoba"
                   required
                   inputClass={inputClass}
                   inputStyle={inputStyle}
-                  placeholder="Ciudad / Provincia"
                   initialValue={fields.origen}
-                  onValueChange={(v) => setFields((f) => ({ ...f, origen: v }))}
+                  onValueChange={(v) =>
+                    setFields((f) => ({ ...f, origen: v, origenLat: "", origenLng: "" }))
+                  }
+                  onLocationSelect={(loc) =>
+                    setFields((f) => ({
+                      ...f,
+                      origen: loc.label,
+                      origenLat: String(loc.lat),
+                      origenLng: String(loc.lng),
+                    }))
+                  }
                 />
               </div>
               <div>
-                <label
-                  htmlFor="destino"
-                  className={labelClass}
-                  style={labelStyle}
-                >
+                <label htmlFor="destino" className={labelClass} style={labelStyle}>
                   Destino *
                 </label>
                 <LocationAutocomplete
                   id="destino"
                   name="destino"
+                  placeholder="Ej: Rosario, Santa Fe"
                   required
                   inputClass={inputClass}
                   inputStyle={inputStyle}
-                  placeholder="Ciudad / Provincia"
                   initialValue={fields.destino}
                   onValueChange={(v) =>
-                    setFields((f) => ({ ...f, destino: v }))
+                    setFields((f) => ({ ...f, destino: v, destinoLat: "", destinoLng: "" }))
+                  }
+                  onLocationSelect={(loc) =>
+                    setFields((f) => ({
+                      ...f,
+                      destino: loc.label,
+                      destinoLat: String(loc.lat),
+                      destinoLng: String(loc.lng),
+                    }))
                   }
                 />
               </div>

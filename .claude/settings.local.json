@@ -64,7 +64,20 @@
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\app\" /s /b *.tsx)",
       "Bash(findstr \"page\\\\.tsx\")",
       "Bash(findstr /R \"USE_PAYMENT_MOCK\\\\|MP_\\\\|PAGO\\\\|PAYMENT\" \"D:\\\\Programación\\\\rutatruck\\\\.env*\")",
-      "PowerShell(Start-Process -FilePath \"powershell\" -ArgumentList \"-NoProfile\", \"-Command\", \"cd 'D:\\\\Programación\\\\rutatruck'; npx next dev --port 3000 2>&1 | Tee-Object -FilePath 'C:\\\\Users\\\\Nico\\\\AppData\\\\Local\\\\Temp\\\\nextdev.log'\" -WindowStyle Normal)"
+      "PowerShell(Start-Process -FilePath \"powershell\" -ArgumentList \"-NoProfile\", \"-Command\", \"cd 'D:\\\\Programación\\\\rutatruck'; npx next dev --port 3000 2>&1 | Tee-Object -FilePath 'C:\\\\Users\\\\Nico\\\\AppData\\\\Local\\\\Temp\\\\nextdev.log'\" -WindowStyle Normal)",
+      "Bash(findstr -i \"mapbox\\\\|NEXT_PUBLIC\")",
+      "Bash(findstr -i \"mapbox\\\\|leaflet\\\\|react-map\")",
+      "Bash(npx dotenv-cli *)",
+      "Bash(python3 -c \"import sys,json;p=json.load\\(sys.stdin\\);print\\(p.get\\('style',''\\),p.get\\('css',''\\)\\)\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/mapbox-gl/package.json'\\).version\\)\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\" -Directory -Exclude node_modules)",
+      "Bash(Select-Object Name)",
+      "Bash(dir \"D:\\\\Programación\\\\rutatruck\")",
+      "Bash(Select-String \"empresa/cargas\")",
+      "Bash(Select-String \"postulacion|BottomTab|empresa/cargas\")",
+      "Bash(Select-String \"CargasClient|NuevaCarga|LocationAuto|LocationPicker\")",
+      "Bash(findstr /i \"qr\")",
+      "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")"
     ]
   }
 }

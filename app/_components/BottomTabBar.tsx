@@ -111,11 +111,16 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
       role === "transportista"
         ? "/api/notificaciones/count"
         : "/api/notificaciones/empresa/count";
-    fetch(url)
-      .then((r) => r.json())
-      .then((d) => setNotifCount(d.count ?? 0))
-      .catch(() => {});
-  }, [role]);
+    const fetchCount = () => {
+      fetch(url)
+        .then((r) => r.json())
+        .then((d) => setNotifCount(d.count ?? 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 10000);
+    return () => clearInterval(interval);
+  }, [role, pathname]);
 
   return (
     <nav

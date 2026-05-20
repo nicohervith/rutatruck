@@ -31,7 +31,11 @@ model Carga {
   id                         Int           @id @default(autoincrement())
   titulo                     String
   origen                     String
+  origenLat                  Float?
+  origenLng                  Float?
   destino                    String
+  destinoLat                 Float?
+  destinoLng                 Float?
   tipoCarga                  String
   tipoCargaDetalle           String?
   peso                       Float?
@@ -76,6 +80,7 @@ model Postulacion {
   carga              Carga             @relation(fields: [cargaId], references: [id])
   transportista      User              @relation(fields: [transportistaId], references: [id])
   vistaTransportista Boolean           @default(false)
+  vistaEmpresa       Boolean           @default(false)
 
   @@unique([cargaId, transportistaId])
 }
