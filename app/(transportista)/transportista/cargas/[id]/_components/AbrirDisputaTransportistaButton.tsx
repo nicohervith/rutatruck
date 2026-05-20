@@ -76,7 +76,7 @@ export default function AbrirDisputaTransportistaButton({ cargaId }: { cargaId: 
       <button
         onClick={handleClick}
         disabled={pending}
-        className="w-full text-sm font-medium rounded-lg px-4 py-2.5 transition-colors cursor-pointer disabled:opacity-60 border border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"
+        className="w-full text-sm font-medium rounded-lg px-4 py-2.5 transition-colors cursor-pointer disabled:opacity-60 border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100"
       >
         {pending ? "Enviando..." : "Abrir disputa"}
       </button>
@@ -84,3 +84,4 @@ export default function AbrirDisputaTransportistaButton({ cargaId }: { cargaId: 
     </div>
   );
 }
+      

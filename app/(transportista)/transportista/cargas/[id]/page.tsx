@@ -229,8 +229,8 @@ export default async function CargaPublicaPage({
         {(puedeCompletar || puedeDisputa || esperandoConfirmacion) && (
           <div className="space-y-3 mb-6">
             {esperandoConfirmacion && (
-              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
-                <p className="text-sm text-orange-300 font-medium">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                <p className="text-sm text-orange-700 font-medium">
                   Marcaste este viaje como completado. Esperando confirmación de la empresa.
                 </p>
               </div>
@@ -241,8 +241,8 @@ export default async function CargaPublicaPage({
         )}
 
         {soyAsignado && carga.estado === "FINALIZADA" && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 mb-6">
-            <p className="text-sm text-green-300 font-medium">
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-green-700 font-medium">
               Viaje completado y confirmado por la empresa.
             </p>
           </div>

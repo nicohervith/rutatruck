@@ -139,7 +139,7 @@ export default async function CargaDetallePage({
           </div>
         )}
 
-        {(pendientePago || puedeCancelar || puedeEditar || puedeConfirmar || puedeDisputa) && (
+        {(pendientePago || puedeCancelar || puedeEditar || puedeConfirmar) && (
           <div
             className="rounded-xl border p-5 mb-6"
             style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
@@ -177,12 +177,6 @@ export default async function CargaDetallePage({
               )}
               {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
             </div>
-            {puedeDisputa && (
-              <div className="mt-4 pt-4 border-t" style={{ borderColor: "#E2E8E8" }}>
-                <p className="text-xs mb-2" style={{ color: "#6B7280" }}>¿Hubo un problema con el viaje?</p>
-                <AbrirDisputaEmpresaButton cargaId={carga.id} />
-              </div>
-            )}
           </div>
         )}
 
@@ -201,8 +195,8 @@ export default async function CargaDetallePage({
         )}
 
         {carga.estado === "EN_CONFIRMACION" && (
-          <div className="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
-            <p className="text-sm text-orange-300 font-medium">
+          <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-orange-700 font-medium">
               El transportista marcó el viaje como completado. ¿Podés confirmarlo?
             </p>
           </div>
@@ -403,6 +397,12 @@ export default async function CargaDetallePage({
             </div>
           )}
         </div>
+        {puedeDisputa && (
+          <div className="mt-10 pt-6 border-t" style={{ borderColor: "#E2E8E8" }}>
+            <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>
+            <AbrirDisputaEmpresaButton cargaId={carga.id} />
+          </div>
+        )}
       </main>
     </div>
   );
