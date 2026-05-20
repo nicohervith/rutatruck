@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
@@ -17,15 +18,15 @@ function formatWhatsApp(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
-const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
-  PENDIENTE_PAGO: { label: "Pago pendiente", color: "bg-yellow-500/20 text-yellow-300" },
-  ACTIVA: { label: "Activa", color: "bg-green-500/20 text-green-300" },
-  PENDIENTE_PAGO_TRANSPORTISTA: { label: "Esperando pago", color: "bg-yellow-500/20 text-yellow-300" },
-  ASIGNADA: { label: "Asignada", color: "bg-blue-500/20 text-blue-300" },
-  EN_CONFIRMACION: { label: "Esperando confirmación", color: "bg-orange-500/20 text-orange-300" },
-  FINALIZADA: { label: "Finalizada", color: "bg-white/10 text-gray-400" },
-  CANCELADA: { label: "Cancelada", color: "bg-red-500/20 text-red-300" },
-  DISPUTA: { label: "En disputa", color: "bg-purple-500/20 text-purple-300" },
+const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }> = {
+  PENDIENTE_PAGO: { label: "Pago pendiente", badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" } },
+  ACTIVA: { label: "Activa", badgeStyle: { backgroundColor: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0" } },
+  PENDIENTE_PAGO_TRANSPORTISTA: { label: "Esperando pago", badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" } },
+  ASIGNADA: { label: "Asignada", badgeStyle: { backgroundColor: "#DBEAFE", color: "#1D4ED8", border: "1px solid #BFDBFE" } },
+  EN_CONFIRMACION: { label: "Esperando confirmación", badgeStyle: { backgroundColor: "#FFEDD5", color: "#C2410C", border: "1px solid #FED7AA" } },
+  FINALIZADA: { label: "Finalizada", badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" } },
+  CANCELADA: { label: "Cancelada", badgeStyle: { backgroundColor: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA" } },
+  DISPUTA: { label: "En disputa", badgeStyle: { backgroundColor: "#F3E8FF", color: "#7E22CE", border: "1px solid #E9D5FF" } },
 };
 
 function toDateInput(date: Date | null): string {
@@ -66,9 +67,15 @@ export default async function CargaDetallePage({
 
   if (!carga) redirect("/empresa/cargas");
 
+  // Mark new postulaciones as seen by empresa
+  await db.postulacion.updateMany({
+    where: { cargaId, estado: "PENDIENTE", vistaEmpresa: false },
+    data: { vistaEmpresa: true },
+  });
+
   const estado = ESTADO_LABELS[carga.estado] ?? {
     label: carga.estado,
-    color: "bg-white/10 text-gray-400",
+    badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
   };
 
   const puedeEditar = carga.estado === "ACTIVA";
@@ -107,7 +114,7 @@ export default async function CargaDetallePage({
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-bold text-gray-900">{carga.titulo}</h1>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estado.color}`}>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={estado.badgeStyle}>
               {estado.label}
             </span>
           </div>

@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+// MVP: mapa deshabilitado temporalmente
+// import { useState } from "react";
+// import dynamic from "next/dynamic";
+// import type { CargaMapItem } from "./MapaCargas";
 import type { CargaMapItem } from "./MapaCargas";
 import CountdownTimer from "../[id]/_components/CountdownTimer";
 import { getIconoCarga } from "@/lib/iconos-carga";
 import BottomNavTransportista from "../../_components/BottomNavTransportista";
 
-const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
-const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
+// MVP: mapa deshabilitado temporalmente
+// const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
+// const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos", frutas: "Frutas", verduras: "Verduras", animales: "Animales", otro: "Otro",
@@ -40,63 +43,36 @@ export default function CargasClientWrapper({
   success,
   pago,
 }: Props) {
-  const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
+  // MVP: mapa deshabilitado temporalmente
+  // const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
   const yaPostuladoSet = new Set(yaPostuladoIds);
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col relative">
+      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Inline map (split view) ───────────────────────────────────────────── */}
-      {viewMode === "listado" && (
+      {/* {viewMode === "listado" && (
         <div style={{ height: "42svh", flexShrink: 0 }}>
           <MapaInline cargas={cargas} yaPostuladoIds={yaPostuladoIds} />
         </div>
-      )}
+      )} */}
 
       {/* ── Toggle bar ───────────────────────────────────────────────────────── */}
-      <div
+      {/* <div
         className="sticky top-0 z-10 border-b px-4"
         style={{ backgroundColor: "#F2F5F5", borderColor: "#E2E8E8", flexShrink: 0 }}
       >
         <div className="max-w-2xl mx-auto flex items-center gap-2 py-2.5">
-          <button
-            type="button"
-            onClick={() => setViewMode("listado")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer"
-            style={
-              viewMode === "listado"
-                ? { backgroundColor: "var(--primary)", color: "#FFFFFF" }
-                : { backgroundColor: "#FFFFFF", color: "#6B7280", border: "1px solid #E2E8E8" }
-            }
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            Listado
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("mapa")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer"
-            style={
-              viewMode === "mapa"
-                ? { backgroundColor: "var(--primary)", color: "#FFFFFF" }
-                : { backgroundColor: "#FFFFFF", color: "#6B7280", border: "1px solid #E2E8E8" }
-            }
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            Mapa
-          </button>
+          <button type="button" onClick={() => setViewMode("listado")} ...>Listado</button>
+          <button type="button" onClick={() => setViewMode("mapa")} ...>Mapa</button>
           <span className="ml-auto text-xs font-medium" style={{ color: "#9CA3AF" }}>
             {cargas.length} activa{cargas.length !== 1 ? "s" : ""}
           </span>
         </div>
-      </div>
+      </div> */}
 
       {/* ── Scrollable list ──────────────────────────────────────────────────── */}
-      {viewMode === "listado" && (
-        <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto pb-20">
           <main className="max-w-2xl mx-auto px-5 py-6 w-full">
             {pago === "1" && (
               <div
@@ -279,16 +255,16 @@ export default function CargasClientWrapper({
             )}
           </main>
         </div>
-      )}
 
+      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Full map overlay ─────────────────────────────────────────────────── */}
-      {viewMode === "mapa" && (
+      {/* {viewMode === "mapa" && (
         <MapaCargas
           cargas={cargas}
           yaPostuladoIds={yaPostuladoIds}
           onClose={() => setViewMode("listado")}
         />
-      )}
+      )} */}
 
       <BottomNavTransportista />
     </div>

@@ -69,7 +69,15 @@
       "Bash(findstr -i \"mapbox\\\\|leaflet\\\\|react-map\")",
       "Bash(npx dotenv-cli *)",
       "Bash(python3 -c \"import sys,json;p=json.load\\(sys.stdin\\);print\\(p.get\\('style',''\\),p.get\\('css',''\\)\\)\")",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/mapbox-gl/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/mapbox-gl/package.json'\\).version\\)\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\" -Directory -Exclude node_modules)",
+      "Bash(Select-Object Name)",
+      "Bash(dir \"D:\\\\Programación\\\\rutatruck\")",
+      "Bash(Select-String \"empresa/cargas\")",
+      "Bash(Select-String \"postulacion|BottomTab|empresa/cargas\")",
+      "Bash(Select-String \"CargasClient|NuevaCarga|LocationAuto|LocationPicker\")",
+      "Bash(findstr /i \"qr\")",
+      "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")"
     ]
   }
 }

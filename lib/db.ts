@@ -2,7 +2,10 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function createClient() {
-  const adapter = new PrismaPg(process.env.DATABASE_URL!);
+  const url = new URL(process.env.DATABASE_URL!);
+  url.searchParams.set("connection_limit", "5");
+  url.searchParams.set("pool_timeout", "20");
+  const adapter = new PrismaPg(url.toString());
   return new PrismaClient({ adapter });
 }
 

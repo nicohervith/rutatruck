@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
-import LocationPicker, { type Location } from "./LocationPicker";
+import LocationAutocomplete from "./LocationAutocomplete";
 
 const DRAFT_KEY = "clickcargo-nueva-carga-draft";
 
@@ -81,19 +81,22 @@ export default function NuevaCargaForm({
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const MEANINGFUL_KEYS: (keyof Fields)[] = ["titulo", "origen", "destino", "tipoCarga", "descripcion"];
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<Fields>;
-        const contactKeysToSkip: (keyof Fields)[] = [
-          "contactoNombre",
-          "contactoTelefono",
-          "contactoEmail",
-        ];
-        contactKeysToSkip.forEach((k) => delete parsed[k]);
-        setFields((f) => ({ ...f, ...parsed }));
-        setHasDraft(true);
+        const hasMeaningful = MEANINGFUL_KEYS.some((k) => !!parsed[k]);
+        if (hasMeaningful) {
+          const contactKeysToSkip: (keyof Fields)[] = ["contactoNombre", "contactoTelefono", "contactoEmail"];
+          contactKeysToSkip.forEach((k) => delete parsed[k]);
+          setFields((f) => ({ ...f, ...parsed }));
+          setHasDraft(true);
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+        }
       }
     } catch {}
     setDraftLoaded(true);
@@ -103,7 +106,12 @@ export default function NuevaCargaForm({
     if (!draftLoaded) return;
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
+      const hasMeaningful = MEANINGFUL_KEYS.some((k) => !!fields[k]);
+      if (hasMeaningful) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(fields));
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
     }, 500);
     return () => {
       if (saveRef.current) clearTimeout(saveRef.current);
@@ -267,41 +275,51 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass} style={labelStyle}>
+                <label htmlFor="origen" className={labelClass} style={labelStyle}>
                   Origen *
                 </label>
-                <LocationPicker
-                  value={
-                    fields.origen && fields.origenLat && fields.origenLng
-                      ? { name: fields.origen, lat: parseFloat(fields.origenLat), lng: parseFloat(fields.origenLng) }
-                      : null
+                <LocationAutocomplete
+                  id="origen"
+                  name="origen"
+                  placeholder="Ej: Córdoba, Córdoba"
+                  required
+                  inputClass={inputClass}
+                  inputStyle={inputStyle}
+                  initialValue={fields.origen}
+                  onValueChange={(v) =>
+                    setFields((f) => ({ ...f, origen: v, origenLat: "", origenLng: "" }))
                   }
-                  onChange={(loc: Location | null) =>
+                  onLocationSelect={(loc) =>
                     setFields((f) => ({
                       ...f,
-                      origen: loc?.name ?? "",
-                      origenLat: loc ? String(loc.lat) : "",
-                      origenLng: loc ? String(loc.lng) : "",
+                      origen: loc.label,
+                      origenLat: String(loc.lat),
+                      origenLng: String(loc.lng),
                     }))
                   }
                 />
               </div>
               <div>
-                <label className={labelClass} style={labelStyle}>
+                <label htmlFor="destino" className={labelClass} style={labelStyle}>
                   Destino *
                 </label>
-                <LocationPicker
-                  value={
-                    fields.destino && fields.destinoLat && fields.destinoLng
-                      ? { name: fields.destino, lat: parseFloat(fields.destinoLat), lng: parseFloat(fields.destinoLng) }
-                      : null
+                <LocationAutocomplete
+                  id="destino"
+                  name="destino"
+                  placeholder="Ej: Rosario, Santa Fe"
+                  required
+                  inputClass={inputClass}
+                  inputStyle={inputStyle}
+                  initialValue={fields.destino}
+                  onValueChange={(v) =>
+                    setFields((f) => ({ ...f, destino: v, destinoLat: "", destinoLng: "" }))
                   }
-                  onChange={(loc: Location | null) =>
+                  onLocationSelect={(loc) =>
                     setFields((f) => ({
                       ...f,
-                      destino: loc?.name ?? "",
-                      destinoLat: loc ? String(loc.lat) : "",
-                      destinoLng: loc ? String(loc.lng) : "",
+                      destino: loc.label,
+                      destinoLat: String(loc.lat),
+                      destinoLng: String(loc.lng),
                     }))
                   }
                 />

@@ -80,6 +80,7 @@ model Postulacion {
   carga              Carga             @relation(fields: [cargaId], references: [id])
   transportista      User              @relation(fields: [transportistaId], references: [id])
   vistaTransportista Boolean           @default(false)
+  vistaEmpresa       Boolean           @default(false)
 
   @@unique([cargaId, transportistaId])
 }
