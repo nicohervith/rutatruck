@@ -77,7 +77,10 @@
       "Bash(Select-String \"postulacion|BottomTab|empresa/cargas\")",
       "Bash(Select-String \"CargasClient|NuevaCarga|LocationAuto|LocationPicker\")",
       "Bash(findstr /i \"qr\")",
-      "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")"
+      "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")",
+      "Bash(findstr /i \"vapid\")",
+      "Bash(Remove-Item -Recurse -Force \"D:\\\\Programación\\\\rutatruck\\\\.next\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"done\")"
     ]
   }
 }
