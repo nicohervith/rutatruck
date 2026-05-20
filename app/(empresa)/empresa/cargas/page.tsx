@@ -266,7 +266,7 @@ export default async function CargasPage({
             <Link
               href="/empresa/cargas/nueva"
               className="inline-flex items-center gap-2 font-semibold rounded-xl px-6 py-3.5 transition-opacity hover:opacity-90 text-sm"
-              style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
+              style={{ backgroundColor: "var(--primary)", color: "var(--text-white)" }}
             >
               <svg
                 className="w-4 h-4"
