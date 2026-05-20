@@ -8,21 +8,24 @@ export async function GET() {
     return NextResponse.json({ count: 0 });
   }
 
-  const [enConfirmacion, postulacionesNuevas] = await Promise.all([
-    db.carga.count({
-      where: {
-        empresaId: session.userId,
-        estado: "EN_CONFIRMACION",
-      },
-    }),
-    db.postulacion.count({
-      where: {
-        carga: { empresaId: session.userId },
-        estado: "PENDIENTE",
-        vistaEmpresa: false,
-      },
-    }),
-  ]);
-
-  return NextResponse.json({ count: enConfirmacion + postulacionesNuevas });
+  try {
+    const [enConfirmacion, postulacionesNuevas] = await Promise.all([
+      db.carga.count({
+        where: {
+          empresaId: session.userId,
+          estado: "EN_CONFIRMACION",
+        },
+      }),
+      db.postulacion.count({
+        where: {
+          carga: { empresaId: session.userId },
+          estado: "PENDIENTE",
+          vistaEmpresa: false,
+        },
+      }),
+    ]);
+    return NextResponse.json({ count: enConfirmacion + postulacionesNuevas });
+  } catch {
+    return NextResponse.json({ count: 0 });
+  }
 }

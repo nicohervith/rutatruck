@@ -15,11 +15,12 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url ?? "/";
+  const rawUrl = event.notification.data?.url ?? "/";
+  const url = rawUrl.startsWith("http") ? rawUrl : self.location.origin + rawUrl;
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      const existing = list.find((c) => c.url.includes(url) && "focus" in c);
-      if (existing) return existing.focus();
+      const existing = list.find((c) => c.url.startsWith(self.location.origin) && "focus" in c);
+      if (existing) { existing.focus(); existing.navigate(url); return; }
       return clients.openWindow(url);
     })
   );

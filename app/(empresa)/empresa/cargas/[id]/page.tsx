@@ -78,6 +78,14 @@ export default async function CargaDetallePage({
     badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
   };
 
+  const postulacionAceptada = carga.postulaciones.find(
+    (p) => p.estado === "ACEPTADA" && p.transportistaId === carga.transportistaAsignadoId
+  );
+  const telefonoTransportista =
+    carga.transportistaAsignado?.phone ||
+    postulacionAceptada?.contactoTelefono ||
+    null;
+
   const puedeEditar = carga.estado === "ACTIVA";
   const puedeCancelar = carga.estado === "ACTIVA";
   const pendientePago = carga.estado === "PENDIENTE_PAGO";
@@ -251,20 +259,20 @@ export default async function CargaDetallePage({
             <h2 className="font-medium text-gray-900 mb-3">Transportista asignado</h2>
             <p className="font-medium text-gray-900">{carga.transportistaAsignado.name}</p>
             <p className="text-sm mt-0.5" style={{ color: "#374151" }}>{carga.transportistaAsignado.email}</p>
-            {carga.transportistaAsignado.phone && (
+            {telefonoTransportista && (
               <div className="flex flex-wrap gap-3 mt-4">
                 <a
-                  href={`tel:${carga.transportistaAsignado.phone}`}
+                  href={`tel:${telefonoTransportista}`}
                   className="inline-flex items-center gap-2 border text-sm font-medium rounded-lg px-4 py-2 transition-colors"
                   style={{ borderColor: "var(--primary-20)", color: "var(--primary)", backgroundColor: "var(--primary-5)" }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  Llamar ({carga.transportistaAsignado.phone})
+                  Llamar ({telefonoTransportista})
                 </a>
                 <a
-                  href={`https://wa.me/${formatWhatsApp(carga.transportistaAsignado.phone)}?text=${encodeURIComponent(`Hola ${carga.transportistaAsignado.name}, soy la empresa responsable de la carga "${carga.titulo}". Me comunico para coordinar los detalles del transporte.`)}`}
+                  href={`https://wa.me/${formatWhatsApp(telefonoTransportista)}?text=${encodeURIComponent(`Hola ${carga.transportistaAsignado?.name}, soy la empresa responsable de la carga "${carga.titulo}". Me comunico para coordinar los detalles del transporte.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-[#25D366] text-gray-900 text-sm font-medium rounded-lg px-4 py-2 hover:bg-[#1ebe57] transition-colors"
