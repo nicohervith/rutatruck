@@ -7,10 +7,15 @@ export default function NotificacionBellEmpresa() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    fetch("/api/notificaciones/empresa/count")
-      .then((r) => r.json())
-      .then((d) => setCount(d.count ?? 0))
-      .catch(() => {});
+    const fetchCount = () => {
+      fetch("/api/notificaciones/empresa/count")
+        .then((r) => r.json())
+        .then((d) => setCount(d.count ?? 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

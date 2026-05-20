@@ -118,92 +118,314 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
       <h3 className="font-medium text-gray-900 mb-4">Editar carga</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="edit-titulo" className={labelClass} style={labelStyle}>Título *</label>
-          <input id="edit-titulo" name="titulo" type="text" required defaultValue={carga.titulo} className={inputClass} style={inputStyle} />
+          <label
+            htmlFor="edit-titulo"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Título *
+          </label>
+          <input
+            id="edit-titulo"
+            name="titulo"
+            type="text"
+            required
+            defaultValue={carga.titulo}
+            className={inputClass}
+            style={inputStyle}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-origen" className={labelClass} style={labelStyle}>Origen *</label>
-            <input id="edit-origen" name="origen" type="text" required defaultValue={carga.origen} className={inputClass} style={inputStyle} />
+            <label
+              htmlFor="edit-origen"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Origen *
+            </label>
+            <input
+              id="edit-origen"
+              name="origen"
+              type="text"
+              required
+              defaultValue={carga.origen}
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
           <div>
-            <label htmlFor="edit-destino" className={labelClass} style={labelStyle}>Destino *</label>
-            <input id="edit-destino" name="destino" type="text" required defaultValue={carga.destino} className={inputClass} style={inputStyle} />
+            <label
+              htmlFor="edit-destino"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Destino *
+            </label>
+            <input
+              id="edit-destino"
+              name="destino"
+              type="text"
+              required
+              defaultValue={carga.destino}
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-tipoCarga" className={labelClass} style={labelStyle}>Tipo de carga *</label>
-            <select id="edit-tipoCarga" name="tipoCarga" required defaultValue={carga.tipoCarga} className={inputClass} style={inputStyle}>
-              <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>Granos</option>
-              <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>Frutas</option>
-              <option value="verduras" style={{ backgroundColor: "#F9FAFB" }}>Verduras</option>
-              <option value="animales" style={{ backgroundColor: "#F9FAFB" }}>Animales</option>
-              <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>Otro</option>
+            <label
+              htmlFor="edit-tipoCarga"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Tipo de carga *
+            </label>
+            <select
+              id="edit-tipoCarga"
+              name="tipoCarga"
+              required
+              defaultValue={carga.tipoCarga}
+              className={inputClass}
+              style={inputStyle}
+            >
+              <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
+                Granos
+              </option>
+              <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
+                Frutas
+              </option>
+              <option value="verduras" style={{ backgroundColor: "#F9FAFB" }}>
+                Verduras
+              </option>
+              <option value="animales" style={{ backgroundColor: "#F9FAFB" }}>
+                Animales
+              </option>
+              <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
+                Otro
+              </option>
             </select>
           </div>
           <div>
-            <label htmlFor="edit-peso" className={labelClass} style={labelStyle}>Peso (toneladas)</label>
-            <input id="edit-peso" name="peso" type="number" step="0.1" min="0" defaultValue={carga.peso ?? ""} className={inputClass} style={inputStyle} />
+            <label
+              htmlFor="edit-peso"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Peso (toneladas)
+            </label>
+            <input
+              id="edit-peso"
+              name="peso"
+              type="number"
+              step="0.1"
+              min="0"
+              defaultValue={carga.peso ?? ""}
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
         </div>
 
         {sinTransportista && (
           <div>
-            <label htmlFor="edit-presupuesto" className={labelClass} style={labelStyle}>Presupuesto ($)</label>
-            <input id="edit-presupuesto" name="presupuesto" type="number" step="0.01" min="0" defaultValue={carga.presupuesto ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: 150000" />
+            <label
+              htmlFor="edit-presupuesto"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Presupuesto ($)
+            </label>
+            <input
+              id="edit-presupuesto"
+              name="presupuesto"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={carga.presupuesto ?? ""}
+              className={inputClass}
+              style={inputStyle}
+              placeholder="Ej: 150000"
+            />
           </div>
         )}
 
         <div>
-          <label htmlFor="edit-tipoCargaDetalle" className={labelClass} style={labelStyle}>
+          <label
+            htmlFor="edit-tipoCargaDetalle"
+            className={labelClass}
+            style={labelStyle}
+          >
             Especificación del tipo{" "}
-            <span className="text-xs" style={{ color: "#6B7280" }}>(opcional)</span>
+            <span className="text-xs" style={{ color: "#6B7280" }}>
+              (opcional)
+            </span>
           </label>
-          <input id="edit-tipoCargaDetalle" name="tipoCargaDetalle" type="text" defaultValue={carga.tipoCargaDetalle ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: Maíz, Soja, Banana..." />
+          <input
+            id="edit-tipoCargaDetalle"
+            name="tipoCargaDetalle"
+            type="text"
+            defaultValue={carga.tipoCargaDetalle ?? ""}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Ej: Maíz, Soja, Banana..."
+          />
         </div>
 
         <div>
-          <label htmlFor="edit-volumen" className={labelClass} style={labelStyle}>Volumen (m³)</label>
-          <input id="edit-volumen" name="volumen" type="number" step="0.1" min="0" defaultValue={carga.volumen ?? ""} className={inputClass} style={inputStyle} />
+          <label
+            htmlFor="edit-volumen"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Volumen (m³)
+          </label>
+          <input
+            id="edit-volumen"
+            name="volumen"
+            type="number"
+            step="0.1"
+            min="0"
+            defaultValue={carga.volumen ?? ""}
+            className={inputClass}
+            style={inputStyle}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-fechaCarga" className={labelClass} style={labelStyle}>Fecha de carga *</label>
-            <input id="edit-fechaCarga" name="fechaCarga" type="date" required defaultValue={carga.fechaCarga} className={inputClass} style={{ ...inputStyle, colorScheme: "light" }} />
+            <label
+              htmlFor="edit-fechaCarga"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Fecha de carga *
+            </label>
+            <input
+              id="edit-fechaCarga"
+              name="fechaCarga"
+              type="date"
+              required
+              defaultValue={carga.fechaCarga}
+              className={inputClass}
+              style={{ ...inputStyle, colorScheme: "light" }}
+            />
           </div>
           <div>
-            <label htmlFor="edit-fechaCupo" className={labelClass} style={labelStyle}>Fecha de cupo</label>
-            <input id="edit-fechaCupo" name="fechaCupo" type="date" defaultValue={carga.fechaCupo ?? ""} className={inputClass} style={{ ...inputStyle, colorScheme: "light" }} />
+            <label
+              htmlFor="edit-fechaCupo"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Fecha de cupo
+            </label>
+            <input
+              id="edit-fechaCupo"
+              name="fechaCupo"
+              type="date"
+              defaultValue={carga.fechaCupo ?? ""}
+              className={inputClass}
+              style={{ ...inputStyle, colorScheme: "light" }}
+            />
           </div>
         </div>
 
         <div>
-          <label htmlFor="edit-preferenciaCamion" className={labelClass} style={labelStyle}>Preferencia de camión</label>
-          <input id="edit-preferenciaCamion" name="preferenciaCamion" type="text" defaultValue={carga.preferenciaCamion ?? ""} className={inputClass} style={inputStyle} placeholder="Ej: Camión jaula, semiremolque, etc." />
+          <label
+            htmlFor="edit-preferenciaCamion"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Preferencia de camión
+          </label>
+          <input
+            id="edit-preferenciaCamion"
+            name="preferenciaCamion"
+            type="text"
+            defaultValue={carga.preferenciaCamion ?? ""}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Ej: Camión jaula, semiremolque, etc."
+          />
         </div>
 
         <div>
-          <label htmlFor="edit-descripcion" className={labelClass} style={labelStyle}>Descripción</label>
-          <textarea id="edit-descripcion" name="descripcion" rows={3} defaultValue={carga.descripcion ?? ""} className={inputClass} style={inputStyle} placeholder="Condiciones especiales, instrucciones, etc." />
+          <label
+            htmlFor="edit-descripcion"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Descripción
+          </label>
+          <textarea
+            id="edit-descripcion"
+            name="descripcion"
+            rows={3}
+            defaultValue={carga.descripcion ?? ""}
+            className={inputClass}
+            style={inputStyle}
+            placeholder="Condiciones especiales, instrucciones, etc."
+          />
         </div>
 
         <div>
-          <label htmlFor="edit-contactoNombre" className={labelClass} style={labelStyle}>Nombre de contacto *</label>
-          <input id="edit-contactoNombre" name="contactoNombre" type="text" required defaultValue={carga.contactoNombre} className={inputClass} style={inputStyle} />
+          <label
+            htmlFor="edit-contactoNombre"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Nombre de contacto *
+          </label>
+          <input
+            id="edit-contactoNombre"
+            name="contactoNombre"
+            type="text"
+            required
+            defaultValue={carga.contactoNombre}
+            className={inputClass}
+            style={inputStyle}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-contactoTelefono" className={labelClass} style={labelStyle}>Teléfono *</label>
-            <input id="edit-contactoTelefono" name="contactoTelefono" type="tel" required defaultValue={carga.contactoTelefono} className={inputClass} style={inputStyle} />
+            <label
+              htmlFor="edit-contactoTelefono"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Teléfono *
+            </label>
+            <input
+              id="edit-contactoTelefono"
+              name="contactoTelefono"
+              type="tel"
+              required
+              defaultValue={carga.contactoTelefono}
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
           <div>
-            <label htmlFor="edit-contactoEmail" className={labelClass} style={labelStyle}>Email *</label>
-            <input id="edit-contactoEmail" name="contactoEmail" type="email" required defaultValue={carga.contactoEmail} className={inputClass} style={inputStyle} />
+            <label
+              htmlFor="edit-contactoEmail"
+              className={labelClass}
+              style={labelStyle}
+            >
+              Email *
+            </label>
+            <input
+              id="edit-contactoEmail"
+              name="contactoEmail"
+              type="email"
+              required
+              defaultValue={carga.contactoEmail}
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
         </div>
 
@@ -218,13 +440,16 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
             type="submit"
             disabled={pending}
             className="text-sm font-medium rounded-lg px-5 py-2.5 transition-colors cursor-pointer disabled:opacity-60"
-            style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
+            style={{ backgroundColor: "var(--primary)", color: "var(--text-white)" }}
           >
             {pending ? "Guardando..." : "Guardar cambios"}
           </button>
           <button
             type="button"
-            onClick={() => { setOpen(false); setError(null); }}
+            onClick={() => {
+              setOpen(false);
+              setError(null);
+            }}
             className="text-sm px-4 py-2 transition-colors"
             style={{ color: "#6B7280" }}
           >

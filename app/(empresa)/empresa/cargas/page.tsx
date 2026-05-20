@@ -27,56 +27,88 @@ type EstadoConfig = {
 const ESTADO_CONFIG: Record<string, EstadoConfig> = {
   PENDIENTE_PAGO: {
     label: "Pago pendiente",
-    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    badgeStyle: {
+      backgroundColor: "#FEF9C3",
+      color: "#A16207",
+      border: "1px solid #FEF08A",
+    },
     cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ACTIVA: {
     label: "Activa",
-    badgeStyle: { backgroundColor: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0" },
+    badgeStyle: {
+      backgroundColor: "#DCFCE7",
+      color: "#15803D",
+      border: "1px solid #BBF7D0",
+    },
     cardBorder: "#BBF7D0",
     dot: "bg-green-400",
     hex: "#4ADE80",
   },
   PENDIENTE_PAGO_TRANSPORTISTA: {
     label: "Esperando pago",
-    badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" },
+    badgeStyle: {
+      backgroundColor: "#FEF9C3",
+      color: "#A16207",
+      border: "1px solid #FEF08A",
+    },
     cardBorder: "#FEF08A",
     dot: "bg-yellow-400",
     hex: "#FCD34D",
   },
   ASIGNADA: {
     label: "En viaje",
-    badgeStyle: { backgroundColor: "#DBEAFE", color: "#1D4ED8", border: "1px solid #BFDBFE" },
+    badgeStyle: {
+      backgroundColor: "#DBEAFE",
+      color: "#1D4ED8",
+      border: "1px solid #BFDBFE",
+    },
     cardBorder: "#BFDBFE",
     dot: "bg-blue-400",
     hex: "#60A5FA",
   },
   EN_CONFIRMACION: {
     label: "Confirmar completado",
-    badgeStyle: { backgroundColor: "#FFEDD5", color: "#C2410C", border: "1px solid #FED7AA" },
+    badgeStyle: {
+      backgroundColor: "#FFEDD5",
+      color: "#C2410C",
+      border: "1px solid #FED7AA",
+    },
     cardBorder: "#FED7AA",
     dot: "bg-orange-400",
     hex: "#FB923C",
   },
   FINALIZADA: {
     label: "Finalizada",
-    badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+    badgeStyle: {
+      backgroundColor: "#F3F4F6",
+      color: "#4B5563",
+      border: "1px solid #E5E7EB",
+    },
     cardBorder: "#E5E7EB",
     dot: "bg-gray-600",
     hex: "#9CA3AF",
   },
   CANCELADA: {
     label: "Cancelada",
-    badgeStyle: { backgroundColor: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA" },
+    badgeStyle: {
+      backgroundColor: "#FEE2E2",
+      color: "#B91C1C",
+      border: "1px solid #FECACA",
+    },
     cardBorder: "#FECACA",
     dot: "bg-red-400",
     hex: "#F87171",
   },
   DISPUTA: {
     label: "En disputa",
-    badgeStyle: { backgroundColor: "#F3E8FF", color: "#7E22CE", border: "1px solid #E9D5FF" },
+    badgeStyle: {
+      backgroundColor: "#F3E8FF",
+      color: "#7E22CE",
+      border: "1px solid #E9D5FF",
+    },
     cardBorder: "#E9D5FF",
     dot: "bg-purple-400",
     hex: "#C084FC",
@@ -92,7 +124,10 @@ export default async function CargasPage({
   const { success, error, estado: estadoFiltro = "" } = await searchParams;
 
   const cargas = await db.carga.findMany({
-    where: { empresaId: session.userId, estado: { notIn: ["FINALIZADA", "CANCELADA"] } },
+    where: {
+      empresaId: session.userId,
+      estado: { notIn: ["FINALIZADA", "CANCELADA"] },
+    },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { postulaciones: { where: { estado: "PENDIENTE" } } } },
@@ -183,7 +218,10 @@ export default async function CargasPage({
         {success === "1" && (
           <div
             className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
-            style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
+            style={{
+              backgroundColor: "var(--primary-10)",
+              borderColor: "var(--primary-20)",
+            }}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -199,7 +237,10 @@ export default async function CargasPage({
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
+            <p
+              className="text-sm font-medium"
+              style={{ color: "var(--primary)" }}
+            >
               ¡Carga publicada exitosamente! Los transportistas ya pueden verla.
             </p>
           </div>
@@ -258,14 +299,21 @@ export default async function CargasPage({
             {visible.map((carga: any) => {
               const cfg = ESTADO_CONFIG[carga.estado] ?? {
                 label: carga.estado,
-                badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
+                badgeStyle: {
+                  backgroundColor: "#F3F4F6",
+                  color: "#4B5563",
+                  border: "1px solid #E5E7EB",
+                },
                 cardBorder: "#E5E7EB",
                 dot: "bg-gray-600",
               };
               const pendientes = carga._count.postulaciones;
               const needsAction = carga.estado === "EN_CONFIRMACION";
 
-              const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
+              const emoji = getIconoCarga(
+                carga.tipoCarga,
+                carga.tipoCargaDetalle,
+              );
 
               return (
                 <Link
@@ -307,7 +355,9 @@ export default async function CargasPage({
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-4 ml-4">
                       <div className="flex items-start gap-2">
-                        <span className="text-xl leading-none flex-shrink-0">{emoji}</span>
+                        <span className="text-xl leading-none flex-shrink-0">
+                          {emoji}
+                        </span>
                         <div>
                           <p
                             className="text-xs font-semibold uppercase tracking-wide mb-0.5"
@@ -429,8 +479,14 @@ export default async function CargasPage({
                       needsAction
                         ? { backgroundColor: "#FB923C", color: "#fff" }
                         : pendientes > 0
-                          ? { backgroundColor: "var(--primary)", color: "#0C1E1E" }
-                          : { backgroundColor: "var(--primary-27)", color: "var(--primary)" }
+                          ? {
+                              backgroundColor: "var(--primary)",
+                              color: "var(--text-white)",
+                            }
+                          : {
+                              backgroundColor: "var(--primary-27)",
+                              color: "var(--text-white)",
+                            }
                     }
                   >
                     {needsAction ? (
