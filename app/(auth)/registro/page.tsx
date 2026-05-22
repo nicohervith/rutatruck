@@ -4,10 +4,13 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import { signup } from "@/app/actions/auth";
+import type { FormState } from "@/app/actions/auth";
 
 export default function RegistroPage() {
-  const [state, action, pending] = useActionState(signup, undefined);
+  const [state, action, pending] = useActionState<FormState, FormData>(signup, undefined);
   const [showPassword, setShowPassword] = useState(false);
+  const [esEmpresa, setEsEmpresa] = useState(false);
+  const [esTransportista, setEsTransportista] = useState(false);
 
   const inputClass =
     "w-full rounded-xl border px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-colors";
@@ -105,22 +108,58 @@ export default function RegistroPage() {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9CA3AF" }}>
+            <p className="block text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#9CA3AF" }}>
               Soy...
-            </label>
-            <select
-              id="role"
-              name="role"
-              required
-              defaultValue=""
-              className={inputClass}
-              style={inputStyle}
-            >
-              <option value="" disabled style={{ backgroundColor: "#0C1A1A" }}>Seleccioná tu tipo de cuenta</option>
-              <option value="EMPRESA" style={{ backgroundColor: "#0C1A1A" }}>Empresa — publico cargas</option>
-              <option value="TRANSPORTISTA" style={{ backgroundColor: "#0C1A1A" }}>Transportista — tengo un camión</option>
-              <option value="TRANSPORTISTA_FLOTA" style={{ backgroundColor: "#0C1A1A" }}>Transportista flota — tengo 2 o más camiones</option>
-            </select>
+            </p>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  name="esEmpresa"
+                  value="on"
+                  checked={esEmpresa}
+                  onChange={(e) => setEsEmpresa(e.target.checked)}
+                  className="w-4 h-4 rounded accent-green-400 cursor-pointer"
+                />
+                <span className="text-sm text-white">Empresa — publico cargas</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  name="esTransportista"
+                  value="on"
+                  checked={esTransportista}
+                  onChange={(e) => setEsTransportista(e.target.checked)}
+                  className="w-4 h-4 rounded accent-green-400 cursor-pointer"
+                />
+                <span className="text-sm text-white">Transportista — me postulo a cargas</span>
+              </label>
+
+              {esTransportista && (
+                <div className="ml-7 mt-1 space-y-2">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="radio"
+                      name="tipoTransportista"
+                      value="individual"
+                      defaultChecked
+                      className="w-4 h-4 accent-green-400 cursor-pointer"
+                    />
+                    <span className="text-sm" style={{ color: "#D1D5DB" }}>Individual — 1 camión</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="radio"
+                      name="tipoTransportista"
+                      value="flota"
+                      className="w-4 h-4 accent-green-400 cursor-pointer"
+                    />
+                    <span className="text-sm" style={{ color: "#D1D5DB" }}>Flota — 2 o más camiones</span>
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
 
           {state?.error && (

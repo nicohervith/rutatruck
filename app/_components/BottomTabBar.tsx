@@ -105,6 +105,14 @@ function tabIsActive(tabHref: string, pathname: string): boolean {
 export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   const pathname = usePathname();
   const [notifCount, setNotifCount] = useState(0);
+  const [isMultiRole, setIsMultiRole] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => setIsMultiRole(d.role === "EMPRESA_TRANSPORTISTA"))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const url =
@@ -128,7 +136,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
       style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E7EB" }}
     >
       <div className="flex">
-      {TABS[role].map((tab) => {
+      {TABS[role].filter((tab) => !(isMultiRole && tab.href.endsWith("/historial"))).map((tab) => {
         const active = tabIsActive(tab.href, pathname);
         return (
           <Link
@@ -157,6 +165,21 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
           </Link>
         );
       })}
+
+      {isMultiRole && (
+        <Link
+          href={role === "empresa" ? "/transportista/cargas" : "/empresa/dashboard"}
+          className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors"
+          style={{ color: "#6B7280" }}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          <span className="text-[10px] font-semibold leading-none">
+            {role === "empresa" ? "↔ Transp." : "↔ Empresa"}
+          </span>
+        </Link>
+      )}
 
       <form action={logout} className="flex-1">
         <button

@@ -3,6 +3,8 @@ import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { crearPreferencia } from "@/lib/mercadopago";
 import { getPrecioPublicacion } from "@/lib/comision";
+import { sendPushToAllTransportistas } from "@/lib/push";
+import { isEmpresa } from "@/lib/roles";
 
 const FREE_TIER = process.env.FREE_TIER === "true";
 
@@ -11,7 +13,7 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (session.role !== "EMPRESA") {
+  if (!isEmpresa(session.role)) {
     return NextResponse.json(
       { error: "Solo empresas pueden publicar cargas" },
       { status: 403 },
@@ -100,6 +102,11 @@ export async function POST(req: NextRequest) {
       console.error("[POST /api/cargas] Error Prisma:", err);
       return NextResponse.json({ error: "Error al guardar la carga" }, { status: 500 });
     }
+    void sendPushToAllTransportistas({
+      title: "Nueva carga disponible",
+      body: `${cargaData.titulo} · ${cargaData.origen} → ${cargaData.destino}`,
+      url: "/transportista/cargas",
+    });
     return NextResponse.json({ cargaId: carga.id }, { status: 201 });
   }
 

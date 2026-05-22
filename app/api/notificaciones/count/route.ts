@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { isTransportista } from "@/lib/roles";
 
 export async function GET() {
   const session = await getSession();
-  if (!session || session.role !== "TRANSPORTISTA") {
+  if (!session || !isTransportista(session.role)) {
     return NextResponse.json({ count: 0 });
   }
 

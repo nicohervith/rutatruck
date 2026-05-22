@@ -35,7 +35,7 @@ export default async function EmpresaHistorialPage() {
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBellEmpresa />
-          <HamburgerMenu role="empresa" />
+          <HamburgerMenu role="empresa" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
         </div>
       </header>
 

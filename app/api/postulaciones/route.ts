@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
+import { isTransportista } from "@/lib/roles";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (session.role !== "TRANSPORTISTA") {
+  if (!isTransportista(session.role)) {
     return NextResponse.json({ error: "Solo transportistas pueden postularse" }, { status: 403 });
   }
 

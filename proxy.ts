@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/session";
+import { isEmpresa, isTransportista } from "@/lib/roles";
 
 const PUBLIC_ROUTES = ["/", "/login", "/registro"];
 
@@ -26,7 +27,7 @@ export default async function proxy(req: NextRequest) {
 
   if (
     pathname.startsWith("/empresa") &&
-    session?.role !== "EMPRESA" &&
+    !isEmpresa(session?.role ?? "") &&
     session?.role !== "ADMIN"
   ) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
@@ -34,7 +35,7 @@ export default async function proxy(req: NextRequest) {
 
   if (
     pathname.startsWith("/transportista") &&
-    session?.role !== "TRANSPORTISTA" &&
+    !isTransportista(session?.role ?? "") &&
     session?.role !== "ADMIN"
   ) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
@@ -43,10 +44,10 @@ export default async function proxy(req: NextRequest) {
   if (isAuthRoute && session) {
     const role = session.role;
     const dest =
-      role === "EMPRESA"
+      role === "EMPRESA" || role === "EMPRESA_TRANSPORTISTA"
         ? "/empresa/dashboard"
-        : role === "TRANSPORTISTA"
-          ? "/transportista/dashboard"
+        : role === "TRANSPORTISTA" || role === "TRANSPORTISTA_FLOTA"
+          ? "/transportista/cargas"
           : "/admin/dashboard";
     return NextResponse.redirect(new URL(dest, req.nextUrl));
   }

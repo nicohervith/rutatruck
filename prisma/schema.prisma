@@ -7,111 +7,88 @@ datasource db {
 }
 
 model User {
-  id              String        @id @default(cuid())
-  name            String
-  email           String        @unique
-  password        String
-  role            Role
-  phone           String?
-  createdAt       DateTime      @default(now())
-  cargas          Carga[]       @relation("EmpresaCarga")
-  cargasAsignadas Carga[]       @relation("TransportistaAsignado")
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  password          String
+  role              Role
+  phone             String?
+  createdAt         DateTime           @default(now())
+  esFlota           Boolean            @default(false)
+  cargas            Carga[]            @relation("EmpresaCarga")
+  cargasAsignadas   Carga[]            @relation("TransportistaAsignado")
   postulaciones     Postulacion[]
   pushSubscriptions PushSubscription[]
 }
 
-enum Role {
-  EMPRESA
-  TRANSPORTISTA
-  TRANSPORTISTA_FLOTA
-  ADMIN
-}
-
 model Carga {
-  id                         Int           @id @default(autoincrement())
-  titulo                     String
-  origen                     String
-  origenLat                  Float?
-  origenLng                  Float?
-  destino                    String
-  destinoLat                 Float?
-  destinoLng                 Float?
-  tipoCarga                  String
-  tipoCargaDetalle           String?
-  peso                       Float?
-  pesoUnidad                 String?
-  volumen                    Float?
-  presupuesto                Float?
-  fechaCarga                 DateTime
-  fechaCupo                  DateTime?
-  preferenciaCamion          String?
-  descripcion                String?       @db.Text
-  contactoNombre             String
-  contactoTelefono           String
-  contactoEmail              String
-  cantidadCamiones           Int           @default(1)
-  estado                     EstadoCarga   @default(PENDIENTE_PAGO)
-  pagado                     Boolean       @default(false)
-  mpPaymentId                String?
-  transportistaPagoDeadline  DateTime?
-  transportistaMpPaymentId   String?
-  createdAt                  DateTime      @default(now())
-  updatedAt                  DateTime      @updatedAt
-  empresaId                  String
-  empresa                    User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
-  transportistaAsignadoId    String?
-  transportistaAsignado      User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
-  postulaciones              Postulacion[]
-  disputaDescripcion         String?       @db.Text
-  disputaAbiertaPor          String?
+  id                        Int           @id @default(autoincrement())
+  titulo                    String
+  origen                    String
+  destino                   String
+  tipoCarga                 String
+  peso                      Float?
+  volumen                   Float?
+  presupuesto               Float?
+  fechaCarga                DateTime
+  descripcion               String?
+  contactoNombre            String
+  contactoTelefono          String
+  contactoEmail             String
+  estado                    EstadoCarga   @default(PENDIENTE_PAGO)
+  pagado                    Boolean       @default(false)
+  mpPaymentId               String?
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  empresaId                 String
+  cantidadCamiones          Int           @default(1)
+  destinoLat                Float?
+  destinoLng                Float?
+  disputaAbiertaPor         String?
+  disputaDescripcion        String?
+  fechaCupo                 DateTime?
+  origenLat                 Float?
+  origenLng                 Float?
+  preferenciaCamion         String?
+  tipoCargaDetalle          String?
+  transportistaAsignadoId   String?
+  transportistaMpPaymentId  String?
+  transportistaPagoDeadline DateTime?
+  pesoUnidad                String?
+  empresa                   User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
+  transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
+  postulaciones             Postulacion[]
 }
 
 model Postulacion {
-  id              Int               @id @default(autoincrement())
-  cargaId         Int
-  transportistaId String
-  mensaje         String?           @db.Text
-  contactoEmail   String?
-  contactoTelefono String?
+  id                 Int               @id @default(autoincrement())
+  cargaId            Int
+  transportistaId    String
+  mensaje            String?
+  contactoEmail      String?
+  contactoTelefono   String?
   estado             EstadoPostulacion @default(PENDIENTE)
-  camionesCubiertos  Int              @default(1)
+  camionesCubiertos  Int               @default(1)
   precioOfrecido     Float?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  carga              Carga             @relation(fields: [cargaId], references: [id])
-  transportista      User              @relation(fields: [transportistaId], references: [id])
   vistaTransportista Boolean           @default(false)
   vistaEmpresa       Boolean           @default(false)
+  carga              Carga             @relation(fields: [cargaId], references: [id])
+  transportista      User              @relation(fields: [transportistaId], references: [id])
 
   @@unique([cargaId, transportistaId])
-}
-
-enum EstadoCarga {
-  PENDIENTE_PAGO
-  ACTIVA
-  PENDIENTE_PAGO_TRANSPORTISTA
-  ASIGNADA
-  EN_CONFIRMACION
-  FINALIZADA
-  CANCELADA
-  DISPUTA
-}
-
-enum EstadoPostulacion {
-  PENDIENTE
-  ACEPTADA
-  RECHAZADA
 }
 
 model PushSubscription {
   id        Int      @id @default(autoincrement())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   endpoint  String   @unique
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetToken {
@@ -123,8 +100,33 @@ model PasswordResetToken {
 }
 
 model ConfigApp {
-  id                 Int    @id @default(1)
-  comisionTipo       String @default("FIJO")
-  comisionValor      Float  @default(5000)
-  precioPublicacion  Float  @default(500)
+  id                Int    @id @default(1)
+  comisionTipo      String @default("FIJO")
+  comisionValor     Float  @default(5000)
+  precioPublicacion Float  @default(500)
+}
+
+enum Role {
+  EMPRESA
+  TRANSPORTISTA
+  ADMIN
+  TRANSPORTISTA_FLOTA
+  EMPRESA_TRANSPORTISTA
+}
+
+enum EstadoCarga {
+  PENDIENTE_PAGO
+  ACTIVA
+  ASIGNADA
+  FINALIZADA
+  CANCELADA
+  PENDIENTE_PAGO_TRANSPORTISTA
+  EN_CONFIRMACION
+  DISPUTA
+}
+
+enum EstadoPostulacion {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
 }

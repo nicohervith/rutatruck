@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { EstadoCarga } from "@prisma/client";
+import { isEmpresa, isTransportista } from "@/lib/roles";
 
 export async function POST(
   req: NextRequest,
@@ -9,7 +10,7 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (session.role !== "EMPRESA" && session.role !== "TRANSPORTISTA") {
+  if (!isEmpresa(session.role) && !isTransportista(session.role)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
@@ -31,7 +32,7 @@ export async function POST(
   const estadosValidos: EstadoCarga[] = ["ASIGNADA", "EN_CONFIRMACION"];
 
   let carga;
-  if (session.role === "EMPRESA") {
+  if (isEmpresa(session.role)) {
     carga = await db.carga.findFirst({
       where: { id: cargaId, empresaId: session.userId, estado: { in: estadosValidos } },
     });

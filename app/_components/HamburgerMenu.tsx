@@ -19,7 +19,7 @@ const LINKS = {
   ],
 };
 
-export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
+export function HamburgerMenu({ role, isMultiRole }: { role: "empresa" | "transportista"; isMultiRole?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -68,6 +68,19 @@ export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
               {link.label}
             </Link>
           ))}
+          {isMultiRole && (
+            <>
+              <div className="border-t" style={{ borderColor: "#1E3838" }} />
+              <Link
+                href={role === "empresa" ? "/transportista/cargas" : "/empresa/dashboard"}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-3 text-sm transition-colors hover:bg-white/5"
+                style={{ color: "#4ADE80" }}
+              >
+                {role === "empresa" ? "↔ Cambiar a transportista" : "↔ Cambiar a empresa"}
+              </Link>
+            </>
+          )}
           <div className="border-t" style={{ borderColor: "#1E3838" }} />
           <form action={logout}>
             <button

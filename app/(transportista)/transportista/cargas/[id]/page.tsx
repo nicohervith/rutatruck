@@ -3,6 +3,7 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import { isFlota } from "@/lib/roles";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
 import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
@@ -268,7 +269,7 @@ export default async function CargaPublicaPage({
             miPostulacion={miPostulacion}
             contactoDefecto={{ email: user?.email ?? "", telefono: user?.phone ?? "" }}
             cantidadCamiones={carga.cantidadCamiones ?? 1}
-            esFlota={session.role === "TRANSPORTISTA_FLOTA"}
+            esFlota={isFlota(session.role, session.esFlota)}
             pesoUnidad={carga.pesoUnidad}
           />
         )}
