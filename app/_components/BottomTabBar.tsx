@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
 import { useEffect, useState, type ReactElement } from "react";
+import SwitchRoleButton from "./SwitchRoleButton";
 
 type Tab = {
   href: string;
@@ -167,8 +168,8 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
       })}
 
       {isMultiRole && (
-        <Link
-          href={role === "empresa" ? "/transportista/cargas" : "/empresa/dashboard"}
+        <SwitchRoleButton
+          toRole={role === "empresa" ? "transportista" : "empresa"}
           className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors"
           style={{ color: "#6B7280" }}
         >
@@ -178,7 +179,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
           <span className="text-[10px] font-semibold leading-none">
             {role === "empresa" ? "↔ Transp." : "↔ Empresa"}
           </span>
-        </Link>
+        </SwitchRoleButton>
       )}
 
       <form action={logout} className="flex-1">

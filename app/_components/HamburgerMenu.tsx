@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
+import SwitchRoleButton from "./SwitchRoleButton";
 
 const LINKS = {
   empresa: [
@@ -71,14 +72,13 @@ export function HamburgerMenu({ role, isMultiRole }: { role: "empresa" | "transp
           {isMultiRole && (
             <>
               <div className="border-t" style={{ borderColor: "#1E3838" }} />
-              <Link
-                href={role === "empresa" ? "/transportista/cargas" : "/empresa/dashboard"}
-                onClick={() => setOpen(false)}
-                className="block px-4 py-3 text-sm transition-colors hover:bg-white/5"
+              <SwitchRoleButton
+                toRole={role === "empresa" ? "transportista" : "empresa"}
+                className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-white/5 cursor-pointer"
                 style={{ color: "#4ADE80" }}
               >
                 {role === "empresa" ? "↔ Cambiar a transportista" : "↔ Cambiar a empresa"}
-              </Link>
+              </SwitchRoleButton>
             </>
           )}
           <div className="border-t" style={{ borderColor: "#1E3838" }} />
