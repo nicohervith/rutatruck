@@ -6,13 +6,13 @@ import { logout } from "@/app/actions/auth";
 
 const LINKS = {
   empresa: [
-    { href: "/empresa/dashboard", label: "Dashboard" },
+    { href: "/empresa/dashboard", label: "Inicio" },
     { href: "/empresa/cargas", label: "Mis cargas" },
     { href: "/empresa/cargas/nueva", label: "Publicar carga" },
     { href: "/empresa/historial", label: "Historial" },
   ],
   transportista: [
-    { href: "/transportista/dashboard", label: "Dashboard" },
+    { href: "/transportista/dashboard", label: "Inicio" },
     { href: "/transportista/cargas", label: "Ver cargas" },
     { href: "/transportista/postulaciones", label: "Mis postulaciones" },
     { href: "/transportista/historial", label: "Historial" },

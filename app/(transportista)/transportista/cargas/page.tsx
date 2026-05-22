@@ -28,6 +28,7 @@ export default async function TransportistasCargasPage({
         tipoCarga: true,
         tipoCargaDetalle: true,
         peso: true,
+        pesoUnidad: true,
         presupuesto: true,
         fechaCarga: true,
         cantidadCamiones: true,

@@ -11,12 +11,12 @@ export default function AbrirDisputaEmpresaButton({ cargaId }: { cargaId: number
 
   async function handleClick() {
     const result = await Swal.fire({
-      title: "Abrir disputa",
+      title: "Reportar problema",
       text: "Describí el motivo del problema con el viaje.",
       input: "textarea",
       inputPlaceholder: "Describí el motivo de la disputa...",
       showCancelButton: true,
-      confirmButtonText: "Abrir disputa",
+      confirmButtonText: "Reportar problema",
       cancelButtonText: "Cancelar",
       background: "#112424",
       color: "#ffffff",
@@ -78,7 +78,7 @@ export default function AbrirDisputaEmpresaButton({ cargaId }: { cargaId: number
         disabled={pending}
         className="text-sm font-medium rounded-lg px-4 py-2 transition-colors cursor-pointer disabled:opacity-60 border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100"
       >
-        {pending ? "Enviando..." : "Abrir disputa"}
+        {pending ? "Enviando..." : "Reportar problema"}
       </button>
       {error && <p className="text-xs text-red-300">{error}</p>}
     </div>

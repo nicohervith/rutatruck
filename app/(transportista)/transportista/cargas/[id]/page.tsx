@@ -163,7 +163,7 @@ export default async function CargaPublicaPage({
             {[
               ["Tipo", TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
-              carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
+              carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
@@ -236,7 +236,12 @@ export default async function CargaPublicaPage({
               </div>
             )}
             {puedeCompletar && <CompletarViajeButton cargaId={carga.id} />}
-            {puedeDisputa && <AbrirDisputaTransportistaButton cargaId={carga.id} />}
+            {puedeDisputa && (
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: "#E2E8E8" }}>
+                <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>
+                <AbrirDisputaTransportistaButton cargaId={carga.id} />
+              </div>
+            )}
           </div>
         )}
 
@@ -264,6 +269,7 @@ export default async function CargaPublicaPage({
             contactoDefecto={{ email: user?.email ?? "", telefono: user?.phone ?? "" }}
             cantidadCamiones={carga.cantidadCamiones ?? 1}
             esFlota={session.role === "TRANSPORTISTA_FLOTA"}
+            pesoUnidad={carga.pesoUnidad}
           />
         )}
       </main>

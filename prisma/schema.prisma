@@ -39,6 +39,7 @@ model Carga {
   tipoCarga                  String
   tipoCargaDetalle           String?
   peso                       Float?
+  pesoUnidad                 String?
   volumen                    Float?
   presupuesto                Float?
   fechaCarga                 DateTime

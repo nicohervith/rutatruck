@@ -80,7 +80,8 @@
       "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")",
       "Bash(findstr /i \"vapid\")",
       "Bash(Remove-Item -Recurse -Force \"D:\\\\Programación\\\\rutatruck\\\\.next\" -ErrorAction SilentlyContinue)",
-      "Bash(Write-Host \"done\")"
+      "Bash(Write-Host \"done\")",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

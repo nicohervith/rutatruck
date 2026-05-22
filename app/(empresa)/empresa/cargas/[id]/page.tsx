@@ -10,6 +10,7 @@ import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import ReintentarPagoButton from "./_components/ReintentarPagoButton";
 import CancelarCargaButton from "./_components/CancelarCargaButton";
+import RepetirCargaButton from "./_components/RepetirCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
@@ -139,46 +140,67 @@ export default async function CargaDetallePage({
           </div>
         )}
 
-        {(pendientePago || puedeCancelar || puedeEditar || puedeConfirmar) && (
-          <div
-            className="rounded-xl border p-5 mb-6"
-            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
-          >
-            <h2 className="font-medium text-gray-900 mb-4">Acciones</h2>
-            <div className="flex flex-wrap gap-3">
-              {pendientePago && (
-                <>
-                  <ReintentarPagoButton cargaId={carga.id} />
-                  <CancelarCargaButton cargaId={carga.id} />
-                </>
-              )}
-              {(puedeEditar || puedeCancelar) && (
-                <EditarCargaPanel
-                  sinTransportista={carga.transportistaAsignadoId === null}
-                  carga={{
-                    id: carga.id,
-                    titulo: carga.titulo,
-                    origen: carga.origen,
-                    destino: carga.destino,
-                    tipoCarga: carga.tipoCarga,
-                    tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
-                    peso: carga.peso,
-                    volumen: carga.volumen,
-                    presupuesto: carga.presupuesto,
-                    fechaCarga: toDateInput(carga.fechaCarga),
-                    fechaCupo: toDateInput(carga.fechaCupo),
-                    preferenciaCamion: carga.preferenciaCamion,
-                    descripcion: carga.descripcion,
-                    contactoNombre: carga.contactoNombre,
-                    contactoTelefono: carga.contactoTelefono,
-                    contactoEmail: carga.contactoEmail,
-                  }}
-                />
-              )}
-              {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
-            </div>
+        <div
+          className="rounded-xl border p-5 mb-6"
+          style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
+        >
+          <h2 className="font-medium text-gray-900 mb-4">Acciones</h2>
+          <div className="flex flex-wrap gap-3">
+            {pendientePago && (
+              <>
+                <ReintentarPagoButton cargaId={carga.id} />
+                <CancelarCargaButton cargaId={carga.id} />
+              </>
+            )}
+            {(puedeEditar || puedeCancelar) && (
+              <EditarCargaPanel
+                sinTransportista={carga.transportistaAsignadoId === null}
+                carga={{
+                  id: carga.id,
+                  titulo: carga.titulo,
+                  origen: carga.origen,
+                  destino: carga.destino,
+                  tipoCarga: carga.tipoCarga,
+                  tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
+                  peso: carga.peso,
+                  pesoUnidad: carga.pesoUnidad ?? null,
+                  volumen: carga.volumen,
+                  presupuesto: carga.presupuesto,
+                  fechaCarga: toDateInput(carga.fechaCarga),
+                  fechaCupo: toDateInput(carga.fechaCupo),
+                  preferenciaCamion: carga.preferenciaCamion,
+                  descripcion: carga.descripcion,
+                  contactoNombre: carga.contactoNombre,
+                  contactoTelefono: carga.contactoTelefono,
+                  contactoEmail: carga.contactoEmail,
+                }}
+              />
+            )}
+            {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
+            <RepetirCargaButton
+              carga={{
+                titulo: carga.titulo,
+                origen: carga.origen,
+                origenLat: carga.origenLat,
+                origenLng: carga.origenLng,
+                destino: carga.destino,
+                destinoLat: carga.destinoLat,
+                destinoLng: carga.destinoLng,
+                tipoCarga: carga.tipoCarga,
+                tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
+                peso: carga.peso,
+                pesoUnidad: carga.pesoUnidad ?? null,
+                cantidadCamiones: carga.cantidadCamiones,
+                presupuesto: carga.presupuesto,
+                preferenciaCamion: carga.preferenciaCamion,
+                descripcion: carga.descripcion,
+                contactoNombre: carga.contactoNombre,
+                contactoTelefono: carga.contactoTelefono,
+                contactoEmail: carga.contactoEmail,
+              }}
+            />
           </div>
-        )}
+        </div>
 
         {esperandoPagoTransportista && carga.transportistaAsignado && carga.transportistaPagoDeadline && (
           <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
@@ -220,7 +242,7 @@ export default async function CargaDetallePage({
             {[
               ["Tipo de carga", carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
-              carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
+              carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
                 : null,

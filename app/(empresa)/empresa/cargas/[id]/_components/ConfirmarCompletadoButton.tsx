@@ -54,11 +54,24 @@ export default function ConfirmarCompletadoButton({ cargaId }: { cargaId: number
       <button
         onClick={handleClick}
         disabled={pending}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-        style={{ backgroundColor: "var(--primary)", color: "#0C1E1E" }}
+        className="w-full flex items-center justify-center gap-2 py-4 px-2 rounded-xl font-semibold text-base transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
+        style={{
+          backgroundColor: "var(--primary)",
+          color: "var(--text-white)",
+        }}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M5 13l4 4L19 7"
+          />
         </svg>
         {pending ? "Confirmando..." : "Confirmar viaje completado"}
       </button>

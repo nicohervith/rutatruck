@@ -19,7 +19,7 @@ const ESTADO_CONFIG: Record<string, { label: string; bg: string; text: string }>
 export default async function EmpresaDashboard() {
   const session = await verifySession();
 
-  const [cargas, totalCargas, totalPostulaciones, totalActivas, totalFinalizadas] = await Promise.all([
+  const [cargas, totalEnGestion, totalPostulaciones, totalActivas, totalFinalizadas] = await Promise.all([
     db.carga.findMany({
       where: { empresaId: session.userId },
       orderBy: { createdAt: "desc" },
@@ -28,7 +28,7 @@ export default async function EmpresaDashboard() {
         _count: { select: { postulaciones: { where: { estado: "PENDIENTE" } } } },
       },
     }),
-    db.carga.count({ where: { empresaId: session.userId } }),
+    db.carga.count({ where: { empresaId: session.userId, estado: { notIn: ["FINALIZADA", "CANCELADA"] } } }),
     db.postulacion.count({
       where: { carga: { empresaId: session.userId }, estado: "PENDIENTE" },
     }),
@@ -52,7 +52,7 @@ export default async function EmpresaDashboard() {
     {
       href: "/empresa/cargas",
       label: "Mis cargas",
-      sublabel: `${totalCargas} publicada${totalCargas !== 1 ? "s" : ""} en total`,
+      sublabel: `${totalEnGestion} en gestión`,
       count: totalPostulaciones,
       primary: false,
       icon: (
@@ -99,7 +99,7 @@ export default async function EmpresaDashboard() {
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { label: "Publicadas",   value: totalCargas,        color: "var(--primary)" },
+            { label: "En gestión",   value: totalEnGestion,     color: "var(--primary)" },
             { label: "Activas",      value: totalActivas,       color: "#22C55E" },
             { label: "Finalizadas",  value: totalFinalizadas,   color: "#6B7280" },
           ].map(({ label, value, color }) => (

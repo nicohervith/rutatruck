@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export function AutoRefresh({
   url,
-  intervalMs = 4000,
+  intervalMs = 12000,
 }: {
   url: string;
   intervalMs?: number;

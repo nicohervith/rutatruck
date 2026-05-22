@@ -395,10 +395,10 @@ export default async function CargasPage({
                               className="text-xs font-semibold uppercase tracking-wide mb-0.5"
                               style={{ color: "#6B7280" }}
                             >
-                              Toneladas
+                              Peso
                             </p>
                             <p className="text-sm font-bold text-gray-900">
-                              {carga.peso} tn
+                              {carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}
                             </p>
                           </div>
                         </div>
@@ -484,8 +484,8 @@ export default async function CargasPage({
                               color: "var(--text-white)",
                             }
                           : {
-                              backgroundColor: "var(--primary-27)",
-                              color: "var(--text-white)",
+                              backgroundColor: "var(--primary-10)",
+                              color: "var(--primary)",
                             }
                     }
                   >

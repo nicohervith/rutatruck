@@ -9,9 +9,10 @@ interface Props {
   contactoDefecto: { email: string; telefono: string };
   cantidadCamiones?: number;
   esFlota?: boolean;
+  pesoUnidad?: string | null;
 }
 
-export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false }: Props) {
+export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false, pesoUnidad }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +135,7 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
 
         <div>
           <label className={labelClass} style={labelStyle}>
-            Tu precio por tonelada ($){" "}
+            Tu precio por {pesoUnidad === "kg" ? "kg" : pesoUnidad === "bulto" ? "bulto" : "tonelada"} ($){" "}
             <span className="text-xs" style={{ color: "#6B7280" }}>(opcional — para negociar)</span>
           </label>
           <input

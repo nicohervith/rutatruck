@@ -17,6 +17,7 @@ export type CargaMapItem = {
   tipoCarga: string;
   tipoCargaDetalle: string | null;
   peso: number | null;
+  pesoUnidad: string | null;
   presupuesto: number | null;
   fechaCarga: string;
   cantidadCamiones: number;
@@ -175,8 +176,8 @@ function SelectedDetail({
           )}
           {carga.peso != null && (
             <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Toneladas</p>
-              <p className="text-base font-black text-gray-900">{carga.peso} tn</p>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>{carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada"}</p>
+              <p className="text-base font-black text-gray-900">{carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}</p>
             </div>
           )}
           <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>

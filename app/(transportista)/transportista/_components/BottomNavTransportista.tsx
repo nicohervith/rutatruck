@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLinkStatus } from "next/link";
 
 const NAV_ITEMS = [
   {
@@ -46,6 +47,24 @@ const NAV_ITEMS = [
   },
 ];
 
+// Must be a child of <Link> to use useLinkStatus
+function NavInner({ label, icon, active }: { label: string; icon: React.ReactNode; active: boolean }) {
+  const { pending } = useLinkStatus();
+  return (
+    <>
+      <span style={{ color: active || pending ? "#4ADE80" : "#6B9090", opacity: pending ? 0.6 : 1, transition: "opacity 0.1s" }}>
+        {icon}
+      </span>
+      <span
+        className="text-[10px] font-semibold tracking-wide"
+        style={{ color: active || pending ? "#4ADE80" : "#6B9090", opacity: pending ? 0.6 : 1, transition: "opacity 0.1s" }}
+      >
+        {label}
+      </span>
+    </>
+  );
+}
+
 export default function BottomNavTransportista() {
   const pathname = usePathname();
 
@@ -61,16 +80,13 @@ export default function BottomNavTransportista() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors"
-              style={{ color: active ? "#4ADE80" : "#6B9090" }}
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-2"
             >
-              {item.icon}
-              <span className="text-[10px] font-semibold tracking-wide">{item.label}</span>
+              <NavInner label={item.label} icon={item.icon} active={active} />
             </Link>
           );
         })}
       </div>
-      {/* Safe area for iOS home indicator */}
       <div style={{ height: "env(safe-area-inset-bottom, 0px)" }} />
     </nav>
   );
