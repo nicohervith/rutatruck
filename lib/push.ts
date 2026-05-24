@@ -11,7 +11,11 @@ export async function sendPushToAllTransportistas(
   payload: { title: string; body: string; url?: string }
 ) {
   const subscriptions = await db.pushSubscription.findMany({
-    where: { user: { role: "TRANSPORTISTA" } },
+    where: {
+      user: {
+        role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] },
+      },
+    },
   });
 
   await Promise.allSettled(

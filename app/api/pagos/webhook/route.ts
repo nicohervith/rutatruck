@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import { db } from "@/lib/db";
 import { obtenerPago } from "@/lib/mercadopago";
+import { sendPushToAllTransportistas } from "@/lib/push";
 
 function verificarFirma(req: NextRequest, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
@@ -35,10 +36,21 @@ async function procesarPago(paymentId: string) {
   const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
   if (matchPublicar) {
     const cargaId = parseInt(matchPublicar[1]);
-    await db.carga.updateMany({
+    const carga = await db.carga.findUnique({
       where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-      data: { estado: "ACTIVA", pagado: true, mpPaymentId: String(pago.id) },
+      select: { id: true, titulo: true, origen: true, destino: true },
     });
+    if (carga) {
+      await db.carga.update({
+        where: { id: cargaId },
+        data: { estado: "ACTIVA", pagado: true, mpPaymentId: String(pago.id) },
+      });
+      void sendPushToAllTransportistas({
+        title: "Nueva carga disponible",
+        body: `${carga.titulo} · ${carga.origen} → ${carga.destino}`,
+        url: "/transportista/cargas",
+      });
+    }
     return;
   }
 
