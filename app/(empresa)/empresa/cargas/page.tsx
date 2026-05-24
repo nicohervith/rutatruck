@@ -171,7 +171,10 @@ export default async function CargasPage({
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBellEmpresa />
-          <HamburgerMenu role="empresa" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
+          <HamburgerMenu
+            role="empresa"
+            isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"}
+          />
         </div>
       </header>
 
@@ -266,7 +269,10 @@ export default async function CargasPage({
             <Link
               href="/empresa/cargas/nueva"
               className="inline-flex items-center gap-2 font-semibold rounded-xl px-6 py-3.5 transition-opacity hover:opacity-90 text-sm"
-              style={{ backgroundColor: "var(--primary)", color: "var(--text-white)" }}
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--text-white)",
+              }}
             >
               <svg
                 className="w-4 h-4"
@@ -398,7 +404,12 @@ export default async function CargasPage({
                               Peso
                             </p>
                             <p className="text-sm font-bold text-gray-900">
-                              {carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}
+                              {carga.peso}{" "}
+                              {carga.pesoUnidad === "kg"
+                                ? "kg"
+                                : carga.pesoUnidad === "bulto"
+                                  ? "bultos"
+                                  : "tn"}
                             </p>
                           </div>
                         </div>
@@ -484,8 +495,8 @@ export default async function CargasPage({
                               color: "var(--text-white)",
                             }
                           : {
-                              backgroundColor: "var(--primary-10)",
-                              color: "var(--primary)",
+                              backgroundColor: "var(--primary)",
+                              color: "var(--text-white)",
                             }
                     }
                   >

@@ -360,59 +360,61 @@ export default async function CargaDetallePage({
                     backgroundColor: p.estado === "ACEPTADA" ? "var(--primary-5)" : "#FAFAFA",
                   }}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-gray-900">{p.transportista.name}</p>
-                        {p.camionesCubiertos > 1 && (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
-                            {p.camionesCubiertos} camiones
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-gray-900">{p.transportista.name}</p>
+                          {p.camionesCubiertos > 1 && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
+                              {p.camionesCubiertos} camiones
+                            </span>
+                          )}
+                          {p.precioOfrecido != null && (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)" }}>
+                              ${p.precioOfrecido.toLocaleString("es-AR")}/tn
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
+                          {p.contactoEmail ?? p.transportista.email}
+                        </p>
+                        {(p.contactoTelefono ?? p.transportista.phone) && (
+                          <p className="text-sm" style={{ color: "#374151" }}>
+                            {p.contactoTelefono ?? p.transportista.phone}
+                          </p>
+                        )}
+                        {p.mensaje && (
+                          <p className="text-sm mt-2 italic" style={{ color: "#6B7280" }}>
+                            "{p.mensaje}"
+                          </p>
+                        )}
+                        <p className="text-xs mt-1" style={{ color: "#9CA3AF" }}>
+                          Postulado el {p.createdAt.toLocaleDateString("es-AR")}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {p.estado === "ACEPTADA" && (
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "var(--primary-13)", color: "var(--primary)" }}>
+                            ✓ Aceptado
                           </span>
                         )}
-                        {p.precioOfrecido != null && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)" }}>
-                            ${p.precioOfrecido.toLocaleString("es-AR")}/tn
+                        {p.estado === "RECHAZADA" && (
+                          <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: "#F3F4F6", color: "#9CA3AF" }}>
+                            No seleccionado
                           </span>
                         )}
                       </div>
-                      <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
-                        {p.contactoEmail ?? p.transportista.email}
-                      </p>
-                      {(p.contactoTelefono ?? p.transportista.phone) && (
-                        <p className="text-sm" style={{ color: "#374151" }}>
-                          {p.contactoTelefono ?? p.transportista.phone}
-                        </p>
-                      )}
-                      {p.mensaje && (
-                        <p className="text-sm mt-2 italic" style={{ color: "#6B7280" }}>
-                          "{p.mensaje}"
-                        </p>
-                      )}
-                      <p className="text-xs mt-1" style={{ color: "#9CA3AF" }}>
-                        Postulado el {p.createdAt.toLocaleDateString("es-AR")}
-                      </p>
                     </div>
-                    <div className="flex-shrink-0">
-                      {p.estado === "ACEPTADA" && (
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "var(--primary-13)", color: "var(--primary)" }}>
-                          ✓ Aceptado
-                        </span>
-                      )}
-                      {p.estado === "RECHAZADA" && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: "#F3F4F6", color: "#9CA3AF" }}>
-                          No seleccionado
-                        </span>
-                      )}
-                      {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
-                        <SeleccionarButton
-                          cargaId={carga.id}
-                          postulacionId={p.id}
-                          transportistaNombre={p.transportista.name}
-                          camionesCubiertos={p.camionesCubiertos ?? 1}
-                          cantidadCamionesTotal={carga.cantidadCamiones}
-                        />
-                      )}
-                    </div>
+                    {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
+                      <SeleccionarButton
+                        cargaId={carga.id}
+                        postulacionId={p.id}
+                        transportistaNombre={p.transportista.name}
+                        camionesCubiertos={p.camionesCubiertos ?? 1}
+                        cantidadCamionesTotal={carga.cantidadCamiones}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
