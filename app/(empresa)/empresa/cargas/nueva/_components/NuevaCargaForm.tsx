@@ -142,8 +142,9 @@ export default function NuevaCargaForm({
     setPending(true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
+    let navigating = false;
     try {
       const res = await fetch("/api/cargas", {
         method: "POST",
@@ -158,22 +159,26 @@ export default function NuevaCargaForm({
 
       localStorage.removeItem(DRAFT_KEY);
       if (data.cargaId) {
+        navigating = true;
         router.push(`/empresa/cargas/${data.cargaId}`);
       } else if (data.url) {
+        navigating = true;
         window.location.href = data.url;
       } else {
-        throw new Error("Respuesta inesperada del servidor. Intentá de nuevo.");
+        throw new Error("Respuesta inesperada del servidor. Revisá en Mis cargas.");
       }
     } catch (err: unknown) {
       clearTimeout(timeout);
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      const isNetwork = err instanceof Error && err.message === "Failed to fetch";
       const msg =
-        err instanceof Error && err.name === "AbortError"
-          ? "La conexión tardó demasiado. Revisá tu conexión e intentá de nuevo."
+        isAbort || isNetwork
+          ? "La conexión fue interrumpida. Revisá en Mis cargas si la carga fue publicada antes de volver a intentar."
           : err instanceof Error
             ? err.message
             : "Error inesperado";
       setError(msg);
-      setPending(false);
+      if (!navigating) setPending(false);
     }
   }
 

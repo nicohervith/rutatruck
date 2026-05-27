@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import truckImg from "@/app/assets/Truck.png";
+import truckImg from "@/app/assets/truck2.png";
 
 export default function LandingPage() {
   return (
@@ -29,7 +29,7 @@ export default function LandingPage() {
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to bottom, rgba(6,15,15,0.82) 0%, rgba(0,0,0,0.0) 45%, rgba(6,15,15,0.88) 85%, rgba(6,15,15,1) 100%)",
+                "linear-gradient(to bottom, rgba(6,15,15,0.1) 20%, rgba(0,0,0,0.0) 85%, rgba(6,15,15,0.88) 95%, rgba(6,15,15,1) 100%)",
             }}
           />
 
@@ -37,14 +37,14 @@ export default function LandingPage() {
           <div className="absolute top-8 left-0 right-0 flex flex-col items-center">
             <h1
               className="font-black leading-none mb-1"
-              style={{ fontSize: "2.6rem", letterSpacing: "-0.01em" }}
+              style={{ fontSize: "2.6rem", letterSpacing: "-0.01em", textShadow: "0 2px 12px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.7)" }}
             >
               <span style={{ color: "#4ADE80" }}>CLICK</span>
               <span className="text-white">CARGO</span>
             </h1>
             <p
               className="uppercase tracking-widest font-medium"
-              style={{ fontSize: "0.65rem", color: "#4ADE80", opacity: 0.9 }}
+              style={{ fontSize: "0.65rem", color: "#4ADE80", opacity: 0.9, textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
             >
               Red integral de cargas
             </p>
