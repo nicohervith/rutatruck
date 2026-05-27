@@ -3,23 +3,24 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
+import SwitchRoleButton from "./SwitchRoleButton";
 
 const LINKS = {
   empresa: [
-    { href: "/empresa/dashboard", label: "Dashboard" },
+    { href: "/empresa/dashboard", label: "Inicio" },
     { href: "/empresa/cargas", label: "Mis cargas" },
     { href: "/empresa/cargas/nueva", label: "Publicar carga" },
     { href: "/empresa/historial", label: "Historial" },
   ],
   transportista: [
-    { href: "/transportista/dashboard", label: "Dashboard" },
+    { href: "/transportista/dashboard", label: "Inicio" },
     { href: "/transportista/cargas", label: "Ver cargas" },
     { href: "/transportista/postulaciones", label: "Mis postulaciones" },
     { href: "/transportista/historial", label: "Historial" },
   ],
 };
 
-export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
+export function HamburgerMenu({ role, isMultiRole }: { role: "empresa" | "transportista"; isMultiRole?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -68,6 +69,18 @@ export function HamburgerMenu({ role }: { role: "empresa" | "transportista" }) {
               {link.label}
             </Link>
           ))}
+          {isMultiRole && (
+            <>
+              <div className="border-t" style={{ borderColor: "#1E3838" }} />
+              <SwitchRoleButton
+                toRole={role === "empresa" ? "transportista" : "empresa"}
+                className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-white/5 cursor-pointer"
+                style={{ color: "#4ADE80" }}
+              >
+                {role === "empresa" ? "↔ Cambiar a transportista" : "↔ Cambiar a empresa"}
+              </SwitchRoleButton>
+            </>
+          )}
           <div className="border-t" style={{ borderColor: "#1E3838" }} />
           <form action={logout}>
             <button

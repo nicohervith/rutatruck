@@ -2,11 +2,12 @@ import "server-only";
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
 
-export type Role = "EMPRESA" | "TRANSPORTISTA" | "TRANSPORTISTA_FLOTA" | "ADMIN";
+export type Role = "EMPRESA" | "TRANSPORTISTA" | "TRANSPORTISTA_FLOTA" | "EMPRESA_TRANSPORTISTA" | "ADMIN";
 
 export interface SessionPayload extends JWTPayload {
   userId: string;
   role: Role;
+  esFlota: boolean;
 }
 
 const getKey = () => {
@@ -37,9 +38,9 @@ export async function decrypt(
   }
 }
 
-export async function createSession(userId: string, role: Role) {
+export async function createSession(userId: string, role: Role, esFlota = false) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const token = await encrypt({ userId, role });
+  const token = await encrypt({ userId, role, esFlota });
   const cookieStore = await cookies();
   cookieStore.set("session", token, {
     httpOnly: true,

@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function InstallPWA() {
+  const router = useRouter();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [show, setShow] = useState(false);
@@ -45,7 +47,11 @@ export default function InstallPWA() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-sm mx-auto bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-center gap-3">
+    <div
+      className="fixed bottom-4 left-4 right-4 z-50 max-w-sm mx-auto bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-center gap-3"
+      onClick={isIOS ? () => router.push("/descargar") : undefined}
+      style={isIOS ? { cursor: "pointer" } : undefined}
+    >
       <div className="w-9 h-9 rounded-lg bg-brand-navy flex items-center justify-center flex-shrink-0">
         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -55,7 +61,7 @@ export default function InstallPWA() {
         <p className="text-sm font-medium text-gray-800">Instalá ClickCargo</p>
         {isIOS ? (
           <p className="text-xs text-gray-500 mt-0.5">
-            Tocá <strong>Compartir</strong> luego <strong>Agregar a inicio</strong>
+            Tocá aquí para ver cómo instalarlo →
           </p>
         ) : (
           <p className="text-xs text-gray-500 mt-0.5">Accedé más rápido desde tu pantalla de inicio</p>
@@ -70,7 +76,11 @@ export default function InstallPWA() {
             Instalar
           </button>
         )}
-        <button onClick={dismiss} aria-label="Cerrar" className="text-gray-400 hover:text-gray-600 transition-colors p-0.5">
+        <button
+          onClick={(e) => { e.stopPropagation(); dismiss(); }}
+          aria-label="Cerrar"
+          className="text-gray-400 hover:text-gray-600 transition-colors p-0.5"
+        >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>

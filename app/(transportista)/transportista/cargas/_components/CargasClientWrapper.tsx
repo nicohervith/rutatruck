@@ -215,8 +215,8 @@ export default function CargasClientWrapper({
                         <div className="flex items-end justify-between">
                           {carga.peso !== null ? (
                             <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Toneladas</p>
-                              <p className="text-sm font-bold text-gray-900">{carga.peso} tn</p>
+                              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>{carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada"}</p>
+                              <p className="text-sm font-bold text-gray-900">{carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}</p>
                             </div>
                           ) : <div />}
                           <div className="text-right">

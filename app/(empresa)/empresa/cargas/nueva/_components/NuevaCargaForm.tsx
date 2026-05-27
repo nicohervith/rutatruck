@@ -25,6 +25,7 @@ type Fields = {
   tipoCarga: string;
   tipoCargaDetalle: string;
   peso: string;
+  pesoUnidad: string;
   cantidadCamiones: string;
   presupuesto: string;
   fechaCarga: string;
@@ -48,6 +49,7 @@ function makeDefaults(c: ContactoDefecto): Fields {
     tipoCarga: "",
     tipoCargaDetalle: "",
     peso: "",
+    pesoUnidad: "tonelada",
     cantidadCamiones: "1",
     presupuesto: "",
     fechaCarga: "",
@@ -71,7 +73,7 @@ export default function NuevaCargaForm({
   errorInicial?: string;
   freeTier?: boolean;
 }) {
-  useRouter();
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(errorInicial ?? null);
   const [fields, setFields] = useState<Fields>(() =>
@@ -140,8 +142,9 @@ export default function NuevaCargaForm({
     setPending(true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
+    let navigating = false;
     try {
       const res = await fetch("/api/cargas", {
         method: "POST",
@@ -156,22 +159,26 @@ export default function NuevaCargaForm({
 
       localStorage.removeItem(DRAFT_KEY);
       if (data.cargaId) {
-        window.location.href = `/empresa/cargas/${data.cargaId}`;
+        navigating = true;
+        router.push(`/empresa/cargas/${data.cargaId}`);
       } else if (data.url) {
+        navigating = true;
         window.location.href = data.url;
       } else {
-        throw new Error("Respuesta inesperada del servidor. Intentá de nuevo.");
+        throw new Error("Respuesta inesperada del servidor. Revisá en Mis cargas.");
       }
     } catch (err: unknown) {
       clearTimeout(timeout);
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      const isNetwork = err instanceof Error && err.message === "Failed to fetch";
       const msg =
-        err instanceof Error && err.name === "AbortError"
-          ? "La conexión tardó demasiado. Revisá tu conexión e intentá de nuevo."
+        isAbort || isNetwork
+          ? "La conexión fue interrumpida. Revisá en Mis cargas si la carga fue publicada antes de volver a intentar."
           : err instanceof Error
             ? err.message
             : "Error inesperado";
       setError(msg);
-      setPending(false);
+      if (!navigating) setPending(false);
     }
   }
 
@@ -395,20 +402,33 @@ export default function NuevaCargaForm({
               </div>
               <div>
                 <label htmlFor="peso" className={labelClass} style={labelStyle}>
-                  Peso estimado (toneladas)
+                  Peso estimado
                 </label>
-                <input
-                  id="peso"
-                  name="peso"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={fields.peso}
-                  onChange={set("peso")}
-                  className={inputClass}
-                  style={inputStyle}
-                  placeholder="Ej: 28"
-                />
+                <div className="flex gap-2">
+                  <input
+                    id="peso"
+                    name="peso"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={fields.peso}
+                    onChange={set("peso")}
+                    className={inputClass}
+                    style={inputStyle}
+                    placeholder="Ej: 28"
+                  />
+                  <select
+                    name="pesoUnidad"
+                    value={fields.pesoUnidad}
+                    onChange={set("pesoUnidad")}
+                    className={inputClass}
+                    style={{ ...inputStyle, minWidth: "120px", width: "auto" }}
+                  >
+                    <option value="tonelada">Tonelada</option>
+                    <option value="kg">kg</option>
+                    <option value="bulto">Bulto</option>
+                  </select>
+                </div>
               </div>
             </div>
 

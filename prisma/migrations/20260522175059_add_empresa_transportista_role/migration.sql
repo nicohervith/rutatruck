@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "Role" ADD VALUE 'EMPRESA_TRANSPORTISTA';
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "esFlota" BOOLEAN NOT NULL DEFAULT false;

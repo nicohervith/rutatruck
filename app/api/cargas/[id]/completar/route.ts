@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
+import { isTransportista } from "@/lib/roles";
 
 export async function POST(
   _req: NextRequest,
@@ -9,7 +10,7 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (session.role !== "TRANSPORTISTA") return NextResponse.json({ error: "Solo transportistas" }, { status: 403 });
+  if (!isTransportista(session.role)) return NextResponse.json({ error: "Solo transportistas" }, { status: 403 });
 
   const { id } = await params;
   const cargaId = parseInt(id);

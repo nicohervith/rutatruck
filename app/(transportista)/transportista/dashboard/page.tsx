@@ -67,7 +67,7 @@ export default async function TransportistaDashboard() {
         <LogoClickCargo />
         <div className="flex items-center gap-2">
           <NotificacionBell />
-          <HamburgerMenu role="transportista" />
+          <HamburgerMenu role="transportista" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
         </div>
       </header>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { isEmpresa } from "@/lib/roles";
 
 export async function PUT(
   req: NextRequest,
@@ -8,7 +9,7 @@ export async function PUT(
 ) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (session.role !== "EMPRESA") return NextResponse.json({ error: "Solo empresas" }, { status: 403 });
+  if (!isEmpresa(session.role)) return NextResponse.json({ error: "Solo empresas" }, { status: 403 });
 
   const { id } = await params;
   const cargaId = parseInt(id);
@@ -28,7 +29,7 @@ export async function PUT(
 
   const {
     titulo, origen, destino, tipoCarga, tipoCargaDetalle,
-    peso, volumen, presupuesto,
+    peso, pesoUnidad, volumen, presupuesto,
     fechaCarga, fechaCupo, preferenciaCamion,
     descripcion,
     contactoNombre, contactoTelefono, contactoEmail,
@@ -47,6 +48,7 @@ export async function PUT(
       tipoCarga: String(tipoCarga),
       tipoCargaDetalle: tipoCargaDetalle && String(tipoCargaDetalle) !== "" ? String(tipoCargaDetalle) : null,
       peso: peso !== undefined && peso !== "" ? parseFloat(String(peso)) : null,
+      pesoUnidad: pesoUnidad && String(pesoUnidad) !== "" ? String(pesoUnidad) : null,
       volumen: volumen !== undefined && volumen !== "" ? parseFloat(String(volumen)) : null,
       ...(carga.transportistaAsignadoId === null && {
         presupuesto: presupuesto !== undefined && presupuesto !== "" ? parseFloat(String(presupuesto)) : null,

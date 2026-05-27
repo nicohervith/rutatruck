@@ -10,6 +10,7 @@ import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import ReintentarPagoButton from "./_components/ReintentarPagoButton";
 import CancelarCargaButton from "./_components/CancelarCargaButton";
+import RepetirCargaButton from "./_components/RepetirCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
@@ -139,52 +140,67 @@ export default async function CargaDetallePage({
           </div>
         )}
 
-        {(pendientePago || puedeCancelar || puedeEditar || puedeConfirmar || puedeDisputa) && (
-          <div
-            className="rounded-xl border p-5 mb-6"
-            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
-          >
-            <h2 className="font-medium text-gray-900 mb-4">Acciones</h2>
-            <div className="flex flex-wrap gap-3">
-              {pendientePago && (
-                <>
-                  <ReintentarPagoButton cargaId={carga.id} />
-                  <CancelarCargaButton cargaId={carga.id} />
-                </>
-              )}
-              {(puedeEditar || puedeCancelar) && (
-                <EditarCargaPanel
-                  sinTransportista={carga.transportistaAsignadoId === null}
-                  carga={{
-                    id: carga.id,
-                    titulo: carga.titulo,
-                    origen: carga.origen,
-                    destino: carga.destino,
-                    tipoCarga: carga.tipoCarga,
-                    tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
-                    peso: carga.peso,
-                    volumen: carga.volumen,
-                    presupuesto: carga.presupuesto,
-                    fechaCarga: toDateInput(carga.fechaCarga),
-                    fechaCupo: toDateInput(carga.fechaCupo),
-                    preferenciaCamion: carga.preferenciaCamion,
-                    descripcion: carga.descripcion,
-                    contactoNombre: carga.contactoNombre,
-                    contactoTelefono: carga.contactoTelefono,
-                    contactoEmail: carga.contactoEmail,
-                  }}
-                />
-              )}
-              {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
-            </div>
-            {puedeDisputa && (
-              <div className="mt-4 pt-4 border-t" style={{ borderColor: "#E2E8E8" }}>
-                <p className="text-xs mb-2" style={{ color: "#6B7280" }}>¿Hubo un problema con el viaje?</p>
-                <AbrirDisputaEmpresaButton cargaId={carga.id} />
-              </div>
+        <div
+          className="rounded-xl border p-5 mb-6"
+          style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
+        >
+          <h2 className="font-medium text-gray-900 mb-4">Acciones</h2>
+          <div className="flex flex-wrap gap-3">
+            {pendientePago && (
+              <>
+                <ReintentarPagoButton cargaId={carga.id} />
+                <CancelarCargaButton cargaId={carga.id} />
+              </>
             )}
+            {(puedeEditar || puedeCancelar) && (
+              <EditarCargaPanel
+                sinTransportista={carga.transportistaAsignadoId === null}
+                carga={{
+                  id: carga.id,
+                  titulo: carga.titulo,
+                  origen: carga.origen,
+                  destino: carga.destino,
+                  tipoCarga: carga.tipoCarga,
+                  tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
+                  peso: carga.peso,
+                  pesoUnidad: carga.pesoUnidad ?? null,
+                  volumen: carga.volumen,
+                  presupuesto: carga.presupuesto,
+                  fechaCarga: toDateInput(carga.fechaCarga),
+                  fechaCupo: toDateInput(carga.fechaCupo),
+                  preferenciaCamion: carga.preferenciaCamion,
+                  descripcion: carga.descripcion,
+                  contactoNombre: carga.contactoNombre,
+                  contactoTelefono: carga.contactoTelefono,
+                  contactoEmail: carga.contactoEmail,
+                }}
+              />
+            )}
+            {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
+            <RepetirCargaButton
+              carga={{
+                titulo: carga.titulo,
+                origen: carga.origen,
+                origenLat: carga.origenLat,
+                origenLng: carga.origenLng,
+                destino: carga.destino,
+                destinoLat: carga.destinoLat,
+                destinoLng: carga.destinoLng,
+                tipoCarga: carga.tipoCarga,
+                tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
+                peso: carga.peso,
+                pesoUnidad: carga.pesoUnidad ?? null,
+                cantidadCamiones: carga.cantidadCamiones,
+                presupuesto: carga.presupuesto,
+                preferenciaCamion: carga.preferenciaCamion,
+                descripcion: carga.descripcion,
+                contactoNombre: carga.contactoNombre,
+                contactoTelefono: carga.contactoTelefono,
+                contactoEmail: carga.contactoEmail,
+              }}
+            />
           </div>
-        )}
+        </div>
 
         {esperandoPagoTransportista && carga.transportistaAsignado && carga.transportistaPagoDeadline && (
           <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
@@ -201,8 +217,8 @@ export default async function CargaDetallePage({
         )}
 
         {carga.estado === "EN_CONFIRMACION" && (
-          <div className="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
-            <p className="text-sm text-orange-300 font-medium">
+          <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-orange-700 font-medium">
               El transportista marcó el viaje como completado. ¿Podés confirmarlo?
             </p>
           </div>
@@ -226,7 +242,7 @@ export default async function CargaDetallePage({
             {[
               ["Tipo de carga", carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
-              carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
+              carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
                 : null,
@@ -344,65 +360,73 @@ export default async function CargaDetallePage({
                     backgroundColor: p.estado === "ACEPTADA" ? "var(--primary-5)" : "#FAFAFA",
                   }}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-gray-900">{p.transportista.name}</p>
-                        {p.camionesCubiertos > 1 && (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
-                            {p.camionesCubiertos} camiones
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-gray-900">{p.transportista.name}</p>
+                          {p.camionesCubiertos > 1 && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
+                              {p.camionesCubiertos} camiones
+                            </span>
+                          )}
+                          {p.precioOfrecido != null && (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)" }}>
+                              ${p.precioOfrecido.toLocaleString("es-AR")}/tn
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
+                          {p.contactoEmail ?? p.transportista.email}
+                        </p>
+                        {(p.contactoTelefono ?? p.transportista.phone) && (
+                          <p className="text-sm" style={{ color: "#374151" }}>
+                            {p.contactoTelefono ?? p.transportista.phone}
+                          </p>
+                        )}
+                        {p.mensaje && (
+                          <p className="text-sm mt-2 italic" style={{ color: "#6B7280" }}>
+                            "{p.mensaje}"
+                          </p>
+                        )}
+                        <p className="text-xs mt-1" style={{ color: "#9CA3AF" }}>
+                          Postulado el {p.createdAt.toLocaleDateString("es-AR")}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {p.estado === "ACEPTADA" && (
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "var(--primary-13)", color: "var(--primary)" }}>
+                            ✓ Aceptado
                           </span>
                         )}
-                        {p.precioOfrecido != null && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--primary-10)", color: "var(--primary)" }}>
-                            ${p.precioOfrecido.toLocaleString("es-AR")}/tn
+                        {p.estado === "RECHAZADA" && (
+                          <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: "#F3F4F6", color: "#9CA3AF" }}>
+                            No seleccionado
                           </span>
                         )}
                       </div>
-                      <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
-                        {p.contactoEmail ?? p.transportista.email}
-                      </p>
-                      {(p.contactoTelefono ?? p.transportista.phone) && (
-                        <p className="text-sm" style={{ color: "#374151" }}>
-                          {p.contactoTelefono ?? p.transportista.phone}
-                        </p>
-                      )}
-                      {p.mensaje && (
-                        <p className="text-sm mt-2 italic" style={{ color: "#6B7280" }}>
-                          "{p.mensaje}"
-                        </p>
-                      )}
-                      <p className="text-xs mt-1" style={{ color: "#9CA3AF" }}>
-                        Postulado el {p.createdAt.toLocaleDateString("es-AR")}
-                      </p>
                     </div>
-                    <div className="flex-shrink-0">
-                      {p.estado === "ACEPTADA" && (
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "var(--primary-13)", color: "var(--primary)" }}>
-                          ✓ Aceptado
-                        </span>
-                      )}
-                      {p.estado === "RECHAZADA" && (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: "#F3F4F6", color: "#9CA3AF" }}>
-                          No seleccionado
-                        </span>
-                      )}
-                      {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
-                        <SeleccionarButton
-                          cargaId={carga.id}
-                          postulacionId={p.id}
-                          transportistaNombre={p.transportista.name}
-                          camionesCubiertos={p.camionesCubiertos ?? 1}
-                          cantidadCamionesTotal={carga.cantidadCamiones}
-                        />
-                      )}
-                    </div>
+                    {p.estado === "PENDIENTE" && carga.estado === "ACTIVA" && (
+                      <SeleccionarButton
+                        cargaId={carga.id}
+                        postulacionId={p.id}
+                        transportistaNombre={p.transportista.name}
+                        camionesCubiertos={p.camionesCubiertos ?? 1}
+                        cantidadCamionesTotal={carga.cantidadCamiones}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+        {puedeDisputa && (
+          <div className="mt-10 pt-6 border-t" style={{ borderColor: "#E2E8E8" }}>
+            <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>
+            <AbrirDisputaEmpresaButton cargaId={carga.id} />
+          </div>
+        )}
       </main>
     </div>
   );

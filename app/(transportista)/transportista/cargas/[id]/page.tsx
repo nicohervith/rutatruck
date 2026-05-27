@@ -3,6 +3,7 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import { isFlota } from "@/lib/roles";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
 import AbrirDisputaTransportistaButton from "./_components/AbrirDisputaTransportistaButton";
@@ -163,7 +164,7 @@ export default async function CargaPublicaPage({
             {[
               ["Tipo", TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
-              carga.peso !== null ? ["Peso", `${carga.peso} toneladas`] : null,
+              carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
               carga.presupuesto !== null
                 ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
@@ -229,20 +230,25 @@ export default async function CargaPublicaPage({
         {(puedeCompletar || puedeDisputa || esperandoConfirmacion) && (
           <div className="space-y-3 mb-6">
             {esperandoConfirmacion && (
-              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3">
-                <p className="text-sm text-orange-300 font-medium">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                <p className="text-sm text-orange-700 font-medium">
                   Marcaste este viaje como completado. Esperando confirmación de la empresa.
                 </p>
               </div>
             )}
             {puedeCompletar && <CompletarViajeButton cargaId={carga.id} />}
-            {puedeDisputa && <AbrirDisputaTransportistaButton cargaId={carga.id} />}
+            {puedeDisputa && (
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: "#E2E8E8" }}>
+                <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>
+                <AbrirDisputaTransportistaButton cargaId={carga.id} />
+              </div>
+            )}
           </div>
         )}
 
         {soyAsignado && carga.estado === "FINALIZADA" && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 mb-6">
-            <p className="text-sm text-green-300 font-medium">
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6">
+            <p className="text-sm text-green-700 font-medium">
               Viaje completado y confirmado por la empresa.
             </p>
           </div>
@@ -263,7 +269,8 @@ export default async function CargaPublicaPage({
             miPostulacion={miPostulacion}
             contactoDefecto={{ email: user?.email ?? "", telefono: user?.phone ?? "" }}
             cantidadCamiones={carga.cantidadCamiones ?? 1}
-            esFlota={session.role === "TRANSPORTISTA_FLOTA"}
+            esFlota={isFlota(session.role, session.esFlota)}
+            pesoUnidad={carga.pesoUnidad}
           />
         )}
       </main>

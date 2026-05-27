@@ -80,7 +80,16 @@
       "Bash(findstr /i \"url\\\\|domain\\\\|host\\\\|app\")",
       "Bash(findstr /i \"vapid\")",
       "Bash(Remove-Item -Recurse -Force \"D:\\\\Programación\\\\rutatruck\\\\.next\" -ErrorAction SilentlyContinue)",
-      "Bash(Write-Host \"done\")"
+      "Bash(Write-Host \"done\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\" -Recurse -Directory -ErrorAction SilentlyContinue)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\app\" -Recurse -Filter \"*registro*\" -o \"*register*\" -o \"*signup*\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Programación\\\\rutatruck\\\\lib\" -Filter \"*.ts\")",
+      "Bash(node -e \"const { PrismaClient } = require\\('@prisma/client'\\); const p = new PrismaClient\\(\\); console.log\\(Object.keys\\(p\\)\\)\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.ts\" /b)",
+      "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.js\" /b)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
     ]
   }
 }

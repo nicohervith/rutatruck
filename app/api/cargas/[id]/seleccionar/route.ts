@@ -3,6 +3,7 @@ import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
 import { DEADLINE_HORAS } from "@/lib/comision";
+import { isEmpresa } from "@/lib/roles";
 
 const FREE_TIER = process.env.FREE_TIER === "true";
 
@@ -14,7 +15,7 @@ export async function POST(
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (session.role !== "EMPRESA") {
+  if (!isEmpresa(session.role)) {
     return NextResponse.json({ error: "Solo empresas" }, { status: 403 });
   }
 

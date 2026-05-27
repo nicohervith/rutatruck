@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(
   _req: NextRequest,
@@ -44,6 +45,16 @@ export async function POST(
         : {}),
     },
   });
+
+  await Promise.all(
+    carga.postulaciones.map((p) =>
+      sendPushToUser(p.transportistaId, {
+        title: "¡Convocatoria cerrada!",
+        body: `Fuiste asignado para "${carga.titulo}". Contactate con la empresa para coordinar.`,
+        url: `/transportista/cargas/${cargaId}`,
+      }).catch(() => {}),
+    ),
+  );
 
   return NextResponse.json({ ok: true });
 }

@@ -18,6 +18,17 @@ export const metadata: Metadata = {
   title: "ClickCargo — Red Integral de Cargas",
   description:
     "Plataforma que conecta empresas con transportistas para coordinar cargas de forma simple y segura",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ClickCargo",
+  },
+  icons: {
+    apple: "/icon-192.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({

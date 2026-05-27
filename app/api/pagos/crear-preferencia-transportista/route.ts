@@ -3,13 +3,14 @@ import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { crearPreferencia } from "@/lib/mercadopago";
 import { getComisionConfig, calcularComision } from "@/lib/comision";
+import { isTransportista } from "@/lib/roles";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (session.role !== "TRANSPORTISTA") {
+  if (!isTransportista(session.role)) {
     return NextResponse.json(
       { error: "Solo transportistas pueden pagar la comisión" },
       { status: 403 },

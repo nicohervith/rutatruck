@@ -28,6 +28,7 @@ export default async function TransportistasCargasPage({
         tipoCarga: true,
         tipoCargaDetalle: true,
         peso: true,
+        pesoUnidad: true,
         presupuesto: true,
         fechaCarga: true,
         cantidadCamiones: true,
@@ -79,7 +80,7 @@ export default async function TransportistasCargasPage({
         </Link>
         <div className="flex items-center gap-2">
           <NotificacionBell />
-          <HamburgerMenu role="transportista" />
+          <HamburgerMenu role="transportista" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
         </div>
       </header>
 
