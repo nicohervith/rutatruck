@@ -12,6 +12,7 @@ import ReintentarPagoButton from "./_components/ReintentarPagoButton";
 import CancelarCargaButton from "./_components/CancelarCargaButton";
 import RepetirCargaButton from "./_components/RepetirCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
+import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 
@@ -104,7 +105,10 @@ export default async function CargaDetallePage({
         <Link href="/empresa/dashboard">
           <LogoClickCargo />
         </Link>
-        <NotificacionBellEmpresa />
+        <div className="flex items-center gap-2">
+          <NotificacionBellEmpresa />
+          <HamburgerMenu role="empresa" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
+        </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-10">
@@ -243,9 +247,7 @@ export default async function CargaDetallePage({
               ["Tipo de carga", carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
               carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
-              carga.presupuesto !== null
-                ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
-                : null,
+              ["Presupuesto", carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"],
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
               carga.fechaCupo
                 ? ["Fecha de cupo", carga.fechaCupo.toLocaleDateString("es-AR")]

@@ -138,7 +138,7 @@ export default function CargasClientWrapper({
                         </p>
                         <p className="text-xs" style={{ color: "#9CA3AF" }}>
                           {carga.titulo} · {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}
-                          {carga.presupuesto !== null && ` · $${carga.presupuesto.toLocaleString("es-AR")}`}
+                          {` · ${carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}`}
                         </p>
                       </div>
                       <div
@@ -192,14 +192,12 @@ export default function CargasClientWrapper({
                               )}
                             </div>
                           </div>
-                          {carga.presupuesto !== null && (
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Precio</p>
-                              <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
-                                ${carga.presupuesto.toLocaleString("es-AR")}
-                              </p>
-                            </div>
-                          )}
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Precio</p>
+                            <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                              {carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}
+                            </p>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-1.5 mb-1">

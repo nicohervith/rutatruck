@@ -3,6 +3,8 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import NotificacionBell from "../../_components/NotificacionBell";
+import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { isFlota } from "@/lib/roles";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
@@ -85,12 +87,16 @@ export default async function CargaPublicaPage({
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       {soyAsignado && <AutoRefresh url={`/api/cargas/${cargaId}/estado`} />}
       <header
-        className="px-6 py-4 border-b"
+        className="px-6 py-4 border-b flex items-center justify-between"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <Link href="/transportista/dashboard">
           <LogoClickCargo />
         </Link>
+        <div className="flex items-center gap-2">
+          <NotificacionBell />
+          <HamburgerMenu role="transportista" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
@@ -166,9 +172,7 @@ export default async function CargaPublicaPage({
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
               carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
-              carga.presupuesto !== null
-                ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
-                : null,
+              ["Presupuesto", carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"],
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
               carga.fechaCupo
                 ? ["Fecha de cupo", carga.fechaCupo.toLocaleDateString("es-AR")]

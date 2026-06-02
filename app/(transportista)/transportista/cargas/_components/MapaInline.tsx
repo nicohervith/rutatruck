@@ -89,9 +89,7 @@ export default function MapaInline({ cargas, yaPostuladoIds }: Props) {
             e.stopPropagation();
             if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
 
-            const presupuestoStr = carga.presupuesto != null
-              ? `<p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#06342A">$${carga.presupuesto.toLocaleString("es-AR")}</p>`
-              : `<div style="margin-bottom:10px"></div>`;
+            const presupuestoStr = `<p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#06342A">${carga.presupuesto != null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}</p>`;
 
             const badgeStr = yaPost
               ? `<span style="display:inline-block;padding:2px 8px;background:#DCFCE7;color:#166534;border-radius:999px;font-size:11px;font-weight:600;margin-bottom:6px">✓ Ya me postulé</span><br/>`

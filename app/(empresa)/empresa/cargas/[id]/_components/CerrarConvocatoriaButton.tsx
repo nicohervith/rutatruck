@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function CerrarConvocatoriaButton({ cargaId }: { cargaId: number }) {
   const router = useRouter();
@@ -9,7 +10,20 @@ export default function CerrarConvocatoriaButton({ cargaId }: { cargaId: number 
   const [error, setError] = useState<string | null>(null);
 
   async function handleClick() {
-    if (!confirm("¿Cerrar la convocatoria? La carga pasará a ASIGNADA con los transportistas ya aceptados.")) return;
+    const result = await Swal.fire({
+      title: "¿Cerrar la convocatoria?",
+      text: "La carga pasará a ASIGNADA con los transportistas ya aceptados.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar",
+      cancelButtonText: "Cancelar",
+      background: "#112424",
+      color: "#ffffff",
+      confirmButtonColor: "var(--primary)",
+      cancelButtonColor: "#1E3838",
+      iconColor: "#FBBF24",
+    });
+    if (!result.isConfirmed) return;
     setError(null);
     setPending(true);
     try {

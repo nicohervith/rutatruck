@@ -79,6 +79,8 @@ export default function NuevaCargaForm({
   const [fields, setFields] = useState<Fields>(() =>
     makeDefaults(contactoDefecto),
   );
+  const [presupuestoAcordar, setPresupuestoAcordar] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -149,7 +151,7 @@ export default function NuevaCargaForm({
       const res = await fetch("/api/cargas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fields),
+        body: JSON.stringify({ ...fields, presupuesto: presupuestoAcordar ? "" : fields.presupuesto }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -469,13 +471,32 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="presupuesto"
-                  className={labelClass}
-                  style={labelStyle}
-                >
-                  Presupuesto ofrecido ($)
+                <label className={labelClass} style={labelStyle}>
+                  Presupuesto ofrecido
                 </label>
+                <div className="flex rounded-lg overflow-hidden border mb-2" style={{ borderColor: "#E2E8E8" }}>
+                  <button
+                    type="button"
+                    onClick={() => setPresupuestoAcordar(false)}
+                    className="flex-1 py-2 text-sm font-medium transition-colors"
+                    style={!presupuestoAcordar
+                      ? { backgroundColor: "var(--primary)", color: "#fff" }
+                      : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+                  >
+                    Monto ($)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPresupuestoAcordar(true); setFields((f) => ({ ...f, presupuesto: "" })); }}
+                    className="flex-1 py-2 text-sm font-medium transition-colors"
+                    style={presupuestoAcordar
+                      ? { backgroundColor: "var(--primary)", color: "#fff" }
+                      : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+                  >
+                    A acordar
+                  </button>
+                </div>
+                {!presupuestoAcordar && (
                 <input
                   id="presupuesto"
                   name="presupuesto"
@@ -488,6 +509,7 @@ export default function NuevaCargaForm({
                   style={inputStyle}
                   placeholder="Ej: 150000"
                 />
+                )}
               </div>
               <div>
                 <label
@@ -524,6 +546,7 @@ export default function NuevaCargaForm({
                   name="fechaCarga"
                   type="date"
                   required
+                  min={today}
                   value={fields.fechaCarga}
                   onChange={set("fechaCarga")}
                   className={inputClass}
@@ -542,6 +565,7 @@ export default function NuevaCargaForm({
                   id="fechaCupo"
                   name="fechaCupo"
                   type="date"
+                  min={today}
                   value={fields.fechaCupo}
                   onChange={set("fechaCupo")}
                   className={inputClass}

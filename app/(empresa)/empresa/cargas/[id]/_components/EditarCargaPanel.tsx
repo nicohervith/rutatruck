@@ -35,13 +35,15 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [presupuestoAcordar, setPresupuestoAcordar] = useState(carga.presupuesto === null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setPending(true);
     const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(fd.entries());
+    const body: Record<string, FormDataEntryValue | string> = Object.fromEntries(fd.entries());
+    if (presupuestoAcordar) body.presupuesto = "";
     try {
       const res = await fetch(`/api/cargas/${carga.id}`, {
         method: "PUT",
@@ -245,24 +247,44 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
 
         {sinTransportista && (
           <div>
-            <label
-              htmlFor="edit-presupuesto"
-              className={labelClass}
-              style={labelStyle}
-            >
-              Presupuesto ($)
+            <label className={labelClass} style={labelStyle}>
+              Presupuesto
             </label>
-            <input
-              id="edit-presupuesto"
-              name="presupuesto"
-              type="number"
-              step="0.01"
-              min="0"
-              defaultValue={carga.presupuesto ?? ""}
-              className={inputClass}
-              style={inputStyle}
-              placeholder="Ej: 150000"
-            />
+            <div className="flex rounded-lg overflow-hidden border mb-2" style={{ borderColor: "#E2E8E8" }}>
+              <button
+                type="button"
+                onClick={() => setPresupuestoAcordar(false)}
+                className="flex-1 py-2 text-sm font-medium transition-colors"
+                style={!presupuestoAcordar
+                  ? { backgroundColor: "var(--primary)", color: "#fff" }
+                  : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+              >
+                Monto ($)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPresupuestoAcordar(true)}
+                className="flex-1 py-2 text-sm font-medium transition-colors"
+                style={presupuestoAcordar
+                  ? { backgroundColor: "var(--primary)", color: "#fff" }
+                  : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+              >
+                A acordar
+              </button>
+            </div>
+            {!presupuestoAcordar && (
+              <input
+                id="edit-presupuesto"
+                name="presupuesto"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={carga.presupuesto ?? ""}
+                className={inputClass}
+                style={inputStyle}
+                placeholder="Ej: 150000"
+              />
+            )}
           </div>
         )}
 

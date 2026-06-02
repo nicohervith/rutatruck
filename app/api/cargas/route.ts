@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       title: "Nueva carga disponible",
       body: `${cargaData.titulo} · ${cargaData.origen} → ${cargaData.destino}`,
       url: "/transportista/cargas",
-    });
+    }, session.userId);
     return NextResponse.json({ cargaId: carga.id }, { status: 201 });
   }
 

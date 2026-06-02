@@ -8,12 +8,14 @@ webpush.setVapidDetails(
 );
 
 export async function sendPushToAllTransportistas(
-  payload: { title: string; body: string; url?: string }
+  payload: { title: string; body: string; url?: string },
+  excludeUserId?: string
 ) {
   const subscriptions = await db.pushSubscription.findMany({
     where: {
       user: {
         role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] },
+        ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
       },
     },
   });
