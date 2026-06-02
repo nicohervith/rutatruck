@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
-// MVP: mapa deshabilitado temporalmente
-// import { useState } from "react";
-// import dynamic from "next/dynamic";
-// import type { CargaMapItem } from "./MapaCargas";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import type { CargaMapItem } from "./MapaCargas";
 import CountdownTimer from "../[id]/_components/CountdownTimer";
 import { getIconoCarga } from "@/lib/iconos-carga";
 import BottomNavTransportista from "../../_components/BottomNavTransportista";
 
-// MVP: mapa deshabilitado temporalmente
-// const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
-// const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
+const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
+const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos", frutas: "Frutas", verduras: "Verduras", animales: "Animales", otro: "Otro",
@@ -43,33 +40,51 @@ export default function CargasClientWrapper({
   success,
   pago,
 }: Props) {
-  // MVP: mapa deshabilitado temporalmente
-  // const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
+  const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
   const yaPostuladoSet = new Set(yaPostuladoIds);
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col relative">
-      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Inline map (split view) ───────────────────────────────────────────── */}
-      {/* {viewMode === "listado" && (
+      {viewMode === "listado" && (
         <div style={{ height: "42svh", flexShrink: 0 }}>
           <MapaInline cargas={cargas} yaPostuladoIds={yaPostuladoIds} />
         </div>
-      )} */}
+      )}
 
       {/* ── Toggle bar ───────────────────────────────────────────────────────── */}
-      {/* <div
+      <div
         className="sticky top-0 z-10 border-b px-4"
         style={{ backgroundColor: "#F2F5F5", borderColor: "#E2E8E8", flexShrink: 0 }}
       >
         <div className="max-w-2xl mx-auto flex items-center gap-2 py-2.5">
-          <button type="button" onClick={() => setViewMode("listado")} ...>Listado</button>
-          <button type="button" onClick={() => setViewMode("mapa")} ...>Mapa</button>
+          <button
+            type="button"
+            onClick={() => setViewMode("listado")}
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: viewMode === "listado" ? "var(--primary)" : "transparent",
+              color: viewMode === "listado" ? "#FFFFFF" : "#6B7280",
+            }}
+          >
+            Listado
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("mapa")}
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: viewMode === "mapa" ? "var(--primary)" : "transparent",
+              color: viewMode === "mapa" ? "#FFFFFF" : "#6B7280",
+            }}
+          >
+            Mapa
+          </button>
           <span className="ml-auto text-xs font-medium" style={{ color: "#9CA3AF" }}>
             {cargas.length} activa{cargas.length !== 1 ? "s" : ""}
           </span>
         </div>
-      </div> */}
+      </div>
 
       {/* ── Scrollable list ──────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto pb-20">
@@ -256,15 +271,14 @@ export default function CargasClientWrapper({
           </main>
         </div>
 
-      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Full map overlay ─────────────────────────────────────────────────── */}
-      {/* {viewMode === "mapa" && (
+      {viewMode === "mapa" && (
         <MapaCargas
           cargas={cargas}
           yaPostuladoIds={yaPostuladoIds}
           onClose={() => setViewMode("listado")}
         />
-      )} */}
+      )}
 
       <BottomNavTransportista />
     </div>

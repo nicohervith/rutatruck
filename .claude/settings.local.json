@@ -89,7 +89,8 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.ts\" /b)",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.js\" /b)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "Bash(echo \"EXIT_CODE: $?\")"
     ]
   }
 }
