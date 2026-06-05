@@ -164,6 +164,7 @@ export default async function CargaDetallePage({
                   titulo: carga.titulo,
                   origen: carga.origen,
                   destino: carga.destino,
+                  cantidadCamiones: carga.cantidadCamiones,
                   tipoCarga: carga.tipoCarga,
                   tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
                   peso: carga.peso,
