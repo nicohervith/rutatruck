@@ -16,6 +16,7 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dateConflict, setDateConflict] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [contactoEmail, setContactoEmail] = useState(contactoDefecto.email);
   const [contactoTelefono, setContactoTelefono] = useState(contactoDefecto.telefono);
@@ -47,6 +48,7 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setDateConflict(false);
     setPending(true);
     try {
       const res = await fetch("/api/postulaciones", {
@@ -62,7 +64,14 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al postularse");
+      if (!res.ok) {
+        if (data.code === "DATE_CONFLICT") {
+          setDateConflict(true);
+          setPending(false);
+          return;
+        }
+        throw new Error(data.error ?? "Error al postularse");
+      }
       router.push(`/transportista/cargas/${cargaId}/exito`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error inesperado");
@@ -165,6 +174,19 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
         </div>
       </div>
 
+      {dateConflict && (
+        <div
+          className="rounded-xl border px-4 py-3 mb-4"
+          style={{ backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }}
+        >
+          <p className="text-sm font-bold mb-1" style={{ color: "#92400E" }}>
+            🚛 Tenés un viaje activo en esta fecha
+          </p>
+          <p className="text-sm" style={{ color: "#B45309" }}>
+            Completá tus cargas en viaje antes de postularte a nuevas cargas en la misma fecha.
+          </p>
+        </div>
+      )}
       {error && (
         <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2 mb-4">
           {error}

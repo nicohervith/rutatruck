@@ -89,7 +89,18 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.ts\" /b)",
       "Bash(dir \"D:\\\\Programación\\\\rutatruck\\\\*.js\" /b)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "Bash(echo \"EXIT_CODE: $?\")",
+      "Bash(node -e \"const {PrismaClient} = require\\('@prisma/client'\\); const c = new PrismaClient\\(\\); console.log\\(typeof c.disponibilidadTransportista\\);\")",
+      "Bash(Select-String -Path \"D:/Programación/rutatruck/node_modules/@prisma/client/index.d.ts\" -Pattern \"findUnique\")",
+      "Bash(Select-Object -First 3)",
+      "Bash(node *)",
+      "Bash(Select-String '\"version\"')",
+      "Bash(Get-ChildItem \"D:/Programación/rutatruck/prisma/migrations\")",
+      "Bash(Sort-Object Name)",
+      "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]\")",
+      "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]/solicitar\")",
+      "Bash(Select-String -Pattern \"reporte|report\")"
     ]
   }
 }

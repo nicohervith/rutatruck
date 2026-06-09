@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-// MVP: mapa deshabilitado temporalmente
-// import { useState } from "react";
-// import dynamic from "next/dynamic";
-// import type { CargaMapItem } from "./MapaCargas";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import type { CargaMapItem } from "./MapaCargas";
 import CountdownTimer from "../[id]/_components/CountdownTimer";
 import { getIconoCarga } from "@/lib/iconos-carga";
 import BottomNavTransportista from "../../_components/BottomNavTransportista";
 
-// MVP: mapa deshabilitado temporalmente
-// const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
-// const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
+const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
+const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos", frutas: "Frutas", verduras: "Verduras", animales: "Animales", otro: "Otro",
@@ -28,10 +26,70 @@ type PendientePago = {
   transportistaPagoDeadline: string | null;
 };
 
+type CargaPrivada = {
+  id: number;
+  titulo: string;
+  origen: string;
+  destino: string;
+  tipoCarga: string;
+  presupuesto: number | null;
+  fechaCarga: string;
+  descripcion: string | null;
+};
+
+function OfertaPrivadaCard({ carga, onRespond }: { carga: CargaPrivada; onRespond: (id: number, accion: "aceptar" | "rechazar") => Promise<void> }) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <div
+      className="rounded-xl border overflow-hidden"
+      style={{ backgroundColor: "#F0FFF4", borderColor: "#86EFAC" }}
+    >
+      <div className="px-4 py-2 flex items-center gap-2 border-b" style={{ borderColor: "#86EFAC", backgroundColor: "#DCFCE7" }}>
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#166534" }}>
+          Oferta directa — Una empresa te solicitó
+        </span>
+      </div>
+      <div className="p-4">
+        <p className="font-bold text-gray-900 mb-1">{carga.origen} → {carga.destino}</p>
+        <p className="text-sm text-gray-600 mb-1">{carga.titulo} · {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}</p>
+        <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+          <span>📅 {new Date(carga.fechaCarga).toLocaleDateString("es-AR")}</span>
+          <span>💰 {carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}</span>
+        </div>
+        {carga.descripcion && (
+          <p className="text-xs text-gray-500 mb-3 italic">"{carga.descripcion}"</p>
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => startTransition(() => onRespond(carga.id, "aceptar"))}
+            className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-opacity"
+            style={{ backgroundColor: "var(--primary)", color: "#FFFFFF", opacity: pending ? 0.6 : 1 }}
+          >
+            {pending ? "..." : "✓ Aceptar"}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => startTransition(() => onRespond(carga.id, "rechazar"))}
+            className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-opacity"
+            style={{ backgroundColor: "#FEE2E2", color: "#991B1B", opacity: pending ? 0.6 : 1 }}
+          >
+            Rechazar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface Props {
   cargas: CargaMapItem[];
   yaPostuladoIds: number[];
   pendientesPago: PendientePago[];
+  cargasPrivadas: CargaPrivada[];
   success?: string;
   pago?: string;
 }
@@ -40,36 +98,69 @@ export default function CargasClientWrapper({
   cargas,
   yaPostuladoIds,
   pendientesPago,
+  cargasPrivadas: initialPrivadas,
   success,
   pago,
 }: Props) {
-  // MVP: mapa deshabilitado temporalmente
-  // const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
+  const router = useRouter();
+  const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
+  const [privadas, setPrivadas] = useState(initialPrivadas);
   const yaPostuladoSet = new Set(yaPostuladoIds);
+
+  async function responderPrivada(id: number, accion: "aceptar" | "rechazar") {
+    const res = await fetch(`/api/cargas/${id}/responder-privada`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion }),
+    });
+    if (res.ok) {
+      setPrivadas((prev) => prev.filter((c) => c.id !== id));
+      if (accion === "aceptar") router.push(`/transportista/cargas/${id}`);
+    }
+  }
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col relative">
-      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Inline map (split view) ───────────────────────────────────────────── */}
-      {/* {viewMode === "listado" && (
+      {viewMode === "listado" && (
         <div style={{ height: "42svh", flexShrink: 0 }}>
           <MapaInline cargas={cargas} yaPostuladoIds={yaPostuladoIds} />
         </div>
-      )} */}
+      )}
 
       {/* ── Toggle bar ───────────────────────────────────────────────────────── */}
-      {/* <div
+      <div
         className="sticky top-0 z-10 border-b px-4"
         style={{ backgroundColor: "#F2F5F5", borderColor: "#E2E8E8", flexShrink: 0 }}
       >
         <div className="max-w-2xl mx-auto flex items-center gap-2 py-2.5">
-          <button type="button" onClick={() => setViewMode("listado")} ...>Listado</button>
-          <button type="button" onClick={() => setViewMode("mapa")} ...>Mapa</button>
+          <button
+            type="button"
+            onClick={() => setViewMode("listado")}
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: viewMode === "listado" ? "var(--primary)" : "transparent",
+              color: viewMode === "listado" ? "#FFFFFF" : "#6B7280",
+            }}
+          >
+            Listado
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("mapa")}
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: viewMode === "mapa" ? "var(--primary)" : "transparent",
+              color: viewMode === "mapa" ? "#FFFFFF" : "#6B7280",
+            }}
+          >
+            Mapa
+          </button>
           <span className="ml-auto text-xs font-medium" style={{ color: "#9CA3AF" }}>
             {cargas.length} activa{cargas.length !== 1 ? "s" : ""}
           </span>
         </div>
-      </div> */}
+      </div>
 
       {/* ── Scrollable list ──────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto pb-20">
@@ -99,6 +190,23 @@ export default function CargasClientWrapper({
                 <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
                   ¡Postulación enviada! La empresa te contactará si te selecciona.
                 </p>
+              </div>
+            )}
+
+            {/* Ofertas directas */}
+            {privadas.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#166534" }}>
+                    Ofertas directas — {privadas.length} empresa{privadas.length !== 1 ? "s" : ""} te solicit{privadas.length !== 1 ? "aron" : "ó"}
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  {privadas.map((c) => (
+                    <OfertaPrivadaCard key={c.id} carga={c} onRespond={responderPrivada} />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -264,15 +372,14 @@ export default function CargasClientWrapper({
           </main>
         </div>
 
-      {/* MVP: mapa deshabilitado temporalmente */}
       {/* ── Full map overlay ─────────────────────────────────────────────────── */}
-      {/* {viewMode === "mapa" && (
+      {viewMode === "mapa" && (
         <MapaCargas
           cargas={cargas}
           yaPostuladoIds={yaPostuladoIds}
           onClose={() => setViewMode("listado")}
         />
-      )} */}
+      )}
 
       <BottomNavTransportista />
     </div>

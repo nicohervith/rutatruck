@@ -20,8 +20,42 @@ model User {
   notifRadioKm      Int?
   cargas            Carga[]            @relation("EmpresaCarga")
   cargasAsignadas   Carga[]            @relation("TransportistaAsignado")
+  cargasPrivadas    Carga[]            @relation("CargaPrivada")
   postulaciones     Postulacion[]
   pushSubscriptions PushSubscription[]
+  disponibilidad          DisponibilidadTransportista?
+  favoritosComoEmpresa    FavoritoTransportista[]      @relation("EmpresaFavoritos")
+  favoritosComoTransp     FavoritoTransportista[]      @relation("TransportistaFavoritos")
+}
+
+model DisponibilidadTransportista {
+  id              Int      @id @default(autoincrement())
+  transportistaId String   @unique
+  vehiculo        String
+  zona            String
+  lat             Float
+  lng             Float
+  radioKm         Int?
+  regresoVacio    Boolean  @default(false)
+  buscaCarga      Boolean  @default(false)
+  voyAPuerto      Boolean  @default(false)
+  disponibleHoy   Boolean  @default(false)
+  salidaDesde     String?
+  salidaDestino   String?
+  activo          Boolean  @default(true)
+  actualizadoEn   DateTime @updatedAt
+  transportista   User     @relation(fields: [transportistaId], references: [id], onDelete: Cascade)
+}
+
+model FavoritoTransportista {
+  id              Int      @id @default(autoincrement())
+  empresaId       String
+  transportistaId String
+  creadoEn        DateTime @default(now())
+  empresa         User     @relation("EmpresaFavoritos", fields: [empresaId], references: [id], onDelete: Cascade)
+  transportista   User     @relation("TransportistaFavoritos", fields: [transportistaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, transportistaId])
 }
 
 model Carga {
@@ -58,8 +92,11 @@ model Carga {
   transportistaMpPaymentId  String?
   transportistaPagoDeadline DateTime?
   pesoUnidad                String?
+  esPrivada                 Boolean       @default(false)
+  transportistaDestinadoId  String?
   empresa                   User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
   transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
+  transportistaDestinado    User?         @relation("CargaPrivada", fields: [transportistaDestinadoId], references: [id])
   postulaciones             Postulacion[]
 }
 

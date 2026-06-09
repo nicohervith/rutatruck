@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useNotifCount } from "@/app/_components/EventsProvider";
 
 type Notif = {
   tipo: "confirmacion" | "postulacion";
@@ -14,24 +15,13 @@ type Notif = {
 };
 
 export default function NotificacionBellEmpresa() {
-  const [count, setCount] = useState(0);
+  const count = useNotifCount();
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [popupPos, setPopupPos] = useState({ top: 0, right: 8 });
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchCount = () => {
-      fetch("/api/notificaciones/empresa/count")
-        .then((r) => r.json())
-        .then((d) => setCount(d.count ?? 0))
-        .catch(() => {});
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -45,6 +35,10 @@ export default function NotificacionBellEmpresa() {
 
   async function handleOpen() {
     if (open) { setOpen(false); return; }
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPopupPos({ top: rect.bottom + 8, right: 8 });
+    }
     setOpen(true);
     setLoading(true);
     try {
@@ -60,15 +54,14 @@ export default function NotificacionBellEmpresa() {
   async function handleItemClick(cargaId: number) {
     setOpen(false);
     await fetch("/api/notificaciones/empresa/mark-seen", { method: "POST" });
-    setCount(0);
     router.push(`/empresa/cargas/${cargaId}`);
   }
 
   async function handleMarkAll() {
     await fetch("/api/notificaciones/empresa/mark-seen", { method: "POST" });
-    setCount(0);
     setNotifs([]);
     setOpen(false);
+    router.refresh();
   }
 
   return (
@@ -96,8 +89,8 @@ export default function NotificacionBellEmpresa() {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-80 rounded-xl border shadow-xl z-50 overflow-hidden"
-          style={{ backgroundColor: "#112424", borderColor: "#1E3838" }}
+          className="fixed left-1/2 -translate-x-1/2 w-80 max-w-[calc(100vw-16px)] rounded-xl border shadow-xl z-50 overflow-hidden"
+          style={{ backgroundColor: "#112424", borderColor: "#1E3838", top: popupPos.top }}
         >
           <div
             className="flex items-center justify-between px-4 py-3 border-b"
