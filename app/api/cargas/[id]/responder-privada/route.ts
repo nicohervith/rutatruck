@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { isTransportista } from "@/lib/roles";
-import { notifyEmpresa } from "@/lib/sse";
+import { notifyEmpresa, notifyTransportista } from "@/lib/sse";
 
 export async function POST(
   req: NextRequest,

@@ -5,46 +5,53 @@ import LocationAutocomplete, { type LocationSelection } from "@/app/(empresa)/em
 import { useRouter } from "next/navigation";
 
 const VEHICULO_BASE = [
-  { value: "camion", label: "Camión", emoji: "🚛" },
-  { value: "paletizado", label: "Paletizado", emoji: "📦" },
-  { value: "batea", label: "Batea", emoji: "🪣" },
-];
-
-const CAMION_SUB = [
-  { value: "chasis", label: "Chasis" },
-  { value: "acoplado", label: "Acoplado" },
+  { value: "tolva_cerealera", label: "Tolva cerealera", emoji: "🌾", hasVariant: true },
+  { value: "batea",           label: "Batea",           emoji: "🪣", hasVariant: true },
+  { value: "chasis_acoplado", label: "Chasis c/Acoplado", emoji: "🚛", hasVariant: true },
+  { value: "semirremolque",   label: "Semirremolque",   emoji: "🚚", hasVariant: true },
+  { value: "jaula_ganadera",  label: "Jaula ganadera",  emoji: "🐄", hasVariant: false },
+  { value: "sider",           label: "Sider",           emoji: "📦", hasVariant: false },
+  { value: "furgon",          label: "Furgón",          emoji: "🚐", hasVariant: false },
+  { value: "playo",           label: "Playo",           emoji: "🛻", hasVariant: false },
+  { value: "frigorifico",     label: "Frigorífico",     emoji: "❄️", hasVariant: false },
+  { value: "cisterna",        label: "Cisterna",        emoji: "🛢️", hasVariant: false },
+  { value: "portacontenedor", label: "Portacontenedor", emoji: "🏗️", hasVariant: false },
+  { value: "carreton",        label: "Carretón",        emoji: "🚜", hasVariant: false },
+  { value: "volcador",        label: "Volcador",        emoji: "⬆️", hasVariant: false },
 ];
 
 const VARIANTE = [
-  { value: "comun", label: "Común" },
+  { value: "comun",    label: "Común" },
   { value: "escalable", label: "Escalable" },
 ];
 
-function buildVehiculo(base: string, sub: string, variant: string): string {
-  if (base === "paletizado") return "paletizado";
-  if (base === "camion") {
-    if (sub === "chasis") return "camion_chasis";
-    if (sub === "acoplado" && variant) return `camion_acoplado_${variant}`;
-    return "";
-  }
-  if (base === "batea" && variant) return `batea_${variant}`;
-  return "";
+function buildVehiculo(base: string, variant: string): string {
+  if (!base) return "";
+  const item = VEHICULO_BASE.find((v) => v.value === base);
+  if (!item) return "";
+  if (item.hasVariant) return variant ? `${base}_${variant}` : "";
+  return base;
 }
 
-function parseVehiculoInit(v: string) {
-  const parts = v.split("_");
-  const base = parts[0] ?? "";
-  // handle legacy values
-  const knownBases = ["camion", "paletizado", "batea"];
-  if (!knownBases.includes(base)) return { base: "", sub: "", variant: "" };
-  if (base === "paletizado") return { base: "paletizado", sub: "", variant: "" };
-  if (base === "camion") {
-    const sub = parts[1] ?? "";
-    const variant = parts[2] ?? "";
-    return { base: "camion", sub, variant };
+function parseVehiculoInit(v: string): { base: string; variant: string } {
+  if (!v) return { base: "", variant: "" };
+  // New format: flat types
+  const flat = VEHICULO_BASE.find((b) => b.value === v && !b.hasVariant);
+  if (flat) return { base: v, variant: "" };
+  // New format: variant types  (e.g. "tolva_cerealera_comun")
+  for (const suffix of ["_comun", "_escalable"]) {
+    if (v.endsWith(suffix)) {
+      const base = v.slice(0, -suffix.length);
+      const item = VEHICULO_BASE.find((b) => b.value === base && b.hasVariant);
+      if (item) return { base, variant: suffix.slice(1) };
+    }
   }
-  if (base === "batea") return { base: "batea", sub: "", variant: parts[1] ?? "" };
-  return { base: "", sub: "", variant: "" };
+  // Legacy mappings
+  if (v === "batea_comun")              return { base: "batea",           variant: "comun" };
+  if (v === "batea_escalable")          return { base: "batea",           variant: "escalable" };
+  if (v === "camion_acoplado_comun")    return { base: "chasis_acoplado", variant: "comun" };
+  if (v === "camion_acoplado_escalable") return { base: "chasis_acoplado", variant: "escalable" };
+  return { base: "", variant: "" };
 }
 
 const RADIOS = [
@@ -93,7 +100,6 @@ export default function DisponibilidadForm({ inicial }: Props) {
 
   const _init = parseVehiculoInit(inicial?.vehiculo ?? "");
   const [vBase, setVBase] = useState(_init.base);
-  const [vSub, setVSub] = useState(_init.sub);
   const [vVariant, setVVariant] = useState(_init.variant);
   const [zona, setZona] = useState(inicial?.zona ?? "");
   const [loc, setLoc] = useState<LocationSelection | null>(
@@ -111,7 +117,7 @@ export default function DisponibilidadForm({ inicial }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const vehiculo = buildVehiculo(vBase, vSub, vVariant);
+    const vehiculo = buildVehiculo(vBase, vVariant);
     if (!loc) { setError("Seleccioná una localidad de la lista."); return; }
     if (!vehiculo) { setError("Seleccioná el tipo de vehículo completo."); return; }
     setError("");
@@ -193,49 +199,28 @@ export default function DisponibilidadForm({ inicial }: Props) {
       <div className="space-y-3">
         <span style={labelStyle}>Tipo de vehículo</span>
 
-        {/* Nivel 1 */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Nivel 1 — todos los tipos */}
+        <div className="grid grid-cols-2 gap-2">
           {VEHICULO_BASE.map((v) => (
             <button
               key={v.value}
               type="button"
-              onClick={() => { setVBase(v.value); setVSub(""); setVVariant(""); }}
-              className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl border transition-all text-sm font-semibold"
+              onClick={() => { setVBase(v.value); setVVariant(""); }}
+              className="flex items-center gap-2 px-3 py-3 rounded-xl border transition-all text-xs font-semibold text-left min-w-0"
               style={{
                 backgroundColor: vBase === v.value ? "var(--primary-10)" : "#FFFFFF",
                 borderColor: vBase === v.value ? "var(--primary)" : "#E2E8E8",
                 color: vBase === v.value ? "var(--primary)" : "#374151",
               }}
             >
-              <span className="text-2xl">{v.emoji}</span>
-              {v.label}
+              <span className="text-lg flex-shrink-0">{v.emoji}</span>
+              <span className="leading-tight min-w-0 break-words">{v.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Nivel 2 — solo si camión */}
-        {vBase === "camion" && (
-          <div className="grid grid-cols-2 gap-2 pl-3 border-l-2" style={{ borderColor: "var(--primary)" }}>
-            {CAMION_SUB.map((s) => (
-              <button
-                key={s.value}
-                type="button"
-                onClick={() => { setVSub(s.value); setVVariant(""); }}
-                className="px-3 py-2.5 rounded-xl border text-sm font-semibold transition-all"
-                style={{
-                  backgroundColor: vSub === s.value ? "var(--primary-10)" : "#FFFFFF",
-                  borderColor: vSub === s.value ? "var(--primary)" : "#E2E8E8",
-                  color: vSub === s.value ? "var(--primary)" : "#374151",
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Nivel 3 — acoplado o batea */}
-        {(vBase === "batea" || (vBase === "camion" && vSub === "acoplado")) && (
+        {/* Nivel 2 — Común / Escalable (solo para tipos que lo requieren) */}
+        {vBase && VEHICULO_BASE.find((b) => b.value === vBase)?.hasVariant && (
           <div className="grid grid-cols-2 gap-2 pl-3 border-l-2" style={{ borderColor: "var(--primary)" }}>
             {VARIANTE.map((v) => (
               <button
@@ -362,12 +347,12 @@ export default function DisponibilidadForm({ inicial }: Props) {
 
       <button
         type="submit"
-        disabled={pending || !loc || !buildVehiculo(vBase, vSub, vVariant)}
+        disabled={pending || !loc || !buildVehiculo(vBase, vVariant)}
         className="w-full py-3.5 rounded-xl font-bold text-sm transition-opacity"
         style={{
           backgroundColor: "var(--primary)",
           color: "#FFFFFF",
-          opacity: pending || !loc || !buildVehiculo(vBase, vSub, vVariant) ? 0.6 : 1,
+          opacity: pending || !loc || !buildVehiculo(vBase, vVariant) ? 0.6 : 1,
         }}
       >
         {pending ? "Guardando..." : activo ? "Actualizar disponibilidad" : "✓ Estoy disponible"}
