@@ -38,7 +38,7 @@ async function procesarPago(paymentId: string) {
     const cargaId = parseInt(matchPublicar[1]);
     const carga = await db.carga.findUnique({
       where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-      select: { id: true, titulo: true, origen: true, destino: true },
+      select: { id: true, titulo: true, origen: true, destino: true, empresaId: true },
     });
     if (carga) {
       await db.carga.update({
@@ -49,7 +49,7 @@ async function procesarPago(paymentId: string) {
         title: "Nueva carga disponible",
         body: `${carga.titulo} · ${carga.origen} → ${carga.destino}`,
         url: "/transportista/cargas",
-      });
+      }, carga.empresaId);
     }
     return;
   }

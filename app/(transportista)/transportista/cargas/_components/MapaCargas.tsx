@@ -103,11 +103,9 @@ function CargaCard({
             )}
           </div>
           <p className="text-sm font-semibold text-gray-900 truncate">{carga.origen} → {carga.destino}</p>
-          {carga.presupuesto != null && (
-            <p className="text-xs mt-0.5 font-bold" style={{ color: "var(--primary)" }}>
-              ${carga.presupuesto.toLocaleString("es-AR")}
-            </p>
-          )}
+          <p className="text-xs mt-0.5 font-bold" style={{ color: "var(--primary)" }}>
+            {carga.presupuesto != null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}
+          </p>
         </div>
         <svg className="w-4 h-4 flex-shrink-0 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -166,14 +164,12 @@ function SelectedDetail({
         </p>
 
         <div className="grid grid-cols-2 gap-3 mb-5">
-          {carga.presupuesto != null && (
-            <div className="rounded-xl p-3" style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)", border: "1px solid" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Presupuesto</p>
-              <p className="text-base font-black" style={{ color: "var(--primary)" }}>
-                ${carga.presupuesto.toLocaleString("es-AR")}
-              </p>
-            </div>
-          )}
+          <div className="rounded-xl p-3" style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)", border: "1px solid" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Presupuesto</p>
+            <p className="text-base font-black" style={{ color: "var(--primary)" }}>
+              {carga.presupuesto != null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}
+            </p>
+          </div>
           {carga.peso != null && (
             <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
               <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>{carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada"}</p>

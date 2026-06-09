@@ -153,7 +153,7 @@ export default function CargasClientWrapper({
                         </p>
                         <p className="text-xs" style={{ color: "#9CA3AF" }}>
                           {carga.titulo} · {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}
-                          {carga.presupuesto !== null && ` · $${carga.presupuesto.toLocaleString("es-AR")}`}
+                          {` · ${carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}`}
                         </p>
                       </div>
                       <div
@@ -207,14 +207,12 @@ export default function CargasClientWrapper({
                               )}
                             </div>
                           </div>
-                          {carga.presupuesto !== null && (
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Precio</p>
-                              <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
-                                ${carga.presupuesto.toLocaleString("es-AR")}
-                              </p>
-                            </div>
-                          )}
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Precio</p>
+                            <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                              {carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}
+                            </p>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-1.5 mb-1">
@@ -228,12 +226,22 @@ export default function CargasClientWrapper({
                         </p>
 
                         <div className="flex items-end justify-between">
-                          {carga.peso !== null ? (
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>{carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada"}</p>
-                              <p className="text-sm font-bold text-gray-900">{carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}</p>
+                          <div>
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                              </svg>
+                              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--primary)" }}>Camiones</p>
                             </div>
-                          ) : <div />}
+                            <p className="text-xl font-black" style={{ color: "var(--primary)" }}>
+                              {carga.cantidadCamiones}
+                            </p>
+                            {carga.peso !== null && (
+                              <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
+                                {carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}
+                              </p>
+                            )}
+                          </div>
                           <div className="text-right">
                             <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Fecha</p>
                             <p className="text-sm font-bold text-gray-900">

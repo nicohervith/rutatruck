@@ -7,51 +7,21 @@ datasource db {
 }
 
 model User {
-  id                      String                       @id @default(cuid())
-  name                    String
-  email                   String                       @unique
-  password                String
-  role                    Role
-  phone                   String?
-  createdAt               DateTime                     @default(now())
-  esFlota                 Boolean                      @default(false)
-  cargas                  Carga[]                      @relation("EmpresaCarga")
-  cargasAsignadas         Carga[]                      @relation("TransportistaAsignado")
-  postulaciones           Postulacion[]
-  pushSubscriptions       PushSubscription[]
-  disponibilidad          DisponibilidadTransportista?
-  favoritosComoEmpresa    FavoritoTransportista[]      @relation("EmpresaFavoritos")
-  favoritosComoTransp     FavoritoTransportista[]      @relation("TransportistaFavoritos")
-}
-
-model DisponibilidadTransportista {
-  id              Int      @id @default(autoincrement())
-  transportistaId String   @unique
-  vehiculo        String
-  zona            String
-  lat             Float
-  lng             Float
-  radioKm         Int?
-  regresoVacio    Boolean  @default(false)
-  buscaCarga      Boolean  @default(false)
-  voyAPuerto      Boolean  @default(false)
-  disponibleHoy   Boolean  @default(false)
-  salidaDesde     String?
-  salidaDestino   String?
-  activo          Boolean  @default(true)
-  actualizadoEn   DateTime @updatedAt
-  transportista   User     @relation(fields: [transportistaId], references: [id], onDelete: Cascade)
-}
-
-model FavoritoTransportista {
-  id              Int      @id @default(autoincrement())
-  empresaId       String
-  transportistaId String
-  creadoEn        DateTime @default(now())
-  empresa         User     @relation("EmpresaFavoritos", fields: [empresaId], references: [id], onDelete: Cascade)
-  transportista   User     @relation("TransportistaFavoritos", fields: [transportistaId], references: [id], onDelete: Cascade)
-
-  @@unique([empresaId, transportistaId])
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  password          String
+  role              Role
+  phone             String?
+  createdAt         DateTime           @default(now())
+  esFlota           Boolean            @default(false)
+  notifZonaLat      Float?
+  notifZonaLng      Float?
+  notifRadioKm      Int?
+  cargas            Carga[]            @relation("EmpresaCarga")
+  cargasAsignadas   Carga[]            @relation("TransportistaAsignado")
+  postulaciones     Postulacion[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Carga {

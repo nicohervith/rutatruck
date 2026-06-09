@@ -5,12 +5,16 @@ import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import { signup } from "@/app/actions/auth";
 import type { FormState } from "@/app/actions/auth";
+import LocationAutocomplete from "@/app/(empresa)/empresa/cargas/nueva/_components/LocationAutocomplete";
 
 export default function RegistroPage() {
   const [state, action, pending] = useActionState<FormState, FormData>(signup, undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [esEmpresa, setEsEmpresa] = useState(false);
   const [esTransportista, setEsTransportista] = useState(false);
+  const [notifZonaLat, setNotifZonaLat] = useState("");
+  const [notifZonaLng, setNotifZonaLng] = useState("");
+  const [notifRadioKm, setNotifRadioKm] = useState("");
 
   const inputClass =
     "w-full rounded-xl border px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-colors";
@@ -157,6 +161,44 @@ export default function RegistroPage() {
                     />
                     <span className="text-sm" style={{ color: "#D1D5DB" }}>Flota — 2 o más camiones</span>
                   </label>
+
+                  {/* <div className="pt-3 space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
+                      Zona para notificaciones
+                    </p>
+                    <LocationAutocomplete
+                      id="notifZona"
+                      name="notifZonaTexto"
+                      placeholder="Ej: Río Cuarto, Córdoba"
+                      inputClass="w-full rounded-xl border px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-colors"
+                      inputStyle={{ backgroundColor: "#0C1A1A", borderColor: "#1C3030", colorScheme: "dark" as const }}
+                      onValueChange={(v) => { if (!v) { setNotifZonaLat(""); setNotifZonaLng(""); } }}
+                      onLocationSelect={(loc) => { setNotifZonaLat(String(loc.lat)); setNotifZonaLng(String(loc.lng)); }}
+                    />
+                    <input type="hidden" name="notifZonaLat" value={notifZonaLat} />
+                    <input type="hidden" name="notifZonaLng" value={notifZonaLng} />
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: "50 km", value: "50" },
+                        { label: "100 km", value: "100" },
+                        { label: "200 km", value: "200" },
+                        { label: "Todo el país", value: "" },
+                      ].map(({ label, value }) => (
+                        <label key={value} className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="radio"
+                            name="notifRadioKm"
+                            value={value}
+                            checked={notifRadioKm === value}
+                            onChange={() => setNotifRadioKm(value)}
+                            className="w-4 h-4 accent-green-400 cursor-pointer"
+                          />
+                          <span className="text-sm" style={{ color: "#D1D5DB" }}>{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div> */}
                 </div>
               )}
             </div>

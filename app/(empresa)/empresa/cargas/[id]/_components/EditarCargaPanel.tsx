@@ -9,6 +9,7 @@ interface CargaEditable {
   titulo: string;
   origen: string;
   destino: string;
+  cantidadCamiones: number;
   tipoCarga: string;
   tipoCargaDetalle: string | null;
   peso: number | null;
@@ -32,16 +33,19 @@ const labelStyle = { color: "#9CA3AF" };
 
 export default function EditarCargaPanel({ carga, sinTransportista }: { carga: CargaEditable; sinTransportista: boolean }) {
   const router = useRouter();
+  const today = new Date().toISOString().split("T")[0];
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [presupuestoAcordar, setPresupuestoAcordar] = useState(carga.presupuesto === null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setPending(true);
     const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(fd.entries());
+    const body: Record<string, FormDataEntryValue | string> = Object.fromEntries(fd.entries());
+    if (presupuestoAcordar) body.presupuesto = "";
     try {
       const res = await fetch(`/api/cargas/${carga.id}`, {
         method: "PUT",
@@ -178,37 +182,20 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="edit-tipoCarga"
-              className={labelClass}
-              style={labelStyle}
-            >
-              Tipo de carga *
+            <label htmlFor="edit-cantidadCamiones" className={labelClass} style={labelStyle}>
+              ¿Cuántos camiones necesitás? *
             </label>
-            <select
-              id="edit-tipoCarga"
-              name="tipoCarga"
+            <input
+              id="edit-cantidadCamiones"
+              name="cantidadCamiones"
+              type="number"
               required
-              defaultValue={carga.tipoCarga}
+              min="1"
+              step="1"
+              defaultValue={carga.cantidadCamiones}
               className={inputClass}
               style={inputStyle}
-            >
-              <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
-                Granos
-              </option>
-              <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
-                Frutas
-              </option>
-              <option value="verduras" style={{ backgroundColor: "#F9FAFB" }}>
-                Verduras
-              </option>
-              <option value="animales" style={{ backgroundColor: "#F9FAFB" }}>
-                Animales
-              </option>
-              <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
-                Otro
-              </option>
-            </select>
+            />
           </div>
           <div>
             <label
@@ -216,7 +203,10 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               className={labelClass}
               style={labelStyle}
             >
-              Peso estimado
+              Peso estimado{" "}
+              <span className="text-xs" style={{ color: "#6B7280" }}>
+                (opcional)
+              </span>
             </label>
             <div className="flex gap-2">
               <input
@@ -243,26 +233,80 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
           </div>
         </div>
 
+        <div>
+          <label
+            htmlFor="edit-tipoCarga"
+            className={labelClass}
+            style={labelStyle}
+          >
+            Tipo de carga *
+          </label>
+          <select
+            id="edit-tipoCarga"
+            name="tipoCarga"
+            required
+            defaultValue={carga.tipoCarga}
+            className={inputClass}
+            style={inputStyle}
+          >
+            <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
+              Granos
+            </option>
+            <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
+              Frutas
+            </option>
+            <option value="verduras" style={{ backgroundColor: "#F9FAFB" }}>
+              Verduras
+            </option>
+            <option value="animales" style={{ backgroundColor: "#F9FAFB" }}>
+              Animales
+            </option>
+            <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
+              Otro
+            </option>
+          </select>
+        </div>
+
         {sinTransportista && (
           <div>
-            <label
-              htmlFor="edit-presupuesto"
-              className={labelClass}
-              style={labelStyle}
-            >
-              Presupuesto ($)
+            <label className={labelClass} style={labelStyle}>
+              Presupuesto
             </label>
-            <input
-              id="edit-presupuesto"
-              name="presupuesto"
-              type="number"
-              step="0.01"
-              min="0"
-              defaultValue={carga.presupuesto ?? ""}
-              className={inputClass}
-              style={inputStyle}
-              placeholder="Ej: 150000"
-            />
+            <div className="flex rounded-lg overflow-hidden border mb-2" style={{ borderColor: "#E2E8E8" }}>
+              <button
+                type="button"
+                onClick={() => setPresupuestoAcordar(false)}
+                className="flex-1 py-2 text-sm font-medium transition-colors"
+                style={!presupuestoAcordar
+                  ? { backgroundColor: "var(--primary)", color: "#fff" }
+                  : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+              >
+                Monto ($)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPresupuestoAcordar(true)}
+                className="flex-1 py-2 text-sm font-medium transition-colors"
+                style={presupuestoAcordar
+                  ? { backgroundColor: "var(--primary)", color: "#fff" }
+                  : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+              >
+                A acordar
+              </button>
+            </div>
+            {!presupuestoAcordar && (
+              <input
+                id="edit-presupuesto"
+                name="presupuesto"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={carga.presupuesto ?? ""}
+                className={inputClass}
+                style={inputStyle}
+                placeholder="Ej: 150000"
+              />
+            )}
           </div>
         )}
 
@@ -322,6 +366,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               name="fechaCarga"
               type="date"
               required
+              min={today}
               defaultValue={carga.fechaCarga}
               className={inputClass}
               style={{ ...inputStyle, colorScheme: "light" }}
@@ -339,6 +384,7 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               id="edit-fechaCupo"
               name="fechaCupo"
               type="date"
+              min={today}
               defaultValue={carga.fechaCupo ?? ""}
               className={inputClass}
               style={{ ...inputStyle, colorScheme: "light" }}

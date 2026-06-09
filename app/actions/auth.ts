@@ -25,6 +25,12 @@ export async function signup(
   const esEmpresa = formData.get("esEmpresa") === "on";
   const esTransportista = formData.get("esTransportista") === "on";
   const esFlota = formData.get("tipoTransportista") === "flota";
+  const notifZonaLatRaw = formData.get("notifZonaLat") as string | null;
+  const notifZonaLngRaw = formData.get("notifZonaLng") as string | null;
+  const notifRadioKmRaw = formData.get("notifRadioKm") as string | null;
+  const notifZonaLat = notifZonaLatRaw ? parseFloat(notifZonaLatRaw) : null;
+  const notifZonaLng = notifZonaLngRaw ? parseFloat(notifZonaLngRaw) : null;
+  const notifRadioKm = notifRadioKmRaw && notifRadioKmRaw !== "" ? parseInt(notifRadioKmRaw) : null;
 
   if (!name || !email || !password) {
     return { error: "Todos los campos son requeridos" };
@@ -50,7 +56,16 @@ export async function signup(
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await db.user.create({
-    data: { name, email, password: hashedPassword, role, esFlota: esFlota && esTransportista },
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      esFlota: esFlota && esTransportista,
+      ...(esTransportista && notifZonaLat !== null && notifZonaLng !== null
+        ? { notifZonaLat, notifZonaLng, notifRadioKm }
+        : {}),
+    },
   });
 
   await createSession(user.id, user.role as Role, user.esFlota);

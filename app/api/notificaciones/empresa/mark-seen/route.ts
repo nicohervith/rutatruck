@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
-import { isTransportista } from "@/lib/roles";
+import { isEmpresa } from "@/lib/roles";
 
 export async function POST() {
   const session = await getSession();
-  if (!session || !isTransportista(session.role)) {
+  if (!session || !isEmpresa(session.role)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
   await db.postulacion.updateMany({
     where: {
-      transportistaId: session.userId,
-      estado: "ACEPTADA",
-      vistaTransportista: false,
+      carga: { empresaId: session.userId },
+      estado: "PENDIENTE",
+      vistaEmpresa: false,
     },
-    data: { vistaTransportista: true },
+    data: { vistaEmpresa: true },
   });
 
   return NextResponse.json({ ok: true });

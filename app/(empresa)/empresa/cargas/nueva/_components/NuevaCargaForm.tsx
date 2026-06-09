@@ -79,6 +79,8 @@ export default function NuevaCargaForm({
   const [fields, setFields] = useState<Fields>(() =>
     makeDefaults(contactoDefecto),
   );
+  const [presupuestoAcordar, setPresupuestoAcordar] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -149,7 +151,7 @@ export default function NuevaCargaForm({
       const res = await fetch("/api/cargas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fields),
+        body: JSON.stringify({ ...fields, presupuesto: presupuestoAcordar ? "" : fields.presupuesto }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -333,76 +335,31 @@ export default function NuevaCargaForm({
               </div>
             </div>
 
-            <div>
-              <label htmlFor="cantidadCamiones" className={labelClass} style={labelStyle}>
-                ¿Cuántos camiones necesitás? *
-              </label>
-              <input
-                id="cantidadCamiones"
-                name="cantidadCamiones"
-                type="number"
-                required
-                min="1"
-                step="1"
-                value={fields.cantidadCamiones}
-                onChange={set("cantidadCamiones")}
-                className={inputClass}
-                style={inputStyle}
-                placeholder="1"
-              />
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="tipoCarga"
-                  className={labelClass}
-                  style={labelStyle}
-                >
-                  Tipo de carga *
+                <label htmlFor="cantidadCamiones" className={labelClass} style={labelStyle}>
+                  ¿Cuántos camiones necesitás? *
                 </label>
-                <select
-                  id="tipoCarga"
-                  name="tipoCarga"
+                <input
+                  id="cantidadCamiones"
+                  name="cantidadCamiones"
+                  type="number"
                   required
-                  value={fields.tipoCarga}
-                  onChange={set("tipoCarga")}
+                  min="1"
+                  step="1"
+                  value={fields.cantidadCamiones}
+                  onChange={set("cantidadCamiones")}
                   className={inputClass}
                   style={inputStyle}
-                >
-                  <option
-                    value=""
-                    disabled
-                    style={{ backgroundColor: "#F9FAFB" }}
-                  >
-                    Seleccioná el tipo
-                  </option>
-                  <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
-                    Granos
-                  </option>
-                  <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
-                    Frutas
-                  </option>
-                  <option
-                    value="verduras"
-                    style={{ backgroundColor: "#F9FAFB" }}
-                  >
-                    Verduras
-                  </option>
-                  <option
-                    value="animales"
-                    style={{ backgroundColor: "#F9FAFB" }}
-                  >
-                    Animales
-                  </option>
-                  <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
-                    Otro
-                  </option>
-                </select>
+                  placeholder="1"
+                />
               </div>
               <div>
                 <label htmlFor="peso" className={labelClass} style={labelStyle}>
-                  Peso estimado
+                  Peso estimado{" "}
+                  <span className="text-xs" style={{ color: "#6B7280" }}>
+                    (opcional)
+                  </span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -430,6 +387,54 @@ export default function NuevaCargaForm({
                   </select>
                 </div>
               </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="tipoCarga"
+                className={labelClass}
+                style={labelStyle}
+              >
+                Tipo de carga *
+              </label>
+              <select
+                id="tipoCarga"
+                name="tipoCarga"
+                required
+                value={fields.tipoCarga}
+                onChange={set("tipoCarga")}
+                className={inputClass}
+                style={inputStyle}
+              >
+                <option
+                  value=""
+                  disabled
+                  style={{ backgroundColor: "#F9FAFB" }}
+                >
+                  Seleccioná el tipo
+                </option>
+                <option value="granos" style={{ backgroundColor: "#F9FAFB" }}>
+                  Granos
+                </option>
+                <option value="frutas" style={{ backgroundColor: "#F9FAFB" }}>
+                  Frutas
+                </option>
+                <option
+                  value="verduras"
+                  style={{ backgroundColor: "#F9FAFB" }}
+                >
+                  Verduras
+                </option>
+                <option
+                  value="animales"
+                  style={{ backgroundColor: "#F9FAFB" }}
+                >
+                  Animales
+                </option>
+                <option value="otro" style={{ backgroundColor: "#F9FAFB" }}>
+                  Otro
+                </option>
+              </select>
             </div>
 
             {fields.tipoCarga && (
@@ -469,13 +474,32 @@ export default function NuevaCargaForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="presupuesto"
-                  className={labelClass}
-                  style={labelStyle}
-                >
-                  Presupuesto ofrecido ($)
+                <label className={labelClass} style={labelStyle}>
+                  Presupuesto ofrecido
                 </label>
+                <div className="flex rounded-lg overflow-hidden border mb-2" style={{ borderColor: "#E2E8E8" }}>
+                  <button
+                    type="button"
+                    onClick={() => setPresupuestoAcordar(false)}
+                    className="flex-1 py-2 text-sm font-medium transition-colors"
+                    style={!presupuestoAcordar
+                      ? { backgroundColor: "var(--primary)", color: "#fff" }
+                      : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+                  >
+                    Monto ($)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPresupuestoAcordar(true); setFields((f) => ({ ...f, presupuesto: "" })); }}
+                    className="flex-1 py-2 text-sm font-medium transition-colors"
+                    style={presupuestoAcordar
+                      ? { backgroundColor: "var(--primary)", color: "#fff" }
+                      : { backgroundColor: "#F9FAFB", color: "#6B7280" }}
+                  >
+                    A acordar
+                  </button>
+                </div>
+                {!presupuestoAcordar && (
                 <input
                   id="presupuesto"
                   name="presupuesto"
@@ -488,6 +512,7 @@ export default function NuevaCargaForm({
                   style={inputStyle}
                   placeholder="Ej: 150000"
                 />
+                )}
               </div>
               <div>
                 <label
@@ -524,6 +549,7 @@ export default function NuevaCargaForm({
                   name="fechaCarga"
                   type="date"
                   required
+                  min={today}
                   value={fields.fechaCarga}
                   onChange={set("fechaCarga")}
                   className={inputClass}
@@ -542,6 +568,7 @@ export default function NuevaCargaForm({
                   id="fechaCupo"
                   name="fechaCupo"
                   type="date"
+                  min={today}
                   value={fields.fechaCupo}
                   onChange={set("fechaCupo")}
                   className={inputClass}

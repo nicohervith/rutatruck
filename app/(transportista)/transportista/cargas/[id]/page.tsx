@@ -3,6 +3,8 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import NotificacionBell from "../../_components/NotificacionBell";
+import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { isFlota } from "@/lib/roles";
 import PostularseButton from "./_components/PostularseButton";
 import CompletarViajeButton from "./_components/CompletarViajeButton";
@@ -85,12 +87,16 @@ export default async function CargaPublicaPage({
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       {soyAsignado && <AutoRefresh url={`/api/cargas/${cargaId}/estado`} />}
       <header
-        className="px-6 py-4 border-b"
+        className="px-6 py-4 border-b flex items-center justify-between"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#E2E8E8" }}
       >
         <Link href="/transportista/dashboard">
           <LogoClickCargo />
         </Link>
+        <div className="flex items-center gap-2">
+          <NotificacionBell />
+          <HamburgerMenu role="transportista" isMultiRole={session.role === "EMPRESA_TRANSPORTISTA"} />
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
@@ -111,6 +117,17 @@ export default async function CargaPublicaPage({
           <p className="mt-1.5 text-base" style={{ color: "#374151" }}>
             {carga.origen} <span style={{ color: "var(--primary)" }}>→</span> {carga.destino}
           </p>
+          <div
+            className="mt-4 inline-flex items-center gap-2.5 rounded-xl px-4 py-2.5 border"
+            style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
+          >
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+            </svg>
+            <span className="font-semibold text-base" style={{ color: "var(--primary)" }}>
+              {carga.cantidadCamiones} {carga.cantidadCamiones === 1 ? "camión necesario" : "camiones necesarios"}
+            </span>
+          </div>
         </div>
 
         {pago === "1" && (
@@ -166,9 +183,7 @@ export default async function CargaPublicaPage({
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
               carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
-              carga.presupuesto !== null
-                ? ["Presupuesto", `$${carga.presupuesto.toLocaleString("es-AR")}`]
-                : null,
+              ["Presupuesto", carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"],
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],
               carga.fechaCupo
                 ? ["Fecha de cupo", carga.fechaCupo.toLocaleDateString("es-AR")]
