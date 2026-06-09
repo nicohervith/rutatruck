@@ -41,6 +41,7 @@ export async function POST(
   if (body.accion === "rechazar") {
     await db.carga.update({ where: { id: cargaId }, data: { estado: "CANCELADA" } });
     notifyEmpresa(carga.empresaId).catch(() => {});
+    notifyTransportista(session.userId).catch(() => {});
     return NextResponse.json({ ok: true });
   }
 
@@ -69,5 +70,6 @@ export async function POST(
   ]);
 
   notifyEmpresa(carga.empresaId).catch(() => {});
+  notifyTransportista(session.userId).catch(() => {});
   return NextResponse.json({ ok: true });
 }

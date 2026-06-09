@@ -205,7 +205,7 @@ function DetailPanel({
                 onChange={handleFormChange}
                 placeholder="Ej: Traslado de cereal a Buenos Aires"
                 className="w-full border rounded-lg px-3 py-2 text-sm"
-                style={{ borderColor: "#D1D5DB" }}
+                style={{ borderColor: "#D1D5DB", color: "#111827" }}
               />
             </div>
 
@@ -248,7 +248,7 @@ function DetailPanel({
                 onChange={handleFormChange}
                 placeholder="Ej: Cereal, Maquinaria, Hacienda..."
                 className="w-full border rounded-lg px-3 py-2 text-sm"
-                style={{ borderColor: "#D1D5DB" }}
+                style={{ borderColor: "#D1D5DB", color: "#111827" }}
               />
             </div>
 
@@ -294,7 +294,7 @@ function DetailPanel({
                 placeholder="Detalles, condiciones, etc. (opcional)"
                 rows={3}
                 className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ borderColor: "#D1D5DB" }}
+                style={{ borderColor: "#D1D5DB", color: "#111827" }}
               />
             </div>
 
