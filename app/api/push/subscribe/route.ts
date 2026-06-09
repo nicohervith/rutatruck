@@ -20,6 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
 
+  const userExists = await db.user.findUnique({ where: { id: session.userId }, select: { id: true } });
+  if (!userExists) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 401 });
+  }
+
   await db.pushSubscription.upsert({
     where: { endpoint },
     create: {

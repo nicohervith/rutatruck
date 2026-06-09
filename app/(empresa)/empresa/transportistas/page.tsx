@@ -15,6 +15,7 @@ export default async function TransportistasMapPage() {
   const disponibilidades = await db.disponibilidadTransportista.findMany({
     where: {
       activo: true,
+      transportistaId: { not: session.userId },
       OR: [
         { disponibleHoy: true, actualizadoEn: { gte: cutoff24h } },
         { disponibleHoy: false, actualizadoEn: { gte: cutoff7d } },

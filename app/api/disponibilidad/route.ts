@@ -50,13 +50,17 @@ export async function POST(req: NextRequest) {
     activo: true,
   };
 
-  const disp = await db.disponibilidadTransportista.upsert({
-    where: { transportistaId: session.userId },
-    create: { transportistaId: session.userId, ...data },
-    update: data,
-  });
-
-  return NextResponse.json({ disponibilidad: disp });
+  try {
+    const disp = await db.disponibilidadTransportista.upsert({
+      where: { transportistaId: session.userId },
+      create: { transportistaId: session.userId, ...data },
+      update: data,
+    });
+    return NextResponse.json({ disponibilidad: disp });
+  } catch (err) {
+    console.error("[disponibilidad POST]", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 export async function DELETE() {

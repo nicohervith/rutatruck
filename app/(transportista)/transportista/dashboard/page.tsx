@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
+import { logout } from "@/app/actions/auth";
+import SwitchRoleButton from "@/app/_components/SwitchRoleButton";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
@@ -149,6 +151,45 @@ export default async function TransportistaDashboard() {
               </svg>
             </Link>
           ))}
+        </div>
+
+        {/* Account actions — mobile only */}
+        <div className="md:hidden mt-8 flex flex-col gap-3">
+          {session.role === "EMPRESA_TRANSPORTISTA" && (
+            <SwitchRoleButton
+              toRole="empresa"
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border text-left transition-opacity active:opacity-80"
+              style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8", color: "#111827" }}
+            >
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#F0FDF4" }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "#16A34A" }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </span>
+              <span className="font-semibold text-sm">Cambiar a empresa</span>
+            </SwitchRoleButton>
+          )}
+          <form action={logout}>
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border text-left transition-opacity active:opacity-80 cursor-pointer"
+              style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8", color: "#6B7280" }}
+            >
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FEF2F2" }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "#EF4444" }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </span>
+              <span className="font-semibold text-sm">Cerrar sesión</span>
+            </button>
+          </form>
+          {/* <Link
+            href="/reporte"
+            className="text-xs text-center py-2"
+            style={{ color: "#9CA3AF" }}
+          >
+            Reportar un problema
+          </Link> */}
         </div>
       </main>
     </div>

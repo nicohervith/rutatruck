@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { CargaMapItem } from "./MapaCargas";
 import CountdownTimer from "../[id]/_components/CountdownTimer";
@@ -25,10 +26,70 @@ type PendientePago = {
   transportistaPagoDeadline: string | null;
 };
 
+type CargaPrivada = {
+  id: number;
+  titulo: string;
+  origen: string;
+  destino: string;
+  tipoCarga: string;
+  presupuesto: number | null;
+  fechaCarga: string;
+  descripcion: string | null;
+};
+
+function OfertaPrivadaCard({ carga, onRespond }: { carga: CargaPrivada; onRespond: (id: number, accion: "aceptar" | "rechazar") => Promise<void> }) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <div
+      className="rounded-xl border overflow-hidden"
+      style={{ backgroundColor: "#F0FFF4", borderColor: "#86EFAC" }}
+    >
+      <div className="px-4 py-2 flex items-center gap-2 border-b" style={{ borderColor: "#86EFAC", backgroundColor: "#DCFCE7" }}>
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#166534" }}>
+          Oferta directa — Una empresa te solicitó
+        </span>
+      </div>
+      <div className="p-4">
+        <p className="font-bold text-gray-900 mb-1">{carga.origen} → {carga.destino}</p>
+        <p className="text-sm text-gray-600 mb-1">{carga.titulo} · {TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga}</p>
+        <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+          <span>📅 {new Date(carga.fechaCarga).toLocaleDateString("es-AR")}</span>
+          <span>💰 {carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}</span>
+        </div>
+        {carga.descripcion && (
+          <p className="text-xs text-gray-500 mb-3 italic">"{carga.descripcion}"</p>
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => startTransition(() => onRespond(carga.id, "aceptar"))}
+            className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-opacity"
+            style={{ backgroundColor: "var(--primary)", color: "#FFFFFF", opacity: pending ? 0.6 : 1 }}
+          >
+            {pending ? "..." : "✓ Aceptar"}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => startTransition(() => onRespond(carga.id, "rechazar"))}
+            className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-opacity"
+            style={{ backgroundColor: "#FEE2E2", color: "#991B1B", opacity: pending ? 0.6 : 1 }}
+          >
+            Rechazar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface Props {
   cargas: CargaMapItem[];
   yaPostuladoIds: number[];
   pendientesPago: PendientePago[];
+  cargasPrivadas: CargaPrivada[];
   success?: string;
   pago?: string;
 }
@@ -37,11 +98,26 @@ export default function CargasClientWrapper({
   cargas,
   yaPostuladoIds,
   pendientesPago,
+  cargasPrivadas: initialPrivadas,
   success,
   pago,
 }: Props) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
+  const [privadas, setPrivadas] = useState(initialPrivadas);
   const yaPostuladoSet = new Set(yaPostuladoIds);
+
+  async function responderPrivada(id: number, accion: "aceptar" | "rechazar") {
+    const res = await fetch(`/api/cargas/${id}/responder-privada`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion }),
+    });
+    if (res.ok) {
+      setPrivadas((prev) => prev.filter((c) => c.id !== id));
+      if (accion === "aceptar") router.push(`/transportista/cargas/${id}`);
+    }
+  }
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col relative">
@@ -114,6 +190,23 @@ export default function CargasClientWrapper({
                 <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
                   ¡Postulación enviada! La empresa te contactará si te selecciona.
                 </p>
+              </div>
+            )}
+
+            {/* Ofertas directas */}
+            {privadas.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#166534" }}>
+                    Ofertas directas — {privadas.length} empresa{privadas.length !== 1 ? "s" : ""} te solicit{privadas.length !== 1 ? "aron" : "ó"}
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  {privadas.map((c) => (
+                    <OfertaPrivadaCard key={c.id} carga={c} onRespond={responderPrivada} />
+                  ))}
+                </div>
               </div>
             )}
 

@@ -1,39 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { Map as MapboxMap, Marker as MapboxMarker } from "mapbox-gl";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
-const VEHICULO_EMOJI: Record<string, string> = {
-  camion: "🚛",
-  cerealero: "🌾",
-  acoplado: "🚚",
-  camioneta: "🛻",
-  utilitario: "📦",
-  comisionista: "💼",
-  otro: "🚗",
-};
+function getVehiculoEmoji(v: string): string {
+  if (v.startsWith("camion")) return "🚛";
+  if (v === "paletizado") return "📦";
+  if (v.startsWith("batea")) return "🪣";
+  return "🚗";
+}
 
-const VEHICULO_LABEL: Record<string, string> = {
-  camion: "Camión",
-  cerealero: "Camión cerealero",
-  acoplado: "Acoplado",
-  camioneta: "Camioneta",
-  utilitario: "Utilitario",
-  comisionista: "Comisionista",
-  otro: "Otro",
-};
+function getVehiculoLabel(v: string): string {
+  const map: Record<string, string> = {
+    camion_chasis: "Camión chasis",
+    camion_acoplado_comun: "Acoplado común",
+    camion_acoplado_escalable: "Acoplado escalable",
+    paletizado: "Paletizado",
+    batea_comun: "Batea común",
+    batea_escalable: "Batea escalable",
+    // legacy
+    camion: "Camión", cerealero: "Camión cerealero", acoplado: "Acoplado",
+    camioneta: "Camioneta", utilitario: "Utilitario", comisionista: "Comisionista", otro: "Otro",
+  };
+  return map[v] ?? v;
+}
 
-const VEHICULO_COLOR: Record<string, string> = {
-  camion: "#1D4ED8",
-  cerealero: "#92400E",
-  acoplado: "#065F46",
-  camioneta: "#7C3AED",
-  utilitario: "#BE185D",
-  comisionista: "#0F766E",
-  otro: "#374151",
-};
+function getVehiculoColor(v: string): string {
+  if (v.startsWith("camion")) return "#1D4ED8";
+  if (v === "paletizado") return "#BE185D";
+  if (v.startsWith("batea")) return "#065F46";
+  return "#374151";
+}
 
 export type TransportistaDisp = {
   id: number;
@@ -62,6 +61,16 @@ function formatRelative(isoDate: string) {
   return `hace ${d} día${d !== 1 ? "s" : ""}`;
 }
 
+type SolicitudForm = {
+  titulo: string;
+  origen: string;
+  destino: string;
+  tipoCarga: string;
+  fechaCarga: string;
+  presupuesto: string;
+  descripcion: string;
+};
+
 function DetailPanel({
   t,
   onClose,
@@ -71,16 +80,68 @@ function DetailPanel({
   onClose: () => void;
   onToggleFav: (id: string, current: boolean) => Promise<void>;
 }) {
-  const color = VEHICULO_COLOR[t.vehiculo] ?? "#374151";
-  const emoji = VEHICULO_EMOJI[t.vehiculo] ?? "🚗";
+  const color = getVehiculoColor(t.vehiculo);
+  const emoji = getVehiculoEmoji(t.vehiculo);
   const [fav, setFav] = useState(t.esFavorito);
   const [toggling, setToggling] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formSent, setFormSent] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const today = new Date().toISOString().slice(0, 10);
+  const [form, setForm] = useState<SolicitudForm>({
+    titulo: "",
+    origen: "",
+    destino: "",
+    tipoCarga: "",
+    fechaCarga: today,
+    presupuesto: "",
+    descripcion: "",
+  });
 
   async function handleFav() {
     setToggling(true);
     await onToggleFav(t.transportistaId, fav);
     setFav(!fav);
     setToggling(false);
+  }
+
+  function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function handleSolicitar() {
+    setFormError("");
+    if (!form.titulo || !form.origen || !form.destino || !form.tipoCarga || !form.fechaCarga) {
+      setFormError("Completá los campos obligatorios.");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/transportistas/${t.transportistaId}/solicitar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            titulo: form.titulo,
+            origen: form.origen,
+            destino: form.destino,
+            tipoCarga: form.tipoCarga,
+            fechaCarga: form.fechaCarga,
+            presupuesto: form.presupuesto ? Number(form.presupuesto) : null,
+            descripcion: form.descripcion || null,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.error ?? "Error al enviar solicitud.");
+        } else {
+          setFormSent(true);
+          setShowForm(false);
+        }
+      } catch {
+        setFormError("Error de red. Intentá de nuevo.");
+      }
+    });
   }
 
   const badges = [
@@ -98,103 +159,244 @@ function DetailPanel({
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={showForm ? () => setShowForm(false) : onClose}
           className="flex items-center gap-1.5 text-sm font-semibold"
           style={{ color: "var(--primary)" }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
-          Volver
+          {showForm ? "Cancelar" : "Volver"}
         </button>
-        <button
-          type="button"
-          onClick={handleFav}
-          disabled={toggling}
-          className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
-          style={{
-            backgroundColor: fav ? "#FEE2E2" : "var(--primary-10)",
-            color: fav ? "#991B1B" : "var(--primary)",
-          }}
-        >
-          {fav ? "♥ Guardado" : "♡ Me interesa"}
-        </button>
+        {!showForm && (
+          <button
+            type="button"
+            onClick={handleFav}
+            disabled={toggling}
+            className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: fav ? "#FEE2E2" : "var(--primary-10)",
+              color: fav ? "#991B1B" : "var(--primary)",
+            }}
+          >
+            {fav ? "♥ Guardado" : "♡ Me interesa"}
+          </button>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <span
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl border-2 flex-shrink-0"
-            style={{ backgroundColor: color + "18", borderColor: color }}
-          >
-            {emoji}
-          </span>
-          <div>
-            <p className="text-lg font-black text-gray-900">
-              {VEHICULO_LABEL[t.vehiculo] ?? t.vehiculo}
-            </p>
-            <p className="text-sm" style={{ color: "#6B7280" }}>
-              {t.zona}
-            </p>
+      {showForm ? (
+        <div className="flex-1 overflow-y-auto p-4">
+          <p className="text-base font-bold text-gray-900 mb-4">Solicitar servicio</p>
+
+          {formError && (
+            <div className="mb-3 px-3 py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
+              {formError}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                Título *
+              </label>
+              <input
+                name="titulo"
+                value={form.titulo}
+                onChange={handleFormChange}
+                placeholder="Ej: Traslado de cereal a Buenos Aires"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                style={{ borderColor: "#D1D5DB" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                  Origen *
+                </label>
+                <input
+                  name="origen"
+                  value={form.origen}
+                  onChange={handleFormChange}
+                  placeholder="Ciudad/Provincia"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                  Destino *
+                </label>
+                <input
+                  name="destino"
+                  value={form.destino}
+                  onChange={handleFormChange}
+                  placeholder="Ciudad/Provincia"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                Tipo de carga *
+              </label>
+              <input
+                name="tipoCarga"
+                value={form.tipoCarga}
+                onChange={handleFormChange}
+                placeholder="Ej: Cereal, Maquinaria, Hacienda..."
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                style={{ borderColor: "#D1D5DB" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                  Fecha *
+                </label>
+                <input
+                  type="date"
+                  name="fechaCarga"
+                  value={form.fechaCarga}
+                  onChange={handleFormChange}
+                  min={today}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                  Presupuesto (ARS)
+                </label>
+                <input
+                  type="number"
+                  name="presupuesto"
+                  value={form.presupuesto}
+                  onChange={handleFormChange}
+                  placeholder="Opcional"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1" style={{ color: "#374151" }}>
+                Descripción adicional
+              </label>
+              <textarea
+                name="descripcion"
+                value={form.descripcion}
+                onChange={handleFormChange}
+                placeholder="Detalles, condiciones, etc. (opcional)"
+                rows={3}
+                className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
+                style={{ borderColor: "#D1D5DB" }}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSolicitar}
+              disabled={isPending}
+              className="w-full py-3 rounded-xl text-sm font-bold text-white transition-opacity"
+              style={{ backgroundColor: "var(--primary)", opacity: isPending ? 0.6 : 1 }}
+            >
+              {isPending ? "Enviando..." : "Enviar solicitud"}
+            </button>
           </div>
         </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-5">
+          {formSent && (
+            <div className="mb-4 px-3 py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>
+              ✓ Solicitud enviada. El transportista fue notificado.
+            </div>
+          )}
 
-        {badges.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {badges.map((b) => (
-              <span
-                key={b.label}
-                className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: b.bg, color: b.text }}
-              >
-                {b.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {(t.salidaDesde) && (
-          <div
-            className="rounded-xl border px-4 py-3 mb-4"
-            style={{ backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }}
-          >
-            <p className="text-sm font-bold" style={{ color: "#92400E" }}>
-              🚛 Salgo vacío desde {t.salidaDesde}
-            </p>
-            {t.salidaDestino && (
-              <p className="text-sm mt-0.5" style={{ color: "#B45309" }}>
-                📍 Destino: {t.salidaDestino}
+          <div className="flex items-center gap-3 mb-4">
+            <span
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl border-2 flex-shrink-0"
+              style={{ backgroundColor: color + "18", borderColor: color }}
+            >
+              {emoji}
+            </span>
+            <div>
+              <p className="text-lg font-black text-gray-900">
+                {getVehiculoLabel(t.vehiculo)}
               </p>
-            )}
+              <p className="text-sm" style={{ color: "#6B7280" }}>
+                {t.zona}
+              </p>
+            </div>
           </div>
-        )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
-            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>
-              Radio
-            </p>
-            <p className="text-sm font-bold text-gray-900">
-              {t.radioKm != null ? `${t.radioKm} km` : "Sin límite"}
-            </p>
+          {badges.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {badges.map((b) => (
+                <span
+                  key={b.label}
+                  className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: b.bg, color: b.text }}
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {t.salidaDesde && (
+            <div
+              className="rounded-xl border px-4 py-3 mb-4"
+              style={{ backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }}
+            >
+              <p className="text-sm font-bold" style={{ color: "#92400E" }}>
+                🚛 Salgo vacío desde {t.salidaDesde}
+              </p>
+              {t.salidaDestino && (
+                <p className="text-sm mt-0.5" style={{ color: "#B45309" }}>
+                  📍 Destino: {t.salidaDestino}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>
+                Radio
+              </p>
+              <p className="text-sm font-bold text-gray-900">
+                {t.radioKm != null ? `${t.radioKm} km` : "Sin límite"}
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>
+                Actualizado
+              </p>
+              <p className="text-sm font-bold text-gray-900">
+                {formatRelative(t.actualizadoEn)}
+              </p>
+            </div>
           </div>
-          <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
-            <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>
-              Actualizado
-            </p>
-            <p className="text-sm font-bold text-gray-900">
-              {formatRelative(t.actualizadoEn)}
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="w-full py-3 rounded-xl text-sm font-bold text-white"
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            Solicitar servicio
+          </button>
+
+          <p className="text-xs mt-3 text-center" style={{ color: "#9CA3AF" }}>
+            Zona aproximada · Sin datos personales
+          </p>
         </div>
-
-        <p
-          className="text-xs mt-4 text-center"
-          style={{ color: "#9CA3AF" }}
-        >
-          Zona aproximada · Sin datos personales
-        </p>
-      </div>
+      )}
     </div>
   );
 }
@@ -232,8 +434,8 @@ export default function MapaTransportistas({ initialData }: Props) {
         if (!active) return;
 
         for (const t of data) {
-          const emoji = VEHICULO_EMOJI[t.vehiculo] ?? "🚗";
-          const color = VEHICULO_COLOR[t.vehiculo] ?? "#374151";
+          const emoji = getVehiculoEmoji(t.vehiculo);
+          const color = getVehiculoColor(t.vehiculo);
 
           const el = document.createElement("div");
           Object.assign(el.style, {

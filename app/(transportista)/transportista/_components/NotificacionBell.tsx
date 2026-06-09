@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useNotifCount, usePrivCount } from "@/app/_components/EventsProvider";
 
 type Notif = {
   id: number;
@@ -10,24 +11,14 @@ type Notif = {
 };
 
 export default function NotificacionBell() {
-  const [count, setCount] = useState(0);
+  const notifCount = useNotifCount();
+  const privCount = usePrivCount();
+  const count = notifCount + privCount;
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchCount = () => {
-      fetch("/api/notificaciones/count")
-        .then((r) => r.json())
-        .then((d) => setCount(d.count ?? 0))
-        .catch(() => {});
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -56,15 +47,14 @@ export default function NotificacionBell() {
   async function handleItemClick(cargaId: number) {
     setOpen(false);
     await fetch("/api/notificaciones/mark-seen", { method: "POST" });
-    setCount(0);
     router.push(`/transportista/cargas/${cargaId}`);
   }
 
   async function handleMarkAll() {
     await fetch("/api/notificaciones/mark-seen", { method: "POST" });
-    setCount(0);
     setNotifs([]);
     setOpen(false);
+    router.refresh();
   }
 
   return (

@@ -4,15 +4,48 @@ import { useState, useTransition } from "react";
 import LocationAutocomplete, { type LocationSelection } from "@/app/(empresa)/empresa/cargas/nueva/_components/LocationAutocomplete";
 import { useRouter } from "next/navigation";
 
-const VEHICULOS = [
+const VEHICULO_BASE = [
   { value: "camion", label: "Camión", emoji: "🚛" },
-  { value: "cerealero", label: "Camión cerealero", emoji: "🌾" },
-  { value: "acoplado", label: "Acoplado", emoji: "🚚" },
-  { value: "camioneta", label: "Camioneta", emoji: "🛻" },
-  { value: "utilitario", label: "Utilitario", emoji: "📦" },
-  { value: "comisionista", label: "Comisionista", emoji: "💼" },
-  { value: "otro", label: "Otro", emoji: "🚗" },
+  { value: "paletizado", label: "Paletizado", emoji: "📦" },
+  { value: "batea", label: "Batea", emoji: "🪣" },
 ];
+
+const CAMION_SUB = [
+  { value: "chasis", label: "Chasis" },
+  { value: "acoplado", label: "Acoplado" },
+];
+
+const VARIANTE = [
+  { value: "comun", label: "Común" },
+  { value: "escalable", label: "Escalable" },
+];
+
+function buildVehiculo(base: string, sub: string, variant: string): string {
+  if (base === "paletizado") return "paletizado";
+  if (base === "camion") {
+    if (sub === "chasis") return "camion_chasis";
+    if (sub === "acoplado" && variant) return `camion_acoplado_${variant}`;
+    return "";
+  }
+  if (base === "batea" && variant) return `batea_${variant}`;
+  return "";
+}
+
+function parseVehiculoInit(v: string) {
+  const parts = v.split("_");
+  const base = parts[0] ?? "";
+  // handle legacy values
+  const knownBases = ["camion", "paletizado", "batea"];
+  if (!knownBases.includes(base)) return { base: "", sub: "", variant: "" };
+  if (base === "paletizado") return { base: "paletizado", sub: "", variant: "" };
+  if (base === "camion") {
+    const sub = parts[1] ?? "";
+    const variant = parts[2] ?? "";
+    return { base: "camion", sub, variant };
+  }
+  if (base === "batea") return { base: "batea", sub: "", variant: parts[1] ?? "" };
+  return { base: "", sub: "", variant: "" };
+}
 
 const RADIOS = [
   { value: 20, label: "20 km" },
@@ -58,7 +91,10 @@ export default function DisponibilidadForm({ inicial }: Props) {
   const [pending, startTransition] = useTransition();
   const [deactivating, setDeactivating] = useState(false);
 
-  const [vehiculo, setVehiculo] = useState(inicial?.vehiculo ?? "camion");
+  const _init = parseVehiculoInit(inicial?.vehiculo ?? "");
+  const [vBase, setVBase] = useState(_init.base);
+  const [vSub, setVSub] = useState(_init.sub);
+  const [vVariant, setVVariant] = useState(_init.variant);
   const [zona, setZona] = useState(inicial?.zona ?? "");
   const [loc, setLoc] = useState<LocationSelection | null>(
     inicial ? { label: inicial.zona, lat: inicial.lat, lng: inicial.lng } : null,
@@ -75,7 +111,9 @@ export default function DisponibilidadForm({ inicial }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const vehiculo = buildVehiculo(vBase, vSub, vVariant);
     if (!loc) { setError("Seleccioná una localidad de la lista."); return; }
+    if (!vehiculo) { setError("Seleccioná el tipo de vehículo completo."); return; }
     setError("");
 
     startTransition(async () => {
@@ -152,26 +190,70 @@ export default function DisponibilidadForm({ inicial }: Props) {
       )}
 
       {/* Tipo de vehículo */}
-      <div>
+      <div className="space-y-3">
         <span style={labelStyle}>Tipo de vehículo</span>
-        <div className="grid grid-cols-2 gap-2">
-          {VEHICULOS.map((v) => (
+
+        {/* Nivel 1 */}
+        <div className="grid grid-cols-3 gap-2">
+          {VEHICULO_BASE.map((v) => (
             <button
               key={v.value}
               type="button"
-              onClick={() => setVehiculo(v.value)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all text-sm font-semibold"
+              onClick={() => { setVBase(v.value); setVSub(""); setVVariant(""); }}
+              className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl border transition-all text-sm font-semibold"
               style={{
-                backgroundColor: vehiculo === v.value ? "var(--primary-10)" : "#FFFFFF",
-                borderColor: vehiculo === v.value ? "var(--primary)" : "#E2E8E8",
-                color: vehiculo === v.value ? "var(--primary)" : "#374151",
+                backgroundColor: vBase === v.value ? "var(--primary-10)" : "#FFFFFF",
+                borderColor: vBase === v.value ? "var(--primary)" : "#E2E8E8",
+                color: vBase === v.value ? "var(--primary)" : "#374151",
               }}
             >
-              <span className="text-xl">{v.emoji}</span>
+              <span className="text-2xl">{v.emoji}</span>
               {v.label}
             </button>
           ))}
         </div>
+
+        {/* Nivel 2 — solo si camión */}
+        {vBase === "camion" && (
+          <div className="grid grid-cols-2 gap-2 pl-3 border-l-2" style={{ borderColor: "var(--primary)" }}>
+            {CAMION_SUB.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => { setVSub(s.value); setVVariant(""); }}
+                className="px-3 py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                style={{
+                  backgroundColor: vSub === s.value ? "var(--primary-10)" : "#FFFFFF",
+                  borderColor: vSub === s.value ? "var(--primary)" : "#E2E8E8",
+                  color: vSub === s.value ? "var(--primary)" : "#374151",
+                }}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Nivel 3 — acoplado o batea */}
+        {(vBase === "batea" || (vBase === "camion" && vSub === "acoplado")) && (
+          <div className="grid grid-cols-2 gap-2 pl-3 border-l-2" style={{ borderColor: "var(--primary)" }}>
+            {VARIANTE.map((v) => (
+              <button
+                key={v.value}
+                type="button"
+                onClick={() => setVVariant(v.value)}
+                className="px-3 py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                style={{
+                  backgroundColor: vVariant === v.value ? "var(--primary-10)" : "#FFFFFF",
+                  borderColor: vVariant === v.value ? "var(--primary)" : "#E2E8E8",
+                  color: vVariant === v.value ? "var(--primary)" : "#374151",
+                }}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Zona */}
@@ -280,12 +362,12 @@ export default function DisponibilidadForm({ inicial }: Props) {
 
       <button
         type="submit"
-        disabled={pending || !loc}
+        disabled={pending || !loc || !buildVehiculo(vBase, vSub, vVariant)}
         className="w-full py-3.5 rounded-xl font-bold text-sm transition-opacity"
         style={{
           backgroundColor: "var(--primary)",
           color: "#FFFFFF",
-          opacity: pending || !loc ? 0.6 : 1,
+          opacity: pending || !loc || !buildVehiculo(vBase, vSub, vVariant) ? 0.6 : 1,
         }}
       >
         {pending ? "Guardando..." : activo ? "Actualizar disponibilidad" : "✓ Estoy disponible"}

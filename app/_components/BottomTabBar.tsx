@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logout } from "@/app/actions/auth";
-import { useEffect, useState, type ReactElement } from "react";
-import SwitchRoleButton from "./SwitchRoleButton";
+import { type ReactElement } from "react";
+import { useNotifCount, usePrivCount } from "./EventsProvider";
 
 type Tab = {
   href: string;
   label: string;
   showNotif?: boolean;
+  showPriv?: boolean;
   icon: (active: boolean) => ReactElement;
 };
 
@@ -27,6 +27,7 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
     {
       href: "/transportista/cargas",
       label: "Cargas",
+      showPriv: true,
       icon: (active) => (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -50,6 +51,15 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
+    {
+      href: "/transportista/historial",
+      label: "Historial",
+      icon: (active) => (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
     },
@@ -92,6 +102,15 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
         </svg>
       ),
     },
+    {
+      href: "/empresa/historial",
+      label: "Historial",
+      icon: (active) => (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
   ],
 };
 
@@ -106,31 +125,8 @@ function tabIsActive(tabHref: string, pathname: string): boolean {
 
 export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   const pathname = usePathname();
-  const [notifCount, setNotifCount] = useState(0);
-  const [isMultiRole, setIsMultiRole] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then((d) => setIsMultiRole(d.role === "EMPRESA_TRANSPORTISTA"))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const url =
-      role === "transportista"
-        ? "/api/notificaciones/count"
-        : "/api/notificaciones/empresa/count";
-    const fetchCount = () => {
-      fetch(url)
-        .then((r) => r.json())
-        .then((d) => setNotifCount(d.count ?? 0))
-        .catch(() => {});
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 10000);
-    return () => clearInterval(interval);
-  }, [role, pathname]);
+  const notifCount = useNotifCount();
+  const privCount = usePrivCount();
 
   return (
     <nav
@@ -154,6 +150,11 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
                   {notifCount > 9 ? "9+" : notifCount}
                 </span>
               )}
+              {tab.showPriv && privCount > 0 && (
+                <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
+                  {privCount > 9 ? "9+" : privCount}
+                </span>
+              )}
             </span>
             <span className="text-[10px] font-semibold leading-none">
               {tab.label}
@@ -168,33 +169,6 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
         );
       })}
 
-      {isMultiRole && (
-        <SwitchRoleButton
-          toRole={role === "empresa" ? "transportista" : "empresa"}
-          className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors"
-          style={{ color: "#6B7280" }}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
-          <span className="text-[10px] font-semibold leading-none">
-            {role === "empresa" ? "↔ Transp." : "↔ Empresa"}
-          </span>
-        </SwitchRoleButton>
-      )}
-
-      <form action={logout} className="flex-1">
-        <button
-          type="submit"
-          className="w-full h-full flex flex-col items-center justify-center py-3 gap-1 cursor-pointer transition-colors"
-          style={{ color: "#6B7280" }}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span className="text-[10px] font-semibold leading-none">Salir</span>
-        </button>
-      </form>
       </div>
       <div style={{ height: "env(safe-area-inset-bottom, 0px)" }} />
     </nav>

@@ -20,6 +20,7 @@ model User {
   notifRadioKm      Int?
   cargas            Carga[]            @relation("EmpresaCarga")
   cargasAsignadas   Carga[]            @relation("TransportistaAsignado")
+  cargasPrivadas    Carga[]            @relation("CargaPrivada")
   postulaciones     Postulacion[]
   pushSubscriptions PushSubscription[]
   disponibilidad          DisponibilidadTransportista?
@@ -91,8 +92,11 @@ model Carga {
   transportistaMpPaymentId  String?
   transportistaPagoDeadline DateTime?
   pesoUnidad                String?
+  esPrivada                 Boolean       @default(false)
+  transportistaDestinadoId  String?
   empresa                   User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
   transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
+  transportistaDestinado    User?         @relation("CargaPrivada", fields: [transportistaDestinadoId], references: [id])
   postulaciones             Postulacion[]
 }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
+import { notifyTransportista } from "@/lib/sse";
 import { DEADLINE_HORAS } from "@/lib/comision";
 import { isEmpresa } from "@/lib/roles";
 
@@ -65,16 +66,21 @@ export async function POST(
 
   if (FREE_TIER) {
     if (convocatoriaCubierta) {
-      await db.carga.update({
-        where: { id: cargaId },
-        data: {
-          estado: "ASIGNADA",
-          // For single-camion compat: set transportistaAsignadoId
-          ...(carga.cantidadCamiones === 1
-            ? { transportistaAsignadoId: postulacion.transportistaId }
-            : {}),
-        },
-      });
+      await db.$transaction([
+        db.carga.update({
+          where: { id: cargaId },
+          data: {
+            estado: "ASIGNADA",
+            ...(carga.cantidadCamiones === 1
+              ? { transportistaAsignadoId: postulacion.transportistaId }
+              : {}),
+          },
+        }),
+        db.disponibilidadTransportista.updateMany({
+          where: { transportistaId: postulacion.transportistaId },
+          data: { activo: false },
+        }),
+      ]);
     }
 
     sendPushToUser(postulacion.transportistaId, {
@@ -84,6 +90,7 @@ export async function POST(
         : `Fuiste aceptado para "${carga.titulo}". La empresa está coordinando los transportistas restantes.`,
       url: `/transportista/cargas/${cargaId}`,
     }).catch(() => {});
+    notifyTransportista(postulacion.transportistaId).catch(() => {});
 
     return NextResponse.json({ ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones });
   }
@@ -105,6 +112,7 @@ export async function POST(
     body: `Tenés ${DEADLINE_HORAS()} horas para pagar la comisión y confirmar el viaje "${carga.titulo}".`,
     url: `/transportista/cargas/${cargaId}`,
   }).catch(() => {});
+  notifyTransportista(postulacion.transportistaId).catch(() => {});
 
   return NextResponse.json({ ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones });
 }

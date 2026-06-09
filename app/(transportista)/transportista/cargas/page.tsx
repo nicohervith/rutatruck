@@ -14,9 +14,9 @@ export default async function TransportistasCargasPage({
   const session = await verifySession();
   const { success, pago } = await searchParams;
 
-  const [cargasRaw, misPostulaciones, pendientesPagoRaw] = await Promise.all([
+  const [cargasRaw, misPostulaciones, pendientesPagoRaw, cargasPrivadasRaw] = await Promise.all([
     db.carga.findMany({
-      where: { estado: "ACTIVA" },
+      where: { estado: "ACTIVA", esPrivada: false },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -54,6 +54,24 @@ export default async function TransportistasCargasPage({
         transportistaPagoDeadline: true,
       },
     }),
+    db.carga.findMany({
+      where: {
+        transportistaDestinadoId: session.userId,
+        esPrivada: true,
+        estado: "ACTIVA",
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        titulo: true,
+        origen: true,
+        destino: true,
+        tipoCarga: true,
+        presupuesto: true,
+        fechaCarga: true,
+        descripcion: true,
+      },
+    }),
   ]);
 
   // Serialize dates for client components
@@ -65,6 +83,11 @@ export default async function TransportistasCargasPage({
   const pendientesPago = pendientesPagoRaw.map((c) => ({
     ...c,
     transportistaPagoDeadline: c.transportistaPagoDeadline?.toISOString() ?? null,
+  }));
+
+  const cargasPrivadas = cargasPrivadasRaw.map((c) => ({
+    ...c,
+    fechaCarga: c.fechaCarga.toISOString(),
   }));
 
   const yaPostuladoIds = misPostulaciones.map((p: { cargaId: number }) => p.cargaId);
@@ -88,6 +111,7 @@ export default async function TransportistasCargasPage({
         cargas={cargas}
         yaPostuladoIds={yaPostuladoIds}
         pendientesPago={pendientesPago}
+        cargasPrivadas={cargasPrivadas}
         success={success}
         pago={pago}
       />
