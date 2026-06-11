@@ -10,7 +10,7 @@ import SwitchRoleButton from "@/app/_components/SwitchRoleButton";
 export default async function TransportistaDashboard() {
   const session = await verifySession();
 
-  const [totalCargas, misPostulaciones, viajesCompletados, enViaje] = await Promise.all([
+  const [totalCargas, misPostulaciones, viajesCompletados, enViaje, user] = await Promise.all([
     db.carga.count({ where: { estado: "ACTIVA" } }),
     db.postulacion.count({ where: { transportistaId: session.userId } }),
     db.postulacion.count({
@@ -19,6 +19,7 @@ export default async function TransportistaDashboard() {
     db.postulacion.count({
       where: { transportistaId: session.userId, estado: "ACEPTADA", carga: { estado: "ASIGNADA" } },
     }),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
   ]);
 
   const acciones = [
@@ -76,7 +77,7 @@ export default async function TransportistaDashboard() {
       <main className="max-w-lg mx-auto px-5 py-8">
         {/* Greeting */}
         <div className="mb-8">
-          <h1 className="text-2xl font-black text-gray-900">Panel del transportista</h1>
+          <h1 className="text-2xl font-black text-gray-900">¡Hola, {user?.name}!</h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             Encontrá cargas y gestioná tus viajes
           </p>

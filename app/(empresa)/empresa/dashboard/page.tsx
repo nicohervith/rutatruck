@@ -21,7 +21,7 @@ const ESTADO_CONFIG: Record<string, { label: string; bg: string; text: string }>
 export default async function EmpresaDashboard() {
   const session = await verifySession();
 
-  const [cargas, totalEnGestion, totalPostulaciones, totalActivas, totalFinalizadas] = await Promise.all([
+  const [cargas, totalEnGestion, totalPostulaciones, totalActivas, totalFinalizadas, user] = await Promise.all([
     db.carga.findMany({
       where: { empresaId: session.userId },
       orderBy: { createdAt: "desc" },
@@ -36,6 +36,7 @@ export default async function EmpresaDashboard() {
     }),
     db.carga.count({ where: { empresaId: session.userId, estado: "ACTIVA" } }),
     db.carga.count({ where: { empresaId: session.userId, estado: "FINALIZADA" } }),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
   ]);
 
   const acciones = [
@@ -92,7 +93,7 @@ export default async function EmpresaDashboard() {
 
       <main className="max-w-lg mx-auto px-5 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-black text-gray-900">Panel de empresa</h1>
+          <h1 className="text-2xl font-black text-gray-900">¡Hola, {user?.name}!</h1>
           <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>
             Publicá cargas y gestioná tus transportistas
           </p>

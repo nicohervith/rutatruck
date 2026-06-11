@@ -170,12 +170,6 @@ function SelectedDetail({
               {carga.presupuesto != null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"}
             </p>
           </div>
-          {carga.peso != null && (
-            <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>{carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada"}</p>
-              <p className="text-base font-black text-gray-900">{carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}</p>
-            </div>
-          )}
           <div className="rounded-xl p-3 border" style={{ borderColor: "#E2E8E8" }}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Fecha</p>
             <p className="text-sm font-bold text-gray-900">
