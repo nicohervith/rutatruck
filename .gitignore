@@ -45,3 +45,18 @@ backup.dump
 MERCADOPAGO_TEST.md
 
 backup_clickcargo.sql
+
+.gradle
+gradle
+android.keystore
+
+app/build
+
+app/src
+
+app-release*
+
+gradle.properties
+gradlew
+gradlew.bat
+manifest-checksum.txt

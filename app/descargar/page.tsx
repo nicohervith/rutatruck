@@ -13,7 +13,7 @@ export default function DescargarPage() {
   const [installing, setInstalling] = useState(false);
 
   useEffect(() => {
-    setAppUrl(window.location.origin);
+    setAppUrl(window.location.origin + "/descargar");
 
     if (
       window.matchMedia("(display-mode: standalone)").matches ||
