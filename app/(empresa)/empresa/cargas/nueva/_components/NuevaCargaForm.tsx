@@ -354,39 +354,6 @@ export default function NuevaCargaForm({
                   placeholder="1"
                 />
               </div>
-              <div>
-                <label htmlFor="peso" className={labelClass} style={labelStyle}>
-                  Peso estimado{" "}
-                  <span className="text-xs" style={{ color: "#6B7280" }}>
-                    (opcional)
-                  </span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    id="peso"
-                    name="peso"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={fields.peso}
-                    onChange={set("peso")}
-                    className={inputClass}
-                    style={inputStyle}
-                    placeholder="Ej: 28"
-                  />
-                  <select
-                    name="pesoUnidad"
-                    value={fields.pesoUnidad}
-                    onChange={set("pesoUnidad")}
-                    className={inputClass}
-                    style={{ ...inputStyle, minWidth: "120px", width: "auto" }}
-                  >
-                    <option value="tonelada">Tonelada</option>
-                    <option value="kg">kg</option>
-                    <option value="bulto">Bulto</option>
-                  </select>
-                </div>
-              </div>
             </div>
 
             <div>

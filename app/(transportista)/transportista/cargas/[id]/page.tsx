@@ -181,7 +181,6 @@ export default async function CargaPublicaPage({
             {[
               ["Tipo", TIPO_LABELS[carga.tipoCarga] ?? carga.tipoCarga],
               carga.tipoCargaDetalle ? ["Especificación", carga.tipoCargaDetalle] : null,
-              carga.peso !== null ? [carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "Bulto" : "Tonelada", `${carga.peso} ${carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}`] : null,
               carga.volumen !== null ? ["Volumen", `${carga.volumen} m³`] : null,
               ["Presupuesto", carga.presupuesto !== null ? `$${carga.presupuesto.toLocaleString("es-AR")}` : "A acordar"],
               ["Fecha de carga", carga.fechaCarga.toLocaleDateString("es-AR")],

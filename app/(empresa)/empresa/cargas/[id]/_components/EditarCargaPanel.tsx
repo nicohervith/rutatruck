@@ -197,40 +197,6 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               style={inputStyle}
             />
           </div>
-          <div>
-            <label
-              htmlFor="edit-peso"
-              className={labelClass}
-              style={labelStyle}
-            >
-              Peso estimado{" "}
-              <span className="text-xs" style={{ color: "#6B7280" }}>
-                (opcional)
-              </span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="edit-peso"
-                name="peso"
-                type="number"
-                step="0.1"
-                min="0"
-                defaultValue={carga.peso ?? ""}
-                className={inputClass}
-                style={inputStyle}
-              />
-              <select
-                name="pesoUnidad"
-                defaultValue={carga.pesoUnidad ?? "tonelada"}
-                className={inputClass}
-                style={{ ...inputStyle, minWidth: "120px", width: "auto" }}
-              >
-                <option value="tonelada">Tonelada</option>
-                <option value="kg">kg</option>
-                <option value="bulto">Bulto</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         <div>

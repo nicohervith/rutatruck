@@ -329,11 +329,6 @@ export default function CargasClientWrapper({
                             <p className="text-xl font-black" style={{ color: "var(--primary)" }}>
                               {carga.cantidadCamiones}
                             </p>
-                            {carga.peso !== null && (
-                              <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
-                                {carga.peso} {carga.pesoUnidad === "kg" ? "kg" : carga.pesoUnidad === "bulto" ? "bultos" : "tn"}
-                              </p>
-                            )}
                           </div>
                           <div className="text-right">
                             <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#6B7280" }}>Fecha</p>

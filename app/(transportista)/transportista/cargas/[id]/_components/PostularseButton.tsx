@@ -144,7 +144,7 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
 
         <div>
           <label className={labelClass} style={labelStyle}>
-            Tu precio por {pesoUnidad === "kg" ? "kg" : pesoUnidad === "bulto" ? "bulto" : "tonelada"} ($){" "}
+            Tu precio ($){" "}
             <span className="text-xs" style={{ color: "#6B7280" }}>(opcional — para negociar)</span>
           </label>
           <input
