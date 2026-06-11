@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "ClickCargo",
     short_name: "ClickCargo",
     description: "Plataforma que conecta empresas con transportistas de carga",
+    id: "/",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
@@ -17,7 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
       {
-        src: "/icon-maskable-512.png",
+        src: "/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
