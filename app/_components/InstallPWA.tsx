@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const DISMISSED_KEY = "pwa-dismissed-ts";
+const REDISPLAY_DAYS = 7;
+
 export default function InstallPWA() {
   const router = useRouter();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -9,8 +12,10 @@ export default function InstallPWA() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    const ts = localStorage.getItem(DISMISSED_KEY);
+    const recentlyDismissed = ts && (Date.now() - Number(ts)) / 86400000 < REDISPLAY_DAYS;
     if (
-      localStorage.getItem("pwa-dismissed") ||
+      recentlyDismissed ||
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone
     ) return;
@@ -40,7 +45,7 @@ export default function InstallPWA() {
   };
 
   const dismiss = () => {
-    localStorage.setItem("pwa-dismissed", "1");
+    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
     setShow(false);
   };
 

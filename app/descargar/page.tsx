@@ -31,6 +31,9 @@ export default function DescargarPage() {
 
     const handler = (e: Event) => {
       e.preventDefault();
+      // Auto-prompt: user navigated here explicitly to install
+      (e as any).prompt();
+      (e as any).userChoice.then(() => setDeferredPrompt(null));
       setDeferredPrompt(e);
     };
     window.addEventListener("beforeinstallprompt", handler);
