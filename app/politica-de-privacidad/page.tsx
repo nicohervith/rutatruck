@@ -16,7 +16,7 @@ export default function PoliticaDePrivacidadPage() {
         Política de Privacidad
       </h1>
       <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
-        Última actualización: junio 2025
+        Última actualización: junio 2026
       </p>
 
       <section className="mb-8">
