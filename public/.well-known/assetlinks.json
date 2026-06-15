@@ -4,7 +4,8 @@
     "namespace": "android_app",
     "package_name": "ar.com.clickcargo.twa",
     "sha256_cert_fingerprints": [
-      "F8:BC:BB:3C:05:33:A7:0B:F3:D1:5F:C7:90:B1:6A:F3:83:FD:4C:2F:B4:9C:4D:33:5A:6B:6F:6D:55:02:4E:D9"
+      "F8:BC:BB:3C:05:33:A7:0B:F3:D1:5F:C7:90:B1:6A:F3:83:FD:4C:2F:B4:9C:4D:33:5A:6B:6F:6D:55:02:4E:D9",
+      "B3:20:BC:6B:FF:DB:37:6B:80:3C:B9:8B:BC:5B:72:B8:F5:06:35:45:78:A7:2B:75:FA:E5:06:A4:0A:CD:8D:F9"
     ]
   }
 }]
