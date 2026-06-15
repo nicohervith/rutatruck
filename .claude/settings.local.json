@@ -101,7 +101,9 @@
       "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]\")",
       "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]/solicitar\")",
       "Bash(Select-String -Pattern \"reporte|report\")",
-      "Bash(dir \"C:\\\\Program Files\\\\Microsoft\")"
+      "Bash(dir \"C:\\\\Program Files\\\\Microsoft\")",
+      "PowerShell(bubblewrap *)",
+      "PowerShell(keytool *)"
     ]
   }
 }

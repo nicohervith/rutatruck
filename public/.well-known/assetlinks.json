@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ar.com.clickcargo.twa",
+    "sha256_cert_fingerprints": [
+      "F8:BC:BB:3C:05:33:A7:0B:F3:D1:5F:C7:90:B1:6A:F3:83:FD:4C:2F:B4:9C:4D:33:5A:6B:6F:6D:55:02:4E:D9"
+    ]
+  }
+}]
