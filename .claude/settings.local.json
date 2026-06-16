@@ -101,7 +101,14 @@
       "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]\")",
       "Bash(mkdir \"D:/Programación/rutatruck/app/api/transportistas/[id]/solicitar\")",
       "Bash(Select-String -Pattern \"reporte|report\")",
-      "Bash(dir \"C:\\\\Program Files\\\\Microsoft\")"
+      "Bash(dir \"C:\\\\Program Files\\\\Microsoft\")",
+      "PowerShell(bubblewrap *)",
+      "PowerShell(keytool *)",
+      "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; git status --short 2>&1 | Where-Object { $_ -notmatch \"^ D \" } | Select-Object -First 40)",
+      "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; git diff --name-only --diff-filter=D HEAD 2>&1 | ForEach-Object { git restore $_ }; Write-Output \"Done\")",
+      "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; git status --short 2>&1 | Where-Object { $_ -match \"^ D \" } | Measure-Object -Line)",
+      "PowerShell(cd \"D:\\\\Programación\\\\rutatruck\"; git status --short 2>&1 | Where-Object { $_ -match \"^ D \" })",
+      "PowerShell(Get-Item \"D:\\\\Programación\\\\rutatruck\\\\app\\\\build\\\\outputs\\\\bundle\\\\release\\\\app-release.aab\" | Select-Object Name, @{N=\"MB\";E={[math]::Round\\($_.Length/1MB,2\\)}})"
     ]
   }
 }

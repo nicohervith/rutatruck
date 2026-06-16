@@ -1,8 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { decrypt } from "@/lib/session";
 import truckImg from "@/app/assets/truck2.png";
 
-export default function LandingPage() {
+const dashboardByRole = {
+  EMPRESA: "/empresa/dashboard",
+  TRANSPORTISTA: "/transportista/cargas",
+  TRANSPORTISTA_FLOTA: "/transportista/cargas",
+  EMPRESA_TRANSPORTISTA: "/empresa/dashboard",
+  ADMIN: "/admin/dashboard",
+} as const;
+
+export default async function LandingPage() {
+  const cookieStore = await cookies();
+  const session = await decrypt(cookieStore.get("session")?.value);
+  if (session?.role) redirect(dashboardByRole[session.role]);
   return (
     <div
       className="min-h-screen flex items-center justify-center"

@@ -49,6 +49,7 @@ backup_clickcargo.sql
 .gradle
 gradle
 android.keystore
+keystore.properties
 
 app/build
 
@@ -60,3 +61,6 @@ gradle.properties
 gradlew
 gradlew.bat
 manifest-checksum.txt
+
+local.properties
+keystore.properties

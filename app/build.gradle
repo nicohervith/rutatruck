@@ -20,19 +20,23 @@ plugins {
     id 'com.android.application'
 }
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 def twaManifest = [
     applicationId: 'ar.com.clickcargo.twa',
     hostName: 'clickcargo.com.ar', // The domain being opened in the TWA.
-    launchUrl: 'clickcargo.com.ar/', // The start path for the TWA. Must be relative to the domain.
+    launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'ClickCargo', // The application name.
     launcherName: 'ClickCargo', // The name shown on the Android Launcher.
-    themeColor: '#1A2B4B', // The color used for the status bar.
-    themeColorDark: '#000000', // The color used for the dark status bar.
-    navigationColor: '#000000', // The color used for the navigation bar.
-    navigationColorDark: '#000000', // The color used for the dark navbar.
-    navigationDividerColor: '#000000', // The navbar divider color.
-    navigationDividerColorDark: '#000000', // The dark navbar divider color.
-    backgroundColor: '#FFFFFF', // The color used for the splash screen background.
+    themeColor: '#060F0F', // The color used for the status bar.
+    themeColorDark: '#060F0F', // The color used for the dark status bar.
+    navigationColor: '#060F0F', // The color used for the navigation bar.
+    navigationColorDark: '#060F0F', // The color used for the dark navbar.
+    navigationDividerColor: '#060F0F', // The navbar divider color.
+    navigationDividerColorDark: '#060F0F', // The dark navbar divider color.
+    backgroundColor: '#060F0F', // The color used for the splash screen background.
     enableNotifications: true, // Set to true to enable notification delegation.
     // Every shortcut must include the following fields:
     // - name: String that will show up in the shortcut.
@@ -57,8 +61,8 @@ android {
         applicationId "ar.com.clickcargo.twa"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 1
-        versionName "1"
+        versionCode 5
+        versionName "5"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -150,9 +154,18 @@ android {
 
         
     }
+    signingConfigs {
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
