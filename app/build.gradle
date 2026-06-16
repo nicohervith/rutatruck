@@ -61,8 +61,8 @@ android {
         applicationId "ar.com.clickcargo.twa"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 3
-        versionName "3"
+        versionCode 4
+        versionName "4"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

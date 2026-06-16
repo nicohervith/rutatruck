@@ -102,8 +102,8 @@ export default function PoliticaDePrivacidadPage() {
         </ul>
         <p className="mt-2" style={{ color: "var(--text-secondary)" }}>
           Para cualquier solicitud, contactanos a{" "}
-          <a href="mailto:clickcargo@gmail.com" style={{ color: "var(--primary)" }} className="underline">
-            clickcargo@gmail.com
+          <a href="mailto:clickcargoarg@gmail.com" style={{ color: "var(--primary)" }} className="underline">
+            clickcargoarg@gmail.com
           </a>
           .
         </p>
@@ -136,8 +136,8 @@ export default function PoliticaDePrivacidadPage() {
         <p style={{ color: "var(--text-secondary)" }}>
           ClickCargo — Argentina
           <br />
-          <a href="mailto:clickcargo@gmail.com" style={{ color: "var(--primary)" }} className="underline">
-            clickcargo@gmail.com
+          <a href="mailto:clickcargoarg@gmail.com" style={{ color: "var(--primary)" }} className="underline">
+            clickcargoarg@gmail.com
           </a>
         </p>
       </section>
