@@ -6,6 +6,7 @@ import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { logout } from "@/app/actions/auth";
 import SwitchRoleButton from "@/app/_components/SwitchRoleButton";
+import VerificarEmailBanner from "@/app/_components/VerificarEmailBanner";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
@@ -19,7 +20,7 @@ export default async function TransportistaDashboard() {
     db.postulacion.count({
       where: { transportistaId: session.userId, estado: "ACEPTADA", carga: { estado: "ASIGNADA" } },
     }),
-    db.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true, emailVerified: true } }),
   ]);
 
   const acciones = [
@@ -82,6 +83,8 @@ export default async function TransportistaDashboard() {
             Encontrá cargas y gestioná tus viajes
           </p>
         </div>
+
+        <VerificarEmailBanner emailVerified={user?.emailVerified ?? true} />
 
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-8">

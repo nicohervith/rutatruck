@@ -57,6 +57,8 @@ app/src
 
 app-release*
 
+
+
 gradle.properties
 gradlew
 gradlew.bat
@@ -64,3 +66,7 @@ manifest-checksum.txt
 
 local.properties
 keystore.properties
+
+AGENTS.md
+CLAUDE.md
+_scratch_seed_test_user.mjs

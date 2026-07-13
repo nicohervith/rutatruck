@@ -6,6 +6,7 @@ import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { logout } from "@/app/actions/auth";
 import SwitchRoleButton from "@/app/_components/SwitchRoleButton";
+import VerificarEmailBanner from "@/app/_components/VerificarEmailBanner";
 
 const ESTADO_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
   PENDIENTE_PAGO:              { label: "Pago pendiente",        bg: "#FEF3C7", text: "#92400E" },
@@ -36,7 +37,7 @@ export default async function EmpresaDashboard() {
     }),
     db.carga.count({ where: { empresaId: session.userId, estado: "ACTIVA" } }),
     db.carga.count({ where: { empresaId: session.userId, estado: "FINALIZADA" } }),
-    db.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true, emailVerified: true } }),
   ]);
 
   const acciones = [
@@ -98,6 +99,8 @@ export default async function EmpresaDashboard() {
             Publicá cargas y gestioná tus transportistas
           </p>
         </div>
+
+        <VerificarEmailBanner emailVerified={user?.emailVerified ?? true} />
 
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-8">
