@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-
+  
   const cargasActivas = await db.carga.count({ where: { estado: "ACTIVA" } });
 
   if (cargasActivas === 0) {

@@ -15,6 +15,7 @@ model User {
   phone             String?
   createdAt         DateTime           @default(now())
   esFlota           Boolean            @default(false)
+  emailVerified     Boolean            @default(false)
   notifZonaLat      Float?
   notifZonaLng      Float?
   notifRadioKm      Int?
@@ -137,6 +138,17 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model ConfigApp {
