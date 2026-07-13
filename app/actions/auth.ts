@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { createSession, deleteSession, type Role } from "@/lib/session";
+import { isValidEmail } from "@/lib/validate-email";
 
 export type FormState = { error?: string } | undefined;
 
@@ -40,6 +41,9 @@ export async function signup(
   }
   if (password.length < 6) {
     return { error: "La contraseña debe tener al menos 6 caracteres" };
+  }
+  if (!(await isValidEmail(email))) {
+    return { error: "El email ingresado no existe o no es válido" };
   }
 
   let role: Role;
