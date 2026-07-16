@@ -1,0 +1,144 @@
+import {
+  findCargaActivaDeEmpresa,
+  asignarCargaConvocatoriaCubierta,
+  asignarPagoPendienteTransportista,
+  findCargaActivaParaPostular,
+  findCargasEnViajeDeTransportista,
+} from "@/lib/repositories/carga.repository";
+import {
+  findPostulacionPendiente,
+  aceptarPostulacion,
+  sumCamionesCubiertos,
+  crearPostulacion as crearPostulacionDb,
+  marcarVistasTransportista,
+  marcarVistasEmpresa,
+} from "@/lib/repositories/postulacion.repository";
+import { DEADLINE_HORAS } from "@/lib/comision";
+import { emit } from "@/lib/events/bus";
+
+const FREE_TIER = process.env.FREE_TIER === "true";
+
+export type AceptarPostulacionResult =
+  | { ok: true; cubiertos: number; necesarios: number }
+  | { ok: false; status: number; error: string };
+
+export async function aceptarPostulacionParaCarga(
+  cargaId: number,
+  empresaId: string,
+  postulacionId: number,
+): Promise<AceptarPostulacionResult> {
+  const carga = await findCargaActivaDeEmpresa(cargaId, empresaId);
+  if (!carga) {
+    return { ok: false, status: 404, error: "Carga no encontrada" };
+  }
+
+  const postulacion = await findPostulacionPendiente(postulacionId, cargaId);
+  if (!postulacion) {
+    return { ok: false, status: 404, error: "Postulación no encontrada" };
+  }
+
+  await aceptarPostulacion(postulacionId);
+
+  const totalCubiertos = await sumCamionesCubiertos(cargaId);
+  const convocatoriaCubierta = totalCubiertos >= carga.cantidadCamiones;
+
+  if (FREE_TIER) {
+    if (convocatoriaCubierta) {
+      await asignarCargaConvocatoriaCubierta(
+        cargaId,
+        postulacion.transportistaId,
+        carga.cantidadCamiones === 1,
+      );
+    }
+
+    emit("postulacion.aceptada", {
+      transportistaId: postulacion.transportistaId,
+      cargaId,
+      titulo: carga.titulo,
+      convocatoriaCubierta,
+    });
+
+    return { ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones };
+  }
+
+  const deadlineHoras = DEADLINE_HORAS();
+  const deadline = new Date(Date.now() + deadlineHoras * 60 * 60 * 1000);
+  await asignarPagoPendienteTransportista(cargaId, postulacion.transportistaId, deadline);
+
+  emit("postulacion.aceptada", {
+    transportistaId: postulacion.transportistaId,
+    cargaId,
+    titulo: carga.titulo,
+    deadlineHoras,
+  });
+
+  return { ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones };
+}
+
+export type CrearPostulacionResult =
+  | { ok: true; postulacionId: number }
+  | { ok: false; status: number; error: string; code?: string };
+
+export async function crearPostulacion(
+  transportistaId: string,
+  input: {
+    cargaId: number;
+    mensaje: string | null;
+    contactoEmail: string | null;
+    contactoTelefono: string | null;
+    camionesCubiertos: number;
+    precioOfrecido: number | null;
+  },
+): Promise<CrearPostulacionResult> {
+  const [carga, cargasEnViaje] = await Promise.all([
+    findCargaActivaParaPostular(input.cargaId),
+    findCargasEnViajeDeTransportista(transportistaId),
+  ]);
+
+  if (!carga) {
+    return { ok: false, status: 404, error: "Carga no encontrada o no disponible" };
+  }
+
+  const conflicto = cargasEnViaje.find((c) => {
+    const endDate = c.fechaCupo ?? c.fechaCarga;
+    return carga.fechaCarga <= endDate;
+  });
+  if (conflicto) {
+    return {
+      ok: false,
+      status: 409,
+      error:
+        "Tenés una carga en viaje que coincide con esta fecha. Completá tus viajes activos antes de postularte a cargas en la misma fecha.",
+      code: "DATE_CONFLICT",
+    };
+  }
+
+  let postulacion;
+  try {
+    postulacion = await crearPostulacionDb({
+      cargaId: input.cargaId,
+      transportistaId,
+      mensaje: input.mensaje,
+      contactoEmail: input.contactoEmail,
+      contactoTelefono: input.contactoTelefono,
+      camionesCubiertos: input.camionesCubiertos,
+      precioOfrecido: input.precioOfrecido,
+    });
+  } catch {
+    return { ok: false, status: 409, error: "Ya te postulaste a esta carga" };
+  }
+
+  emit("postulacion.creada", { cargaId: carga.id, empresaId: carga.empresaId, titulo: carga.titulo });
+
+  return { ok: true, postulacionId: postulacion.id };
+}
+
+export async function marcarPostulacionesVistasTransportista(transportistaId: string) {
+  await marcarVistasTransportista(transportistaId);
+  emit("postulacion.vista_transportista", { transportistaId });
+}
+
+export async function marcarPostulacionesVistasEmpresa(empresaId: string) {
+  await marcarVistasEmpresa(empresaId);
+  emit("postulacion.vista_empresa", { empresaId });
+}

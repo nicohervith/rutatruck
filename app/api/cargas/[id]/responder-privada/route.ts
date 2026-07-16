@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
-import { db } from "@/lib/db";
 import { isTransportista } from "@/lib/roles";
-import { notifyEmpresa, notifyTransportista } from "@/lib/sse";
+import { responderOfertaPrivada } from "@/lib/services/carga.service";
 
 export async function POST(
   req: NextRequest,
@@ -26,50 +25,10 @@ export async function POST(
     return NextResponse.json({ error: "Body inválido" }, { status: 400 });
   }
 
-  const carga = await db.carga.findUnique({
-    where: {
-      id: cargaId,
-      esPrivada: true,
-      transportistaDestinadoId: session.userId,
-      estado: "ACTIVA",
-    },
-  });
-  if (!carga) {
-    return NextResponse.json({ error: "Oferta no encontrada" }, { status: 404 });
+  const result = await responderOfertaPrivada(cargaId, session.userId, body.accion);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  if (body.accion === "rechazar") {
-    await db.carga.update({ where: { id: cargaId }, data: { estado: "CANCELADA" } });
-    notifyEmpresa(carga.empresaId).catch(() => {});
-    notifyTransportista(session.userId).catch(() => {});
-    return NextResponse.json({ ok: true });
-  }
-
-  // Aceptar: create postulacion + accept + assign carga
-  await db.$transaction([
-    db.postulacion.create({
-      data: {
-        cargaId,
-        transportistaId: session.userId,
-        estado: "ACEPTADA",
-        camionesCubiertos: 1,
-      },
-    }),
-    db.carga.update({
-      where: { id: cargaId },
-      data: {
-        estado: "ASIGNADA",
-        transportistaAsignadoId: session.userId,
-      },
-    }),
-    // Deactivate disponibilidad
-    db.disponibilidadTransportista.updateMany({
-      where: { transportistaId: session.userId },
-      data: { activo: false },
-    }),
-  ]);
-
-  notifyEmpresa(carga.empresaId).catch(() => {});
-  notifyTransportista(session.userId).catch(() => {});
   return NextResponse.json({ ok: true });
 }

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
-import { db } from "@/lib/db";
-import { obtenerPago } from "@/lib/mercadopago";
-import { sendPushToAllTransportistas } from "@/lib/push";
+import { procesarPago } from "@/lib/services/pago.service";
 
 function verificarFirma(req: NextRequest, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
@@ -23,55 +21,6 @@ function verificarFirma(req: NextRequest, paymentId: string): boolean {
   const expected = createHmac("sha256", secret).update(signedData).digest("hex");
 
   return expected === v1;
-}
-
-async function procesarPago(paymentId: string) {
-  const pago = await obtenerPago(paymentId);
-
-  if (pago.status !== "approved") return;
-
-  const externalReference = pago.external_reference;
-  if (!externalReference) return;
-
-  const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
-  if (matchPublicar) {
-    const cargaId = parseInt(matchPublicar[1]);
-    const carga = await db.carga.findUnique({
-      where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-      select: { id: true, titulo: true, origen: true, destino: true, empresaId: true },
-    });
-    if (carga) {
-      await db.carga.update({
-        where: { id: cargaId },
-        data: { estado: "ACTIVA", pagado: true, mpPaymentId: String(pago.id) },
-      });
-      void sendPushToAllTransportistas({
-        title: "Nueva carga disponible",
-        body: `${carga.titulo} · ${carga.origen} → ${carga.destino}`,
-        url: "/transportista/cargas",
-      }, carga.empresaId);
-    }
-    return;
-  }
-
-  const matchComision = externalReference.match(/^comision_carga_(\d+)$/);
-  if (matchComision) {
-    const cargaId = parseInt(matchComision[1]);
-    await db.$transaction([
-      db.carga.updateMany({
-        where: { id: cargaId, estado: "PENDIENTE_PAGO_TRANSPORTISTA" },
-        data: {
-          estado: "ASIGNADA",
-          transportistaMpPaymentId: String(pago.id),
-          transportistaPagoDeadline: null,
-        },
-      }),
-      db.postulacion.updateMany({
-        where: { cargaId, estado: "PENDIENTE" },
-        data: { estado: "RECHAZADA" },
-      }),
-    ]);
-  }
 }
 
 export async function POST(req: NextRequest) {

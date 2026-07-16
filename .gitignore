@@ -70,3 +70,6 @@ keystore.properties
 AGENTS.md
 CLAUDE.md
 _scratch_seed_test_user.mjs
+
+graphify-out
+/docs

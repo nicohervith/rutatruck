@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { sendPushToAllTransportistas } from "@/lib/push";
+import { confirmarPagoPublicacion, confirmarPagoComision } from "@/lib/services/pago.service";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -18,22 +17,9 @@ export async function GET(req: NextRequest) {
   const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
   if (matchPublicar) {
     const cargaId = parseInt(matchPublicar[1]);
-    let carga: { titulo: string; origen: string; destino: string; empresaId: string } | null = null;
-    try {
-      carga = await db.carga.update({
-        where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-        data: { estado: "ACTIVA", pagado: true, mpPaymentId: paymentId ?? null },
-        select: { titulo: true, origen: true, destino: true, empresaId: true },
-      });
-    } catch {
+    const result = await confirmarPagoPublicacion(cargaId, paymentId ?? null);
+    if (!result.ok) {
       return NextResponse.redirect(new URL("/empresa/cargas?error=pago", req.nextUrl));
-    }
-    if (carga) {
-      void sendPushToAllTransportistas({
-        title: "Nueva carga disponible",
-        body: `${carga.titulo} · ${carga.origen} → ${carga.destino}`,
-        url: "/transportista/cargas",
-      }, carga.empresaId);
     }
     return NextResponse.redirect(new URL("/empresa/cargas?success=1", req.nextUrl));
   }
@@ -42,22 +28,8 @@ export async function GET(req: NextRequest) {
   const matchComision = externalReference.match(/^comision_carga_(\d+)$/);
   if (matchComision) {
     const cargaId = parseInt(matchComision[1]);
-    try {
-      await db.$transaction([
-        db.carga.update({
-          where: { id: cargaId, estado: "PENDIENTE_PAGO_TRANSPORTISTA" },
-          data: {
-            estado: "ASIGNADA",
-            transportistaMpPaymentId: paymentId ?? null,
-            transportistaPagoDeadline: null,
-          },
-        }),
-        db.postulacion.updateMany({
-          where: { cargaId, estado: "PENDIENTE" },
-          data: { estado: "RECHAZADA" },
-        }),
-      ]);
-    } catch {
+    const result = await confirmarPagoComision(cargaId, paymentId ?? null);
+    if (!result.ok) {
       return NextResponse.redirect(
         new URL(`/transportista/cargas/${cargaId}?error=pago_cancelado`, req.nextUrl),
       );
