@@ -7,11 +7,13 @@ import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { logout } from "@/app/actions/auth";
 import SwitchRoleButton from "@/app/_components/SwitchRoleButton";
 import VerificarEmailBanner from "@/app/_components/VerificarEmailBanner";
+import CargasPorCompletarBanner from "../_components/CargasPorCompletarBanner";
+import { findCargasAsignadasVencidasDeTransportista } from "@/lib/repositories/carga.repository";
 
 export default async function TransportistaDashboard() {
   const session = await verifySession();
 
-  const [totalCargas, misPostulaciones, viajesCompletados, enViaje, user] = await Promise.all([
+  const [totalCargas, misPostulaciones, viajesCompletados, enViaje, user, cargasVencidas] = await Promise.all([
     db.carga.count({ where: { estado: "ACTIVA" } }),
     db.postulacion.count({ where: { transportistaId: session.userId } }),
     db.postulacion.count({
@@ -21,6 +23,7 @@ export default async function TransportistaDashboard() {
       where: { transportistaId: session.userId, estado: "ACEPTADA", carga: { estado: "ASIGNADA" } },
     }),
     db.user.findUnique({ where: { id: session.userId }, select: { name: true, emailVerified: true } }),
+    findCargasAsignadasVencidasDeTransportista(session.userId),
   ]);
 
   const acciones = [
@@ -85,6 +88,8 @@ export default async function TransportistaDashboard() {
         </div>
 
         <VerificarEmailBanner emailVerified={user?.emailVerified ?? true} />
+
+        <CargasPorCompletarBanner cargas={cargasVencidas} />
 
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-8">
@@ -159,6 +164,19 @@ export default async function TransportistaDashboard() {
 
         {/* Account actions — mobile only */}
         <div className="md:hidden mt-8 flex flex-col gap-3">
+          <Link
+            href="/transportista/cuenta"
+            className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border text-left transition-opacity active:opacity-80"
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8", color: "#111827" }}
+          >
+            <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--primary-10)" }}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--primary)" }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </span>
+            <span className="font-semibold text-sm">Mi cuenta</span>
+          </Link>
           {session.role === "EMPRESA_TRANSPORTISTA" && (
             <SwitchRoleButton
               toRole="empresa"

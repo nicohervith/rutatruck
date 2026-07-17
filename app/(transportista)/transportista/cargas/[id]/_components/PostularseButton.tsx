@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Props {
   cargaId: number;
@@ -10,9 +11,10 @@ interface Props {
   cantidadCamiones?: number;
   esFlota?: boolean;
   pesoUnidad?: string | null;
+  emailVerified?: boolean;
 }
 
-export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false, pesoUnidad }: Props) {
+export default function PostularseButton({ cargaId, miPostulacion, contactoDefecto, cantidadCamiones = 1, esFlota = false, pesoUnidad, emailVerified = true }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +47,29 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
     );
   }
 
+  if (!emailVerified) {
+    return (
+      <div
+        className="rounded-xl border p-5"
+        style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
+      >
+        <p className="text-sm font-bold" style={{ color: "#92400E" }}>
+          Verificá tu email antes de postularte
+        </p>
+        <p className="text-sm mt-1" style={{ color: "#B45309" }}>
+          Para postularte a una carga primero necesitás verificar tu email. Es rápido, te enviamos un código.
+        </p>
+        <Link
+          href="/transportista/cuenta"
+          className="inline-flex items-center gap-2 mt-4 font-semibold rounded-xl px-5 py-3 text-sm transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "#92400E", color: "#FFFFFF" }}
+        >
+          Verificar email
+        </Link>
+      </div>
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -68,6 +93,10 @@ export default function PostularseButton({ cargaId, miPostulacion, contactoDefec
         if (data.code === "DATE_CONFLICT") {
           setDateConflict(true);
           setPending(false);
+          return;
+        }
+        if (data.code === "EMAIL_NOT_VERIFIED") {
+          router.push("/transportista/cuenta");
           return;
         }
         throw new Error(data.error ?? "Error al postularse");

@@ -92,6 +92,7 @@ model Carga {
   transportistaAsignadoId   String?
   transportistaMpPaymentId  String?
   transportistaPagoDeadline DateTime?
+  recordatorioCompletarEnviadoEn DateTime?
   pesoUnidad                String?
   esPrivada                 Boolean       @default(false)
   transportistaDestinadoId  String?

@@ -29,7 +29,7 @@ export async function PUT(
 
   const {
     titulo, origen, destino, cantidadCamiones, tipoCarga, tipoCargaDetalle,
-    peso, pesoUnidad, volumen, presupuesto,
+    peso, pesoUnidad, presupuesto,
     fechaCarga, fechaCupo, preferenciaCamion,
     descripcion,
     contactoNombre, contactoTelefono, contactoEmail,
@@ -37,6 +37,10 @@ export async function PUT(
 
   if (!titulo || !origen || !destino || !tipoCarga || !fechaCarga || !contactoNombre || !contactoTelefono || !contactoEmail) {
     return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 });
+  }
+
+  if (fechaCupo && String(fechaCupo) !== "" && new Date(String(fechaCupo)) < new Date(String(fechaCarga))) {
+    return NextResponse.json({ error: "La fecha de cupo no puede ser anterior a la fecha de carga" }, { status: 400 });
   }
 
   await db.carga.update({
@@ -50,7 +54,6 @@ export async function PUT(
       tipoCargaDetalle: tipoCargaDetalle && String(tipoCargaDetalle) !== "" ? String(tipoCargaDetalle) : null,
       peso: peso !== undefined && peso !== "" ? parseFloat(String(peso)) : null,
       pesoUnidad: pesoUnidad && String(pesoUnidad) !== "" ? String(pesoUnidad) : null,
-      volumen: volumen !== undefined && volumen !== "" ? parseFloat(String(volumen)) : null,
       ...(carga.transportistaAsignadoId === null && {
         presupuesto: presupuesto !== undefined && presupuesto !== "" ? parseFloat(String(presupuesto)) : null,
       }),

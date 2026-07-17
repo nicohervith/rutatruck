@@ -47,7 +47,7 @@ export default async function CargaPublicaPage({
     }),
     db.user.findUnique({
       where: { id: session.userId },
-      select: { email: true, phone: true },
+      select: { email: true, phone: true, emailVerified: true },
     }),
   ]);
 
@@ -285,6 +285,7 @@ export default async function CargaPublicaPage({
             cantidadCamiones={carga.cantidadCamiones ?? 1}
             esFlota={isFlota(session.role, session.esFlota)}
             pesoUnidad={carga.pesoUnidad}
+            emailVerified={user?.emailVerified ?? true}
           />
         )}
       </main>
