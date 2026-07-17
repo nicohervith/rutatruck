@@ -13,6 +13,7 @@ import {
   marcarVistasTransportista,
   marcarVistasEmpresa,
 } from "@/lib/repositories/postulacion.repository";
+import { findUserEmailVerified } from "@/lib/repositories/user.repository";
 import { DEADLINE_HORAS } from "@/lib/comision";
 import { emit } from "@/lib/events/bus";
 
@@ -90,13 +91,23 @@ export async function crearPostulacion(
     precioOfrecido: number | null;
   },
 ): Promise<CrearPostulacionResult> {
-  const [carga, cargasEnViaje] = await Promise.all([
+  const [carga, cargasEnViaje, transportista] = await Promise.all([
     findCargaActivaParaPostular(input.cargaId),
     findCargasEnViajeDeTransportista(transportistaId),
+    findUserEmailVerified(transportistaId),
   ]);
 
   if (!carga) {
     return { ok: false, status: 404, error: "Carga no encontrada o no disponible" };
+  }
+
+  if (!transportista?.emailVerified) {
+    return {
+      ok: false,
+      status: 403,
+      error: "Verificá tu email antes de postularte a una carga",
+      code: "EMAIL_NOT_VERIFIED",
+    };
   }
 
   const conflicto = cargasEnViaje.find((c) => {

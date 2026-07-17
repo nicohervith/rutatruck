@@ -518,7 +518,14 @@ export default function NuevaCargaForm({
                   required
                   min={today}
                   value={fields.fechaCarga}
-                  onChange={set("fechaCarga")}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setFields((f) => ({
+                      ...f,
+                      fechaCarga: v,
+                      fechaCupo: f.fechaCupo && f.fechaCupo < v ? "" : f.fechaCupo,
+                    }));
+                  }}
                   className={inputClass}
                   style={{ ...inputStyle, colorScheme: "light" }}
                 />
@@ -535,7 +542,7 @@ export default function NuevaCargaForm({
                   id="fechaCupo"
                   name="fechaCupo"
                   type="date"
-                  min={today}
+                  min={fields.fechaCarga || today}
                   value={fields.fechaCupo}
                   onChange={set("fechaCupo")}
                   className={inputClass}

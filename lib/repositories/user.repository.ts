@@ -10,3 +10,10 @@ export async function findUserContacto(userId: string) {
     select: { name: true, email: true, phone: true },
   });
 }
+
+export async function findUserEmailVerified(userId: string) {
+  return db.user.findUnique({
+    where: { id: userId },
+    select: { emailVerified: true },
+  });
+}

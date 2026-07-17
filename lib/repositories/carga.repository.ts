@@ -200,3 +200,41 @@ export async function findCargasEnViajeDeTransportista(transportistaId: string) 
     select: { id: true, fechaCarga: true, fechaCupo: true, titulo: true },
   });
 }
+
+export async function findCargasVencidasSinCompletar(umbralReintento: Date) {
+  const ahora = new Date();
+  return db.carga.findMany({
+    where: {
+      estado: "ASIGNADA",
+      transportistaAsignadoId: { not: null },
+      OR: [
+        { recordatorioCompletarEnviadoEn: null },
+        { recordatorioCompletarEnviadoEn: { lt: umbralReintento } },
+      ],
+      AND: [
+        { OR: [{ fechaCupo: { lt: ahora } }, { fechaCupo: null, fechaCarga: { lt: ahora } }] },
+      ],
+    },
+    select: { id: true, titulo: true, transportistaAsignadoId: true },
+  });
+}
+
+export async function marcarRecordatorioCompletarEnviado(cargaIds: number[]) {
+  await db.carga.updateMany({
+    where: { id: { in: cargaIds } },
+    data: { recordatorioCompletarEnviadoEn: new Date() },
+  });
+}
+
+export async function findCargasAsignadasVencidasDeTransportista(transportistaId: string) {
+  const ahora = new Date();
+  return db.carga.findMany({
+    where: {
+      transportistaAsignadoId: transportistaId,
+      estado: "ASIGNADA",
+      OR: [{ fechaCupo: { lt: ahora } }, { fechaCupo: null, fechaCarga: { lt: ahora } }],
+    },
+    select: { id: true, titulo: true, origen: true, destino: true },
+    orderBy: { fechaCarga: "asc" },
+  });
+}

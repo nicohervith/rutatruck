@@ -13,9 +13,12 @@ import {
   findCargaActivaConAceptadas,
   cerrarConvocatoria as cerrarConvocatoriaDb,
   createOfertaPrivada,
+  findCargasVencidasSinCompletar,
+  marcarRecordatorioCompletarEnviado,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
+import { sendPushToUser } from "@/lib/push";
 
 type CargaData = Omit<Prisma.CargaUncheckedCreateInput, "estado" | "pagado"> & {
   titulo: string;
@@ -236,4 +239,39 @@ export async function crearOfertaPrivada(
   emit("oferta-privada.creada", { transportistaId, cargaId: carga.id, titulo: carga.titulo });
 
   return { ok: true, cargaId: carga.id };
+}
+
+export async function enviarRecordatoriosCompletar() {
+  const umbral = new Date(Date.now() - 20 * 60 * 60 * 1000);
+  const vencidas = await findCargasVencidasSinCompletar(umbral);
+  if (vencidas.length === 0) return { ok: true, transportistas: 0, cargas: 0 };
+
+  const porTransportista = new Map<string, { id: number; titulo: string }[]>();
+  for (const c of vencidas) {
+    if (!c.transportistaAsignadoId) continue;
+    const list = porTransportista.get(c.transportistaAsignadoId) ?? [];
+    list.push({ id: c.id, titulo: c.titulo });
+    porTransportista.set(c.transportistaAsignadoId, list);
+  }
+
+  await Promise.allSettled(
+    Array.from(porTransportista.entries()).map(([transportistaId, cargas]) => {
+      const payload =
+        cargas.length === 1
+          ? {
+              title: "Marcá tu viaje como completado",
+              body: `"${cargas[0].titulo}" ya pasó su fecha de cupo. Marcalo como completado para cerrar la operación.`,
+              url: "/transportista/dashboard",
+            }
+          : {
+              title: "Tenés viajes por marcar como completados",
+              body: `${cargas.length} cargas ya pasaron su fecha de cupo. Revisalas y marcalas como completadas.`,
+              url: "/transportista/dashboard",
+            };
+      return sendPushToUser(transportistaId, payload);
+    }),
+  );
+
+  await marcarRecordatorioCompletarEnviado(vencidas.map((c) => c.id));
+  return { ok: true, transportistas: porTransportista.size, cargas: vencidas.length };
 }

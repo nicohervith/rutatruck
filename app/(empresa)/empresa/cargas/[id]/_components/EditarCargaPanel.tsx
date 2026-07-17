@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
@@ -14,7 +14,6 @@ interface CargaEditable {
   tipoCargaDetalle: string | null;
   peso: number | null;
   pesoUnidad: string | null;
-  volumen: number | null;
   presupuesto: number | null;
   fechaCarga: string;
   fechaCupo: string | null;
@@ -38,6 +37,8 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [presupuestoAcordar, setPresupuestoAcordar] = useState(carga.presupuesto === null);
+  const [fechaCarga, setFechaCarga] = useState(carga.fechaCarga);
+  const fechaCupoRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -298,26 +299,6 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="edit-volumen"
-            className={labelClass}
-            style={labelStyle}
-          >
-            Volumen (m³)
-          </label>
-          <input
-            id="edit-volumen"
-            name="volumen"
-            type="number"
-            step="0.1"
-            min="0"
-            defaultValue={carga.volumen ?? ""}
-            className={inputClass}
-            style={inputStyle}
-          />
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label
@@ -333,7 +314,14 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               type="date"
               required
               min={today}
-              defaultValue={carga.fechaCarga}
+              value={fechaCarga}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFechaCarga(v);
+                if (fechaCupoRef.current && fechaCupoRef.current.value && fechaCupoRef.current.value < v) {
+                  fechaCupoRef.current.value = "";
+                }
+              }}
               className={inputClass}
               style={{ ...inputStyle, colorScheme: "light" }}
             />
@@ -350,8 +338,9 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
               id="edit-fechaCupo"
               name="fechaCupo"
               type="date"
-              min={today}
+              min={fechaCarga || today}
               defaultValue={carga.fechaCupo ?? ""}
+              ref={fechaCupoRef}
               className={inputClass}
               style={{ ...inputStyle, colorScheme: "light" }}
             />

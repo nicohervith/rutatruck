@@ -64,6 +64,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (fechaCupo && new Date(fechaCupo) < new Date(fechaCarga)) {
+    return NextResponse.json(
+      { error: "La fecha de cupo no puede ser anterior a la fecha de carga" },
+      { status: 400 },
+    );
+  }
+
   const cargaData = {
     titulo,
     origen,

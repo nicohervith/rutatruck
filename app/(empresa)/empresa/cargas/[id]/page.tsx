@@ -169,7 +169,6 @@ export default async function CargaDetallePage({
                   tipoCargaDetalle: carga.tipoCargaDetalle ?? null,
                   peso: carga.peso,
                   pesoUnidad: carga.pesoUnidad ?? null,
-                  volumen: carga.volumen,
                   presupuesto: carga.presupuesto,
                   fechaCarga: toDateInput(carga.fechaCarga),
                   fechaCupo: toDateInput(carga.fechaCupo),
