@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
-import { db } from "@/lib/db";
 import { isEmpresa } from "@/lib/roles";
-import { sendPushToUser } from "@/lib/push";
-import { notifyTransportista } from "@/lib/sse";
+import { crearOfertaPrivada } from "@/lib/services/carga.service";
 
 export async function POST(
   req: NextRequest,
@@ -15,22 +13,6 @@ export async function POST(
   }
 
   const { id: transportistaId } = await params;
-
-  // empresa_transportista can't solicit themselves
-  if (transportistaId === session.userId) {
-    return NextResponse.json({ error: "No podés solicitarte a vos mismo" }, { status: 400 });
-  }
-
-  const [transportista, empresa] = await Promise.all([
-    db.user.findUnique({ where: { id: transportistaId }, select: { id: true } }),
-    db.user.findUnique({
-      where: { id: session.userId },
-      select: { name: true, email: true, phone: true },
-    }),
-  ]);
-  if (!transportista) {
-    return NextResponse.json({ error: "Transportista no encontrado" }, { status: 404 });
-  }
 
   let body: {
     titulo: string;
@@ -51,32 +33,18 @@ export async function POST(
     return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
   }
 
-  const carga = await db.carga.create({
-    data: {
-      titulo: body.titulo,
-      origen: body.origen,
-      destino: body.destino,
-      tipoCarga: body.tipoCarga,
-      fechaCarga: new Date(body.fechaCarga),
-      presupuesto: body.presupuesto ?? null,
-      descripcion: body.descripcion ?? null,
-      contactoNombre: empresa?.name ?? "Empresa",
-      contactoTelefono: empresa?.phone ?? "",
-      contactoEmail: empresa?.email ?? "",
-      empresaId: session.userId,
-      estado: "ACTIVA",
-      pagado: true,
-      esPrivada: true,
-      transportistaDestinadoId: transportistaId,
-    },
+  const result = await crearOfertaPrivada(session.userId, transportistaId, {
+    titulo: body.titulo,
+    origen: body.origen,
+    destino: body.destino,
+    tipoCarga: body.tipoCarga,
+    fechaCarga: new Date(body.fechaCarga),
+    presupuesto: body.presupuesto ?? null,
+    descripcion: body.descripcion ?? null,
   });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
+  }
 
-  sendPushToUser(transportistaId, {
-    title: "Nueva oferta directa",
-    body: `Una empresa te ofrece un servicio: ${carga.titulo}`,
-    url: `/transportista/cargas/${carga.id}`,
-  }).catch(() => {});
-  notifyTransportista(transportistaId).catch(() => {});
-
-  return NextResponse.json({ id: carga.id }, { status: 201 });
+  return NextResponse.json({ id: result.cargaId }, { status: 201 });
 }
