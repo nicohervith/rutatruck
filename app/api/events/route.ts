@@ -3,6 +3,10 @@ import { sseSubscribe, sseUnsubscribe, notifyTransportista, notifyEmpresa } from
 import { isTransportista, isEmpresa } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
+// Without this, Vercel's default serverless timeout (10s on Hobby) kills the
+// stream before the first 10s poll tick even fires, forcing a client
+// reconnect loop. 60s is the max allowed on Hobby; raise if the plan allows more.
+export const maxDuration = 60;
 
 const enc = new TextEncoder();
 
@@ -23,11 +27,24 @@ export async function GET() {
       if (isTransportista(role)) await notifyTransportista(userId);
       else if (isEmpresa(role)) await notifyEmpresa(userId);
 
-      // Keep-alive ping every 25s (browsers close idle SSE after 30s)
+      // Recompute from DB every 10s instead of a plain keep-alive ping.
+      // Deployed on Vercel, the request that mutates data (nueva postulación,
+      // aceptación, etc.) can land on a different serverless instance than
+      // the one holding this open connection, so the in-memory push in
+      // lib/sse.ts silently misses it. Polling the real state from within
+      // this same connection self-heals that within ~10s regardless of
+      // which instance handled the write, and doubles as the keep-alive.
       pingId = setInterval(() => {
-        try { controller.enqueue(enc.encode(": ping\n\n")); }
-        catch { clearInterval(pingId); }
-      }, 25000);
+        (async () => {
+          try {
+            if (isTransportista(role)) await notifyTransportista(userId);
+            else if (isEmpresa(role)) await notifyEmpresa(userId);
+            else controller.enqueue(enc.encode(": ping\n\n"));
+          } catch {
+            clearInterval(pingId);
+          }
+        })();
+      }, 10000);
     },
     cancel() {
       sseUnsubscribe(userId, ctrl);

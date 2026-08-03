@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 
 interface CargaEditable {
   id: number;
-  titulo: string;
   origen: string;
   destino: string;
   cantidadCamiones: number;
@@ -123,25 +122,6 @@ export default function EditarCargaPanel({ carga, sinTransportista }: { carga: C
     <div className="w-full">
       <h3 className="font-medium text-gray-900 mb-4">Editar carga</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="edit-titulo"
-            className={labelClass}
-            style={labelStyle}
-          >
-            Título *
-          </label>
-          <input
-            id="edit-titulo"
-            name="titulo"
-            type="text"
-            required
-            defaultValue={carga.titulo}
-            className={inputClass}
-            style={inputStyle}
-          />
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label

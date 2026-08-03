@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import CuentaForm from "@/app/_components/CuentaForm";
+import CompletarPerfilBanner from "@/app/_components/CompletarPerfilBanner";
 
 export default async function CuentaEmpresaPage() {
   const session = await verifySession();
@@ -38,6 +39,8 @@ export default async function CuentaEmpresaPage() {
             Tus datos y preferencias de notificación
           </p>
         </div>
+
+        <CompletarPerfilBanner phone={user.phone} emailVerified={user.emailVerified} />
 
         <div
           className="rounded-2xl border p-5"

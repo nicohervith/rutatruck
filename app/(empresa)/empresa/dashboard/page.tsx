@@ -37,7 +37,7 @@ export default async function EmpresaDashboard() {
     }),
     db.carga.count({ where: { empresaId: session.userId, estado: "ACTIVA" } }),
     db.carga.count({ where: { empresaId: session.userId, estado: "FINALIZADA" } }),
-    db.user.findUnique({ where: { id: session.userId }, select: { name: true, emailVerified: true } }),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true, phone: true, emailVerified: true } }),
   ]);
 
   const acciones = [
@@ -78,6 +78,8 @@ export default async function EmpresaDashboard() {
       ),
     },
   ];
+
+  const perfilIncompleto = !user?.phone || !user?.emailVerified;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
@@ -171,13 +173,26 @@ export default async function EmpresaDashboard() {
             className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border text-left transition-opacity active:opacity-80"
             style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8", color: "#111827" }}
           >
-            <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--primary-10)" }}>
+            <span className="relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--primary-10)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--primary)" }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
+              {perfilIncompleto && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                  style={{ backgroundColor: "#F97316", borderColor: "#FFFFFF" }}
+                />
+              )}
             </span>
-            <span className="font-semibold text-sm">Mi cuenta</span>
+            <span className="font-semibold text-sm flex items-center gap-1.5">
+              Mi cuenta
+              {perfilIncompleto && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#FFEDD5", color: "#9A3412" }}>
+                  Completar
+                </span>
+              )}
+            </span>
           </Link>
           {session.role === "EMPRESA_TRANSPORTISTA" && (
             <SwitchRoleButton

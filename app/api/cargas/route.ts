@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
   }
 
   const {
-    titulo,
     origen,
     origenLat,
     origenLng,
@@ -49,7 +48,6 @@ export async function POST(req: NextRequest) {
   } = body as Record<string, string>;
 
   if (
-    !titulo ||
     !origen ||
     !destino ||
     !tipoCarga ||
@@ -72,7 +70,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cargaData = {
-    titulo,
+    titulo: `${origen} → ${destino}`,
     origen,
     origenLat: origenLat ? parseFloat(origenLat as string) : null,
     origenLng: origenLng ? parseFloat(origenLng as string) : null,

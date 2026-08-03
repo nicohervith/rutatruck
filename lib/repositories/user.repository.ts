@@ -17,3 +17,11 @@ export async function findUserEmailVerified(userId: string) {
     select: { emailVerified: true },
   });
 }
+
+/** Guarda el teléfono en el perfil solo si todavía no tiene uno cargado. */
+export async function linkPhoneSiFalta(userId: string, phone: string) {
+  await db.user.updateMany({
+    where: { id: userId, phone: null },
+    data: { phone },
+  });
+}

@@ -15,7 +15,6 @@ interface ContactoDefecto {
 }
 
 type Fields = {
-  titulo: string;
   origen: string;
   origenLat: string;
   origenLng: string;
@@ -39,7 +38,6 @@ type Fields = {
 
 function makeDefaults(c: ContactoDefecto): Fields {
   return {
-    titulo: "",
     origen: "",
     origenLat: "",
     origenLng: "",
@@ -85,7 +83,7 @@ export default function NuevaCargaForm({
   const [hasDraft, setHasDraft] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const MEANINGFUL_KEYS: (keyof Fields)[] = ["titulo", "origen", "destino", "tipoCarga", "descripcion"];
+  const MEANINGFUL_KEYS: (keyof Fields)[] = ["origen", "destino", "tipoCarga", "descripcion"];
 
   useEffect(() => {
     try {
@@ -264,23 +262,6 @@ export default function NuevaCargaForm({
             style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
           >
             <h2 className="font-medium text-gray-900">Datos de la carga</h2>
-
-            <div>
-              <label htmlFor="titulo" className={labelClass} style={labelStyle}>
-                Título de la carga *
-              </label>
-              <input
-                id="titulo"
-                name="titulo"
-                type="text"
-                required
-                value={fields.titulo}
-                onChange={set("titulo")}
-                className={inputClass}
-                style={inputStyle}
-                placeholder="Ej: Transporte de soja — Córdoba a Rosario"
-              />
-            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

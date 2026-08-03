@@ -8,6 +8,7 @@ import { useNotifCount, usePrivCount } from "@/app/_components/EventsProvider";
 type Notif = {
   id: number;
   carga: { id: number; titulo: string; origen: string; destino: string };
+  vista: boolean;
 };
 
 export default function NotificacionBell() {
@@ -31,6 +32,15 @@ export default function NotificacionBell() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
+  async function fetchNotifs() {
+    try {
+      const data = await fetch("/api/notificaciones/list").then((r) => r.json());
+      setNotifs(data.notificaciones ?? []);
+    } catch {
+      setNotifs([]);
+    }
+  }
+
   async function handleOpen() {
     if (open) { setOpen(false); return; }
     if (ref.current) {
@@ -39,14 +49,8 @@ export default function NotificacionBell() {
     }
     setOpen(true);
     setLoading(true);
-    try {
-      const data = await fetch("/api/notificaciones/list").then((r) => r.json());
-      setNotifs(data.notificaciones ?? []);
-    } catch {
-      setNotifs([]);
-    } finally {
-      setLoading(false);
-    }
+    await fetchNotifs();
+    setLoading(false);
   }
 
   async function handleItemClick(cargaId: number) {
@@ -57,8 +61,7 @@ export default function NotificacionBell() {
 
   async function handleMarkAll() {
     await fetch("/api/notificaciones/mark-seen", { method: "POST" });
-    setNotifs([]);
-    setOpen(false);
+    await fetchNotifs();
     router.refresh();
   }
 
@@ -97,7 +100,7 @@ export default function NotificacionBell() {
             <span className="text-sm font-semibold" style={{ color: "#C4DCDC" }}>
               Notificaciones
             </span>
-            {notifs.length > 0 && (
+            {notifs.some((n) => !n.vista) && (
               <button
                 onClick={handleMarkAll}
                 className="text-xs transition-opacity hover:opacity-70"
@@ -114,26 +117,37 @@ export default function NotificacionBell() {
             </div>
           ) : notifs.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm" style={{ color: "#6B7280" }}>
-              Sin notificaciones nuevas
+              Sin notificaciones
             </div>
           ) : (
             <ul>
-              {notifs.map((n) => (
-                <li key={n.id} className="border-b last:border-b-0" style={{ borderColor: "#1E3838" }}>
-                  <button
-                    onClick={() => handleItemClick(n.carga.id)}
-                    className="w-full text-left px-4 py-3 transition-colors hover:bg-white/5"
-                  >
-                    <p className="text-sm font-medium" style={{ color: "#E5E7EB" }}>
-                      ¡Tu postulación fue aceptada!
+              {notifs.map((n, i) => (
+                <li key={n.id}>
+                  {n.vista && (i === 0 || !notifs[i - 1].vista) && (
+                    <p
+                      className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wide"
+                      style={{ color: "#4B5563" }}
+                    >
+                      Anteriores
                     </p>
-                    <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--primary)" }}>
-                      {n.carga.titulo}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                      {n.carga.origen} → {n.carga.destino}
-                    </p>
-                  </button>
+                  )}
+                  <div className="border-b last:border-b-0" style={{ borderColor: "#1E3838" }}>
+                    <button
+                      onClick={() => handleItemClick(n.carga.id)}
+                      className="w-full text-left px-4 py-3 transition-colors hover:bg-white/5"
+                      style={{ opacity: n.vista ? 0.55 : 1 }}
+                    >
+                      <p className="text-sm font-medium" style={{ color: "#E5E7EB" }}>
+                        ¡Tu postulación fue aceptada!
+                      </p>
+                      <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--primary)" }}>
+                        {n.carga.titulo}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                        {n.carga.origen} → {n.carga.destino}
+                      </p>
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

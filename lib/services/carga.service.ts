@@ -16,7 +16,7 @@ import {
   findCargasVencidasSinCompletar,
   marcarRecordatorioCompletarEnviado,
 } from "@/lib/repositories/carga.repository";
-import { findUserById, findUserContacto } from "@/lib/repositories/user.repository";
+import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
 import { sendPushToUser } from "@/lib/push";
 
@@ -43,6 +43,8 @@ export async function publicarCargaFreeTier(
     console.error("[carga.service] Error Prisma:", err);
     return { ok: false, status: 500, error: "Error al guardar la carga" };
   }
+
+  await linkPhoneSiFalta(cargaData.empresaId, cargaData.contactoTelefono).catch(() => {});
 
   emit("carga.publicada", {
     cargaId: carga.id,
@@ -72,6 +74,8 @@ export async function publicarCargaConPago(
     console.error("[carga.service] Error Prisma:", err);
     return { ok: false, status: 500, error: "Error al guardar la carga" };
   }
+
+  await linkPhoneSiFalta(cargaData.empresaId, cargaData.contactoTelefono).catch(() => {});
 
   const fee = await getPrecioPublicacion();
 
@@ -133,7 +137,13 @@ export async function responderOfertaPrivada(
     await aceptarOfertaPrivada(cargaId, transportistaId);
   }
 
-  emit("oferta-privada.respondida", { empresaId: carga.empresaId, transportistaId });
+  emit("oferta-privada.respondida", {
+    empresaId: carga.empresaId,
+    transportistaId,
+    cargaId,
+    titulo: carga.titulo,
+    accion,
+  });
   return { ok: true };
 }
 

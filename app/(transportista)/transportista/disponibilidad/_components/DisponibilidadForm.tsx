@@ -80,6 +80,8 @@ type Disponibilidad = {
 
 interface Props {
   inicial: Disponibilidad | null;
+  /** Si la disponibilidad inicial ya venció por tiempo (24h/7d) aunque siga "activa". */
+  vigenteInicial?: boolean;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -93,7 +95,7 @@ const inputStyle: React.CSSProperties = {
   color: "#111827",
 };
 
-export default function DisponibilidadForm({ inicial }: Props) {
+export default function DisponibilidadForm({ inicial, vigenteInicial = false }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [deactivating, setDeactivating] = useState(false);
@@ -114,6 +116,7 @@ export default function DisponibilidadForm({ inicial }: Props) {
   const [salidaDestino, setSalidaDestino] = useState(inicial?.salidaDestino ?? "");
   const [error, setError] = useState("");
   const [activo, setActivo] = useState(inicial?.activo ?? false);
+  const [vigente, setVigente] = useState(vigenteInicial);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -142,6 +145,7 @@ export default function DisponibilidadForm({ inicial }: Props) {
       });
       if (res.ok) {
         setActivo(true);
+        setVigente(true);
         router.refresh();
       } else {
         setError("Error al guardar. Intentá de nuevo.");
@@ -172,7 +176,7 @@ export default function DisponibilidadForm({ inicial }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Status banner */}
-      {activo && (
+      {activo && vigente && (
         <div
           className="rounded-xl px-4 py-3 flex items-center justify-between border"
           style={{ backgroundColor: "#DCFCE7", borderColor: "#86EFAC" }}
@@ -181,6 +185,29 @@ export default function DisponibilidadForm({ inicial }: Props) {
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
             <span className="text-sm font-semibold" style={{ color: "#166534" }}>
               Estás marcado como disponible
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleDesactivar}
+            disabled={deactivating}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}
+          >
+            {deactivating ? "..." : "Desactivar"}
+          </button>
+        </div>
+      )}
+
+      {activo && !vigente && (
+        <div
+          className="rounded-xl px-4 py-3 flex items-center justify-between border"
+          style={{ backgroundColor: "#FEF3C7", borderColor: "#FCD34D" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#D97706" }} />
+            <span className="text-sm font-semibold" style={{ color: "#92400E" }}>
+              Tu disponibilidad venció, ya no aparecés en el mapa
             </span>
           </div>
           <button
@@ -355,7 +382,13 @@ export default function DisponibilidadForm({ inicial }: Props) {
           opacity: pending || !loc || !buildVehiculo(vBase, vVariant) ? 0.6 : 1,
         }}
       >
-        {pending ? "Guardando..." : activo ? "Actualizar disponibilidad" : "✓ Estoy disponible"}
+        {pending
+          ? "Guardando..."
+          : !activo
+            ? "✓ Estoy disponible"
+            : vigente
+              ? "Actualizar disponibilidad"
+              : "↻ Reactivar disponibilidad"}
       </button>
     </form>
   );

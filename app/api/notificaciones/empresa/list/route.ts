@@ -10,23 +10,27 @@ export async function GET() {
   }
 
   try {
-    const [enConfirmacion, postulacionesNuevas] = await Promise.all([
+    const postulacionSelect = {
+      id: true,
+      carga: { select: { id: true, titulo: true, origen: true, destino: true } },
+      transportista: { select: { name: true } },
+    } as const;
+
+    const [enConfirmacion, postulacionesNuevas, postulacionesVistas] = await Promise.all([
       db.carga.findMany({
         where: { empresaId: session.userId, estado: "EN_CONFIRMACION" },
         select: { id: true, titulo: true, origen: true, destino: true },
       }),
       db.postulacion.findMany({
-        where: {
-          carga: { empresaId: session.userId },
-          estado: "PENDIENTE",
-          vistaEmpresa: false,
-        },
-        select: {
-          id: true,
-          carga: { select: { id: true, titulo: true, origen: true, destino: true } },
-          transportista: { select: { name: true } },
-        },
+        where: { carga: { empresaId: session.userId }, estado: "PENDIENTE", vistaEmpresa: false },
+        select: postulacionSelect,
         orderBy: { createdAt: "desc" },
+      }),
+      db.postulacion.findMany({
+        where: { carga: { empresaId: session.userId }, vistaEmpresa: true },
+        select: postulacionSelect,
+        orderBy: { createdAt: "desc" },
+        take: 4,
       }),
     ]);
 
@@ -38,6 +42,7 @@ export async function GET() {
         origen: c.origen,
         destino: c.destino,
         extra: null,
+        vista: false,
       })),
       ...postulacionesNuevas.map((p) => ({
         tipo: "postulacion" as const,
@@ -46,6 +51,16 @@ export async function GET() {
         origen: p.carga.origen,
         destino: p.carga.destino,
         extra: p.transportista.name,
+        vista: false,
+      })),
+      ...postulacionesVistas.map((p) => ({
+        tipo: "postulacion" as const,
+        cargaId: p.carga.id,
+        titulo: p.carga.titulo,
+        origen: p.carga.origen,
+        destino: p.carga.destino,
+        extra: p.transportista.name,
+        vista: true,
       })),
     ];
 

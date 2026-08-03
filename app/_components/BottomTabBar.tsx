@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactElement } from "react";
-import { useNotifCount, usePrivCount } from "./EventsProvider";
+import { useNotifCount, usePrivCount, usePerfilIncompleto } from "./EventsProvider";
 
 type Tab = {
   href: string;
   label: string;
   showNotif?: boolean;
   showPriv?: boolean;
+  showPerfilAlerta?: boolean;
   icon: (active: boolean) => ReactElement;
 };
 
@@ -18,6 +19,7 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
     {
       href: "/transportista/dashboard",
       label: "Perfil",
+      showPerfilAlerta: true,
       icon: (active) => (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -68,6 +70,7 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
     {
       href: "/empresa/dashboard",
       label: "Perfil",
+      showPerfilAlerta: true,
       icon: (active) => (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -127,6 +130,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   const pathname = usePathname();
   const notifCount = useNotifCount();
   const privCount = usePrivCount();
+  const perfilIncompleto = usePerfilIncompleto();
 
   return (
     <nav
@@ -154,6 +158,12 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
                 <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
                   {privCount > 9 ? "9+" : privCount}
                 </span>
+              )}
+              {tab.showPerfilAlerta && perfilIncompleto && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+                  style={{ backgroundColor: "#F97316", borderColor: "#FFFFFF" }}
+                />
               )}
             </span>
             <span className="text-[10px] font-semibold leading-none">

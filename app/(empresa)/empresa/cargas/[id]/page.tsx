@@ -161,7 +161,6 @@ export default async function CargaDetallePage({
                 sinTransportista={carga.transportistaAsignadoId === null}
                 carga={{
                   id: carga.id,
-                  titulo: carga.titulo,
                   origen: carga.origen,
                   destino: carga.destino,
                   cantidadCamiones: carga.cantidadCamiones,
@@ -183,7 +182,6 @@ export default async function CargaDetallePage({
             {puedeConfirmar && <ConfirmarCompletadoButton cargaId={carga.id} />}
             <RepetirCargaButton
               carga={{
-                titulo: carga.titulo,
                 origen: carga.origen,
                 origenLat: carga.origenLat,
                 origenLng: carga.origenLng,
