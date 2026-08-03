@@ -27,6 +27,7 @@ model User {
   disponibilidad          DisponibilidadTransportista?
   favoritosComoEmpresa    FavoritoTransportista[]      @relation("EmpresaFavoritos")
   favoritosComoTransp     FavoritoTransportista[]      @relation("TransportistaFavoritos")
+  mensajes                Mensaje[]
 }
 
 model DisponibilidadTransportista {
@@ -100,6 +101,7 @@ model Carga {
   transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
   transportistaDestinado    User?         @relation("CargaPrivada", fields: [transportistaDestinadoId], references: [id])
   postulaciones             Postulacion[]
+  mensajes                  Mensaje[]
 }
 
 model Postulacion {
@@ -120,6 +122,19 @@ model Postulacion {
   transportista      User              @relation(fields: [transportistaId], references: [id])
 
   @@unique([cargaId, transportistaId])
+}
+
+model Mensaje {
+  id       Int       @id @default(autoincrement())
+  cargaId  Int
+  autorId  String
+  cuerpo   String
+  creadoEn DateTime  @default(now())
+  leidoEn  DateTime?
+  carga    Carga     @relation(fields: [cargaId], references: [id])
+  autor    User      @relation(fields: [autorId], references: [id])
+
+  @@index([cargaId, creadoEn])
 }
 
 model PushSubscription {

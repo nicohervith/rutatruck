@@ -57,4 +57,13 @@ export type Events = {
     cargaId: number;
     titulo: string;
   };
+  "mensaje.creado": {
+    cargaId: number;
+    autorId: string;
+    destinatarioId: string;
+    destinatarioRole: "empresa" | "transportista";
+    autorNombre: string;
+    cuerpo: string;
+    titulo: string;
+  };
 };

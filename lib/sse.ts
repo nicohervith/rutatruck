@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { countMensajesNoLeidos } from "./repositories/mensaje.repository";
 
 type Ctrl = ReadableStreamDefaultController<Uint8Array>;
 
@@ -27,6 +28,38 @@ function ssePush(userId: string, data: unknown) {
   }
 }
 
+/**
+ * Pub/sub separado para hilos de chat abiertos, keyed por cargaId en vez de
+ * userId. Igual que `subs`, vive en memoria de una sola instancia serverless
+ * — el push cross-instancia puede no llegar, por eso el stream de chat
+ * (app/api/conversaciones/[cargaId]/stream) también re-consulta la DB en
+ * cada tick: esto es solo el atajo cuando cae en la misma instancia.
+ */
+const chatSubs = new Map<number, Set<Ctrl>>();
+
+export function chatSubscribe(cargaId: number, ctrl: Ctrl) {
+  if (!chatSubs.has(cargaId)) chatSubs.set(cargaId, new Set());
+  chatSubs.get(cargaId)!.add(ctrl);
+}
+
+export function chatUnsubscribe(cargaId: number, ctrl: Ctrl) {
+  const s = chatSubs.get(cargaId);
+  if (!s) return;
+  s.delete(ctrl);
+  if (s.size === 0) chatSubs.delete(cargaId);
+}
+
+/** `mensajes` es un array para compartir el mismo evento SSE que usa el polling en stream/route.ts. */
+export function chatPush(cargaId: number, mensajes: unknown[]) {
+  const s = chatSubs.get(cargaId);
+  if (!s?.size) return;
+  const chunk = enc.encode(`event: mensajes\ndata: ${JSON.stringify(mensajes)}\n\n`);
+  for (const ctrl of [...s]) {
+    try { ctrl.enqueue(chunk); }
+    catch { s.delete(ctrl); }
+  }
+}
+
 async function perfilIncompleto(userId: string): Promise<boolean> {
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -36,7 +69,7 @@ async function perfilIncompleto(userId: string): Promise<boolean> {
 }
 
 export async function notifyTransportista(userId: string) {
-  const [count, postulaciones, privadas, incompleto] = await Promise.all([
+  const [count, postulaciones, privadas, incompleto, mensajesNoLeidos] = await Promise.all([
     db.postulacion.count({
       where: { transportistaId: userId, estado: "ACEPTADA", vistaTransportista: false },
     }),
@@ -49,21 +82,28 @@ export async function notifyTransportista(userId: string) {
       where: { transportistaDestinadoId: userId, esPrivada: true, estado: "ACTIVA" },
     }),
     perfilIncompleto(userId),
+    countMensajesNoLeidos(userId, "transportista"),
   ]);
   const hash = [
     ...postulaciones.map((p) => `${p.id}:${p.estado}:${p.carga.estado}`),
     `priv:${privadas}`,
+    `msj:${mensajesNoLeidos}`,
   ].join(",");
-  ssePush(userId, { count, privCount: privadas, hash, perfilIncompleto: incompleto });
+  ssePush(userId, { count, privCount: privadas, hash, perfilIncompleto: incompleto, mensajesNoLeidos });
 }
 
 export async function notifyEmpresa(userId: string) {
-  const [enConfirmacion, postulacionesNuevas, incompleto] = await Promise.all([
+  const [enConfirmacion, postulacionesNuevas, incompleto, mensajesNoLeidos] = await Promise.all([
     db.carga.count({ where: { empresaId: userId, estado: "EN_CONFIRMACION" } }),
     db.postulacion.count({
       where: { carga: { empresaId: userId }, estado: "PENDIENTE", vistaEmpresa: false },
     }),
     perfilIncompleto(userId),
+    countMensajesNoLeidos(userId, "empresa"),
   ]);
-  ssePush(userId, { count: enConfirmacion + postulacionesNuevas, perfilIncompleto: incompleto });
+  ssePush(userId, {
+    count: enConfirmacion + postulacionesNuevas,
+    perfilIncompleto: incompleto,
+    mensajesNoLeidos,
+  });
 }
