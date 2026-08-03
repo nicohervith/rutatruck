@@ -27,8 +27,16 @@ function ssePush(userId: string, data: unknown) {
   }
 }
 
+async function perfilIncompleto(userId: string): Promise<boolean> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { phone: true, emailVerified: true },
+  });
+  return !user || !user.phone || !user.emailVerified;
+}
+
 export async function notifyTransportista(userId: string) {
-  const [count, postulaciones, privadas] = await Promise.all([
+  const [count, postulaciones, privadas, incompleto] = await Promise.all([
     db.postulacion.count({
       where: { transportistaId: userId, estado: "ACEPTADA", vistaTransportista: false },
     }),
@@ -40,20 +48,22 @@ export async function notifyTransportista(userId: string) {
     db.carga.count({
       where: { transportistaDestinadoId: userId, esPrivada: true, estado: "ACTIVA" },
     }),
+    perfilIncompleto(userId),
   ]);
   const hash = [
     ...postulaciones.map((p) => `${p.id}:${p.estado}:${p.carga.estado}`),
     `priv:${privadas}`,
   ].join(",");
-  ssePush(userId, { count, privCount: privadas, hash });
+  ssePush(userId, { count, privCount: privadas, hash, perfilIncompleto: incompleto });
 }
 
 export async function notifyEmpresa(userId: string) {
-  const [enConfirmacion, postulacionesNuevas] = await Promise.all([
+  const [enConfirmacion, postulacionesNuevas, incompleto] = await Promise.all([
     db.carga.count({ where: { empresaId: userId, estado: "EN_CONFIRMACION" } }),
     db.postulacion.count({
       where: { carga: { empresaId: userId }, estado: "PENDIENTE", vistaEmpresa: false },
     }),
+    perfilIncompleto(userId),
   ]);
-  ssePush(userId, { count: enConfirmacion + postulacionesNuevas });
+  ssePush(userId, { count: enConfirmacion + postulacionesNuevas, perfilIncompleto: incompleto });
 }

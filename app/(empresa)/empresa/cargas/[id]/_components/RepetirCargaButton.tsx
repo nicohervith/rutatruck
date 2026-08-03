@@ -6,7 +6,6 @@ const DRAFT_KEY = "clickcargo-nueva-carga-draft";
 
 interface Props {
   carga: {
-    titulo: string;
     origen: string;
     origenLat: number | null;
     origenLng: number | null;
@@ -32,7 +31,6 @@ export default function RepetirCargaButton({ carga }: Props) {
 
   function handleClick() {
     const draft = {
-      titulo: carga.titulo,
       origen: carga.origen,
       origenLat: carga.origenLat?.toString() ?? "",
       origenLng: carga.origenLng?.toString() ?? "",

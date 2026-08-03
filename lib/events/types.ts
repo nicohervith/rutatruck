@@ -27,6 +27,9 @@ export type Events = {
   "oferta-privada.respondida": {
     empresaId: string;
     transportistaId: string;
+    cargaId: number;
+    titulo: string;
+    accion: "aceptar" | "rechazar";
   };
   "carga.completada": {
     empresaId: string;

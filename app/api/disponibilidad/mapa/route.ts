@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { isEmpresa } from "@/lib/roles";
+import { whereDisponibilidadVigente } from "@/lib/disponibilidad";
 
 export async function GET() {
   const session = await getSession();
@@ -9,17 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
   const disponibilidades = await db.disponibilidadTransportista.findMany({
-    where: {
-      activo: true,
-      OR: [
-        { disponibleHoy: true, actualizadoEn: { gte: cutoff24h } },
-        { disponibleHoy: false, actualizadoEn: { gte: cutoff7d } },
-      ],
-    },
+    where: whereDisponibilidadVigente(),
     select: {
       id: true,
       transportistaId: true,

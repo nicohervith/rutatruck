@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { isEmpresa } from "@/lib/roles";
+import { linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 
 export async function PUT(
   req: NextRequest,
@@ -28,14 +29,14 @@ export async function PUT(
   }
 
   const {
-    titulo, origen, destino, cantidadCamiones, tipoCarga, tipoCargaDetalle,
+    origen, destino, cantidadCamiones, tipoCarga, tipoCargaDetalle,
     peso, pesoUnidad, presupuesto,
     fechaCarga, fechaCupo, preferenciaCamion,
     descripcion,
     contactoNombre, contactoTelefono, contactoEmail,
   } = body;
 
-  if (!titulo || !origen || !destino || !tipoCarga || !fechaCarga || !contactoNombre || !contactoTelefono || !contactoEmail) {
+  if (!origen || !destino || !tipoCarga || !fechaCarga || !contactoNombre || !contactoTelefono || !contactoEmail) {
     return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 });
   }
 
@@ -46,7 +47,7 @@ export async function PUT(
   await db.carga.update({
     where: { id: cargaId },
     data: {
-      titulo: String(titulo),
+      titulo: `${String(origen)} → ${String(destino)}`,
       origen: String(origen),
       destino: String(destino),
       cantidadCamiones: cantidadCamiones !== undefined && cantidadCamiones !== "" ? parseInt(String(cantidadCamiones)) : undefined,
@@ -66,6 +67,8 @@ export async function PUT(
       contactoEmail: String(contactoEmail),
     },
   });
+
+  await linkPhoneSiFalta(session.userId, String(contactoTelefono)).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

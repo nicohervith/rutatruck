@@ -5,21 +5,15 @@ import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { BottomTabBar } from "@/app/_components/BottomTabBar";
 import type { TransportistaDisp } from "./_components/MapaTransportistas";
 import MapaTransportistasWrapper from "./_components/MapaTransportistasWrapper";
+import { whereDisponibilidadVigente } from "@/lib/disponibilidad";
 
 export default async function TransportistasMapPage() {
   const session = await verifySession();
 
-  const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
   const disponibilidades = await db.disponibilidadTransportista.findMany({
     where: {
-      activo: true,
+      ...whereDisponibilidadVigente(),
       transportistaId: { not: session.userId },
-      OR: [
-        { disponibleHoy: true, actualizadoEn: { gte: cutoff24h } },
-        { disponibleHoy: false, actualizadoEn: { gte: cutoff7d } },
-      ],
     },
     select: {
       id: true,
