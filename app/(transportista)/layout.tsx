@@ -1,5 +1,5 @@
 import PushNotificationSetup from "./transportista/_components/PushNotificationSetup";
-import { BottomTabBar } from "@/app/_components/BottomTabBar";
+import { AppShell } from "@/app/_components/AppShell";
 import { EventsProvider } from "@/app/_components/EventsProvider";
 import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
@@ -42,9 +42,9 @@ export default function TransportistaGroupLayout({
   return (
     <EventsProvider>
       <PushNotificationSetup />
-      <DisponibleBanner />
-      <div className="pb-16 md:pb-0">{children}</div>
-      <BottomTabBar role="transportista" />
+      <AppShell role="transportista" banner={<DisponibleBanner />}>
+        {children}
+      </AppShell>
     </EventsProvider>
   );
 }

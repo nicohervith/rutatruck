@@ -26,9 +26,9 @@ export default async function EmpresaConversacionPage({
   ]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
+    <div className="h-dvh flex flex-col overflow-hidden" style={{ backgroundColor: "#F2F5F5" }}>
       <header
-        className="sticky top-0 z-30 border-b px-5 py-3.5 flex items-center justify-between"
+        className="flex-shrink-0 border-b px-5 py-3.5 flex items-center justify-between"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}
       >
         <LogoClickCargo />
@@ -39,7 +39,7 @@ export default async function EmpresaConversacionPage({
       </header>
 
       <div
-        className="border-b px-5 py-3 flex items-center gap-3"
+        className="flex-shrink-0 border-b px-5 py-3 flex items-center gap-3"
         style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
       >
         <Link
@@ -68,7 +68,7 @@ export default async function EmpresaConversacionPage({
       <ChatThread
         cargaId={carga.id}
         currentUserId={session.userId}
-        initialMensajes={mensajes.map((m) => ({
+        initialMensajes={mensajes.map((m:any) => ({
           id: m.id,
           autorId: m.autorId,
           cuerpo: m.cuerpo,

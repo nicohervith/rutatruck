@@ -89,8 +89,8 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   }
 
   return (
-    <div>
-      <div className="px-4 py-4 space-y-3">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {mensajes.length === 0 && (
           <p className="text-center text-sm py-10" style={{ color: "#9CA3AF" }}>
             Todavía no hay mensajes. Escribí el primero para coordinar el viaje.
@@ -120,14 +120,14 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
       </div>
 
       {error && (
-        <p className="px-4 pb-1 text-xs" style={{ color: "#DC2626" }}>
+        <p className="px-4 pb-1 text-xs flex-shrink-0" style={{ color: "#DC2626" }}>
           {error}
         </p>
       )}
 
       <form
         onSubmit={handleSend}
-        className="sticky bottom-16 md:bottom-0 border-t px-4 py-3 flex gap-2"
+        className="flex-shrink-0 border-t px-4 py-3 flex gap-2"
         style={{ borderColor: "#E2E8E8", backgroundColor: "#FFFFFF" }}
       >
         <input
