@@ -6,6 +6,7 @@ import NotificacionBell from "../../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import ChatThread from "@/app/_components/ChatThread";
 import { findCargaParaChat, findMensajesDeCarga, marcarLeidos } from "@/lib/repositories/mensaje.repository";
+import { labelChatPorVencer } from "@/lib/chat";
 
 export default async function TransportistaConversacionPage({
   params,
@@ -24,6 +25,7 @@ export default async function TransportistaConversacionPage({
     findMensajesDeCarga(cargaId),
     marcarLeidos(cargaId, session.userId),
   ]);
+  const avisoVencimiento = labelChatPorVencer(carga);
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden" style={{ backgroundColor: "#F2F5F5" }}>
@@ -51,7 +53,7 @@ export default async function TransportistaConversacionPage({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-semibold text-gray-900 truncate">{carga.empresa.name}</p>
           <Link
             href={`/transportista/cargas/${carga.id}`}
@@ -61,6 +63,14 @@ export default async function TransportistaConversacionPage({
             {carga.titulo}
           </Link>
         </div>
+        {avisoVencimiento && (
+          <span
+            className="flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full"
+            style={{ backgroundColor: "#FFEDD5", color: "#9A3412" }}
+          >
+            {avisoVencimiento}
+          </span>
+        )}
       </div>
 
       <ChatThread

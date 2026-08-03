@@ -75,6 +75,14 @@ export default async function EmpresaConversacionesPage() {
                     >
                       {c.ultimoMensaje ?? "Sin mensajes todavía — iniciá la conversación"}
                     </p>
+                    {c.avisoVencimiento && (
+                      <span
+                        className="inline-block mt-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                        style={{ backgroundColor: "#FFEDD5", color: "#9A3412" }}
+                      >
+                        {c.avisoVencimiento}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[10px] flex-shrink-0" style={{ color: "#9CA3AF" }}>
                     {c.ultimoMensajeEn.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}

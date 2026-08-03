@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { esChatVigente, whereChatVigente, labelChatPorVencer, CHAT_RETENCION_FINALIZADA_MS } from "@/lib/chat";
 
 export async function crearMensaje(cargaId: number, autorId: string, cuerpo: string) {
   return db.mensaje.create({ data: { cargaId, autorId, cuerpo } });
@@ -29,7 +30,7 @@ export async function countMensajesNoLeidos(userId: string, role: "empresa" | "t
   });
 }
 
-/** Carga con datos de contraparte, solo si userId es la empresa o el transportista asignado. */
+/** Carga con datos de contraparte, solo si userId es la empresa o el transportista asignado y el chat no venció. */
 export async function findCargaParaChat(cargaId: number, userId: string) {
   const carga = await db.carga.findUnique({
     where: { id: cargaId },
@@ -39,6 +40,7 @@ export async function findCargaParaChat(cargaId: number, userId: string) {
       origen: true,
       destino: true,
       estado: true,
+      updatedAt: true,
       empresaId: true,
       transportistaAsignadoId: true,
       empresa: { select: { name: true } },
@@ -47,7 +49,17 @@ export async function findCargaParaChat(cargaId: number, userId: string) {
   });
   if (!carga || !carga.transportistaAsignadoId) return null;
   if (carga.empresaId !== userId && carga.transportistaAsignadoId !== userId) return null;
+  if (!esChatVigente(carga)) return null;
   return carga;
+}
+
+/** Borra los mensajes de cargas FINALIZADA hace más de 24h. Se llama desde un cron ya existente. */
+export async function eliminarMensajesFinalizadosVencidos() {
+  const cutoff = new Date(Date.now() - CHAT_RETENCION_FINALIZADA_MS);
+  const { count } = await db.mensaje.deleteMany({
+    where: { carga: { estado: "FINALIZADA", updatedAt: { lt: cutoff } } },
+  });
+  return count;
 }
 
 export type ConversacionResumen = {
@@ -60,6 +72,7 @@ export type ConversacionResumen = {
   ultimoMensaje: string | null;
   ultimoMensajeEn: Date;
   noLeidos: number;
+  avisoVencimiento: string | null;
 };
 
 export async function findConversaciones(
@@ -67,10 +80,12 @@ export async function findConversaciones(
   role: "empresa" | "transportista",
 ): Promise<ConversacionResumen[]> {
   const cargas = await db.carga.findMany({
-    where:
-      role === "empresa"
+    where: {
+      ...(role === "empresa"
         ? { empresaId: userId, transportistaAsignadoId: { not: null } }
-        : { transportistaAsignadoId: userId },
+        : { transportistaAsignadoId: userId }),
+      ...whereChatVigente(),
+    },
     select: {
       id: true,
       titulo: true,
@@ -114,6 +129,7 @@ export async function findConversaciones(
         ultimoMensaje: ultimo?.cuerpo ?? null,
         ultimoMensajeEn: ultimo?.creadoEn ?? c.updatedAt,
         noLeidos: noLeidosPorCarga.get(c.id) ?? 0,
+        avisoVencimiento: labelChatPorVencer(c),
       };
     })
     .sort((a, b) => b.ultimoMensajeEn.getTime() - a.ultimoMensajeEn.getTime());
