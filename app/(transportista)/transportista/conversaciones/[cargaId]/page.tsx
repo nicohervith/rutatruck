@@ -7,6 +7,7 @@ import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import ChatThread from "@/app/_components/ChatThread";
 import { findCargaParaChat, findMensajesDeCarga, marcarLeidos } from "@/lib/repositories/mensaje.repository";
 import { labelChatPorVencer } from "@/lib/chat";
+import { chatPushLeido } from "@/lib/sse";
 
 export default async function TransportistaConversacionPage({
   params,
@@ -21,10 +22,11 @@ export default async function TransportistaConversacionPage({
   const carga = await findCargaParaChat(cargaId, session.userId);
   if (!carga || carga.transportistaAsignadoId !== session.userId) redirect("/transportista/conversaciones");
 
-  const [mensajes] = await Promise.all([
+  const [mensajes, marcados] = await Promise.all([
     findMensajesDeCarga(cargaId),
     marcarLeidos(cargaId, session.userId),
   ]);
+  if (marcados > 0) chatPushLeido(cargaId, session.userId, new Date().toISOString());
   const avisoVencimiento = labelChatPorVencer(carga);
 
   return (
@@ -81,6 +83,7 @@ export default async function TransportistaConversacionPage({
           autorId: m.autorId,
           cuerpo: m.cuerpo,
           creadoEn: m.creadoEn.toISOString(),
+          leidoEn: m.leidoEn ? m.leidoEn.toISOString() : null,
         }))}
       />
     </div>

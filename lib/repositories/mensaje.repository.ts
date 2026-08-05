@@ -14,10 +14,11 @@ export async function findMensajesDeCarga(cargaId: number, sinceId?: number, lim
 }
 
 export async function marcarLeidos(cargaId: number, userId: string) {
-  await db.mensaje.updateMany({
+  const { count } = await db.mensaje.updateMany({
     where: { cargaId, autorId: { not: userId }, leidoEn: null },
     data: { leidoEn: new Date() },
   });
+  return count;
 }
 
 export async function countMensajesNoLeidos(userId: string, role: "empresa" | "transportista") {

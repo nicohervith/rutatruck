@@ -60,6 +60,28 @@ export function chatPush(cargaId: number, mensajes: unknown[]) {
   }
 }
 
+/** Señal efímera "está escribiendo": no se persiste, solo se relaya a quien tenga el hilo abierto en esta misma instancia. */
+export function chatPushTyping(cargaId: number, autorId: string) {
+  const s = chatSubs.get(cargaId);
+  if (!s?.size) return;
+  const chunk = enc.encode(`event: typing\ndata: ${JSON.stringify({ autorId })}\n\n`);
+  for (const ctrl of [...s]) {
+    try { ctrl.enqueue(chunk); }
+    catch { s.delete(ctrl); }
+  }
+}
+
+/** Avisa que `lectorId` marcó como leídos los mensajes de la contraparte, para actualizar el check en el emisor. */
+export function chatPushLeido(cargaId: number, lectorId: string, en: string) {
+  const s = chatSubs.get(cargaId);
+  if (!s?.size) return;
+  const chunk = enc.encode(`event: leido\ndata: ${JSON.stringify({ lectorId, en })}\n\n`);
+  for (const ctrl of [...s]) {
+    try { ctrl.enqueue(chunk); }
+    catch { s.delete(ctrl); }
+  }
+}
+
 async function perfilIncompleto(userId: string): Promise<boolean> {
   const user = await db.user.findUnique({
     where: { id: userId },

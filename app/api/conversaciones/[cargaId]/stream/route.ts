@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getSession } from "@/lib/dal";
 import { findCargaParaChat, findMensajesDeCarga, marcarLeidos } from "@/lib/repositories/mensaje.repository";
-import { chatSubscribe, chatUnsubscribe } from "@/lib/sse";
+import { chatSubscribe, chatUnsubscribe, chatPushLeido } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 // Ver app/api/events/route.ts: sin esto el timeout default de Vercel (10s en
@@ -46,7 +46,8 @@ export async function GET(
             const nuevos = await findMensajesDeCarga(cargaId, lastId);
             if (nuevos.length > 0) {
               lastId = nuevos[nuevos.length - 1].id;
-              await marcarLeidos(cargaId, session.userId);
+              const marcados = await marcarLeidos(cargaId, session.userId);
+              if (marcados > 0) chatPushLeido(cargaId, session.userId, new Date().toISOString());
               controller.enqueue(enc.encode(`event: mensajes\ndata: ${JSON.stringify(nuevos)}\n\n`));
             } else {
               controller.enqueue(enc.encode(": ping\n\n"));

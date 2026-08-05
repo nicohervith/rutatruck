@@ -126,7 +126,8 @@
       "Bash(python -c ' *)",
       "Bash(xxd)",
       "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 100)",
-      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 150)"
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 150)",
+      "Bash(xargs -I{} grep -n '\"version\"' {})"
     ]
   }
 }

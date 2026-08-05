@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   const suscripciones = await db.pushSubscription.findMany({
-    where: { user: { role: "TRANSPORTISTA" } },
+    where: { user: { role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] } } },
   });
 
   if (suscripciones.length === 0) {

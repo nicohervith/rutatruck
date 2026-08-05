@@ -144,7 +144,7 @@ export default function NotificacionBellEmpresa() {
                           ? "Viaje completado — confirmá o disputá"
                           : `Nueva postulación${n.extra ? ` de ${n.extra}` : ""}`}
                       </p>
-                      <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--primary)" }}>
+                      <p className="text-xs mt-0.5 font-semibold" style={{ color: "#C4DCDC" }}>
                         {n.titulo}
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>

@@ -7,6 +7,7 @@ export type Mensaje = {
   autorId: string;
   cuerpo: string;
   creadoEn: string;
+  leidoEn: string | null;
 };
 
 interface Props {
@@ -20,10 +21,13 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
+  const [otroEscribiendo, setOtroEscribiendo] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastIdRef = useRef(
     initialMensajes.length > 0 ? initialMensajes[initialMensajes.length - 1].id : 0,
   );
+  const escribiendoTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const ultimoTypingEnviadoRef = useRef(0);
 
   function mergeMensajes(nuevos: Mensaje[]) {
     if (nuevos.length === 0) return;
@@ -48,6 +52,22 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
         mergeMensajes(JSON.parse(e.data) as Mensaje[]);
       });
 
+      es.addEventListener("typing", (e: MessageEvent) => {
+        const { autorId } = JSON.parse(e.data) as { autorId: string };
+        if (autorId === currentUserId) return;
+        setOtroEscribiendo(true);
+        clearTimeout(escribiendoTimeoutRef.current);
+        escribiendoTimeoutRef.current = setTimeout(() => setOtroEscribiendo(false), 3500);
+      });
+
+      es.addEventListener("leido", (e: MessageEvent) => {
+        const { lectorId, en } = JSON.parse(e.data) as { lectorId: string; en: string };
+        if (lectorId === currentUserId) return;
+        setMensajes((prev) =>
+          prev.map((m) => (m.autorId === currentUserId && !m.leidoEn ? { ...m, leidoEn: en } : m)),
+        );
+      });
+
       es.onerror = () => {
         es.close();
         retryId = setTimeout(connect, 3000);
@@ -58,12 +78,21 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
     return () => {
       es?.close();
       clearTimeout(retryId);
+      clearTimeout(escribiendoTimeoutRef.current);
     };
-  }, [cargaId]);
+  }, [cargaId, currentUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes.length]);
+
+  function handleTextoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setTexto(e.target.value);
+    const ahora = Date.now();
+    if (ahora - ultimoTypingEnviadoRef.current < 2000) return;
+    ultimoTypingEnviadoRef.current = ahora;
+    fetch(`/api/conversaciones/${cargaId}/typing`, { method: "POST" }).catch(() => {});
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -109,13 +138,28 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
                 }
               >
                 <p className="whitespace-pre-wrap break-words">{m.cuerpo}</p>
-                <p className="text-[10px] mt-1" style={{ opacity: 0.7 }}>
+                <p className="text-[10px] mt-1 flex items-center justify-end gap-1" style={{ opacity: 0.7 }}>
                   {new Date(m.creadoEn).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
+                  {esMio && (
+                    <span style={{ color: m.leidoEn ? "#7DD3FC" : "inherit" }}>
+                      {m.leidoEn ? "✓✓" : "✓"}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
           );
         })}
+        {otroEscribiendo && (
+          <div className="flex justify-start">
+            <div
+              className="rounded-2xl px-4 py-2.5 text-sm italic"
+              style={{ backgroundColor: "#FFFFFF", color: "#6B7280", border: "1px solid #E2E8E8" }}
+            >
+              Escribiendo...
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -133,7 +177,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
         <input
           type="text"
           value={texto}
-          onChange={(e) => setTexto(e.target.value)}
+          onChange={handleTextoChange}
           placeholder="Escribí un mensaje..."
           className="flex-1 rounded-full border px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
           style={{ borderColor: "#E2E8E8", color: "#111827" }}
