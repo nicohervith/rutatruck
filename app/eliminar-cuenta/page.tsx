@@ -48,6 +48,7 @@ export default function EliminarCuentaPage() {
             <li>Nombre, correo electrónico y contraseña.</li>
             <li>Datos de empresa o transportista (CUIT, razón social, vehículo, etc.).</li>
             <li>Historial de cargas, postulaciones y disponibilidad.</li>
+            <li>Mensajes del chat interno.</li>
             <li>Notificaciones y preferencias de la cuenta.</li>
             <li>Datos de ubicación almacenados.</li>
           </ul>
