@@ -39,6 +39,7 @@ export async function sendPushToAllTransportistas(
           JSON.stringify(payload)
         );
       } catch (err: any) {
+        console.error("[push] sendPushToAllTransportistas fallo", err.statusCode, err.body);
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
         }
@@ -80,6 +81,7 @@ export async function sendPushToTransportistasCercanos(
           JSON.stringify(payload)
         );
       } catch (err: any) {
+        console.error("[push] sendPushToTransportistasCercanos fallo", err.statusCode, err.body);
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
         }
@@ -104,6 +106,7 @@ export async function sendPushToUser(
           JSON.stringify(payload)
         );
       } catch (err: any) {
+        console.error("[push] sendPushToUser fallo", err.statusCode, err.body);
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } });
         }
