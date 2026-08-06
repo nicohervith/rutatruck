@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useOtroRolPendiente } from "./EventsProvider";
 
 interface Props {
   toRole: "empresa" | "transportista";
@@ -13,6 +14,7 @@ interface Props {
 export default function SwitchRoleButton({ toRole, className, style, children }: Props) {
   const router = useRouter();
   const [switching, setSwitching] = useState(false);
+  const otroRolPendiente = useOtroRolPendiente();
 
   const dest = toRole === "empresa" ? "/empresa/dashboard" : "/transportista/cargas";
   const label = toRole === "empresa" ? "Empresa" : "Transportista";
@@ -28,7 +30,14 @@ export default function SwitchRoleButton({ toRole, className, style, children }:
   return (
     <>
       <button type="button" onClick={handleClick} className={className} style={style}>
-        {children}
+        <span className="relative inline-flex items-center gap-2">
+          {children}
+          {otroRolPendiente > 0 && (
+            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+              {otroRolPendiente > 9 ? "9+" : otroRolPendiente}
+            </span>
+          )}
+        </span>
       </button>
 
       {switching && (

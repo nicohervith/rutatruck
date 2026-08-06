@@ -8,7 +8,7 @@ export default function EmpresaGroupLayout({
   children: React.ReactNode;
 }) {
   return (
-    <EventsProvider>
+    <EventsProvider vista="empresa">
       <PushNotificationSetup />
       <AppShell role="empresa">{children}</AppShell>
     </EventsProvider>

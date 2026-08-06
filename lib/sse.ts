@@ -90,7 +90,7 @@ async function perfilIncompleto(userId: string): Promise<boolean> {
   return !user || !user.phone || !user.emailVerified;
 }
 
-export async function notifyTransportista(userId: string) {
+export async function notifyTransportista(userId: string, extra?: Record<string, unknown>) {
   const [count, postulaciones, privadas, incompleto, mensajesNoLeidos] = await Promise.all([
     db.postulacion.count({
       where: { transportistaId: userId, estado: "ACEPTADA", vistaTransportista: false },
@@ -111,10 +111,10 @@ export async function notifyTransportista(userId: string) {
     `priv:${privadas}`,
     `msj:${mensajesNoLeidos}`,
   ].join(",");
-  ssePush(userId, { count, privCount: privadas, hash, perfilIncompleto: incompleto, mensajesNoLeidos });
+  ssePush(userId, { count, privCount: privadas, hash, perfilIncompleto: incompleto, mensajesNoLeidos, ...extra });
 }
 
-export async function notifyEmpresa(userId: string) {
+export async function notifyEmpresa(userId: string, extra?: Record<string, unknown>) {
   const [enConfirmacion, postulacionesNuevas, incompleto, mensajesNoLeidos] = await Promise.all([
     db.carga.count({ where: { empresaId: userId, estado: "EN_CONFIRMACION" } }),
     db.postulacion.count({
@@ -127,5 +127,32 @@ export async function notifyEmpresa(userId: string) {
     count: enConfirmacion + postulacionesNuevas,
     perfilIncompleto: incompleto,
     mensajesNoLeidos,
+    ...extra,
   });
+}
+
+/** Total de pendientes del lado empresa, para el badge del switcher de rol en cuentas duales. */
+export async function totalPendienteEmpresa(userId: string): Promise<number> {
+  const [enConfirmacion, postulacionesNuevas, mensajesNoLeidos] = await Promise.all([
+    db.carga.count({ where: { empresaId: userId, estado: "EN_CONFIRMACION" } }),
+    db.postulacion.count({
+      where: { carga: { empresaId: userId }, estado: "PENDIENTE", vistaEmpresa: false },
+    }),
+    countMensajesNoLeidos(userId, "empresa"),
+  ]);
+  return enConfirmacion + postulacionesNuevas + mensajesNoLeidos;
+}
+
+/** Total de pendientes del lado transportista, para el badge del switcher de rol en cuentas duales. */
+export async function totalPendienteTransportista(userId: string): Promise<number> {
+  const [count, privadas, mensajesNoLeidos] = await Promise.all([
+    db.postulacion.count({
+      where: { transportistaId: userId, estado: "ACEPTADA", vistaTransportista: false },
+    }),
+    db.carga.count({
+      where: { transportistaDestinadoId: userId, esPrivada: true, estado: "ACTIVA" },
+    }),
+    countMensajesNoLeidos(userId, "transportista"),
+  ]);
+  return count + privadas + mensajesNoLeidos;
 }

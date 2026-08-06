@@ -9,6 +9,7 @@ type EventsState = {
   hash: string;
   perfilIncompleto: boolean;
   mensajesNoLeidos: number;
+  otroRolPendiente: number;
 };
 
 const EventsContext = createContext<EventsState>({
@@ -17,6 +18,7 @@ const EventsContext = createContext<EventsState>({
   hash: "",
   perfilIncompleto: false,
   mensajesNoLeidos: 0,
+  otroRolPendiente: 0,
 });
 
 export function useNotifCount() {
@@ -35,7 +37,18 @@ export function useMensajesNoLeidos() {
   return useContext(EventsContext).mensajesNoLeidos;
 }
 
-export function EventsProvider({ children }: { children: React.ReactNode }) {
+/** Pendientes del otro lado (empresa/transportista) para cuentas duales — usado en el badge del switcher. */
+export function useOtroRolPendiente() {
+  return useContext(EventsContext).otroRolPendiente;
+}
+
+export function EventsProvider({
+  children,
+  vista,
+}: {
+  children: React.ReactNode;
+  vista: "empresa" | "transportista";
+}) {
   const router = useRouter();
   const [state, setState] = useState<EventsState>({
     notifCount: 0,
@@ -43,6 +56,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
     hash: "",
     perfilIncompleto: false,
     mensajesNoLeidos: 0,
+    otroRolPendiente: 0,
   });
   const hashRef = useRef<string | null>(null);
 
@@ -51,7 +65,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
     let retryId: ReturnType<typeof setTimeout>;
 
     function connect() {
-      es = new EventSource("/api/events");
+      es = new EventSource(`/api/events?vista=${vista}`);
 
       es.addEventListener("update", (e: MessageEvent) => {
         const payload = JSON.parse(e.data) as {
@@ -60,6 +74,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
           hash?: string;
           perfilIncompleto?: boolean;
           mensajesNoLeidos?: number;
+          otroRolPendiente?: number;
         };
 
         setState((prev) => ({
@@ -68,6 +83,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
           hash: payload.hash ?? prev.hash,
           perfilIncompleto: payload.perfilIncompleto ?? prev.perfilIncompleto,
           mensajesNoLeidos: payload.mensajesNoLeidos ?? prev.mensajesNoLeidos,
+          otroRolPendiente: payload.otroRolPendiente ?? prev.otroRolPendiente,
         }));
 
         if (payload.hash !== undefined) {
@@ -89,7 +105,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       es?.close();
       clearTimeout(retryId);
     };
-  }, [router]);
+  }, [router, vista]);
 
   return (
     <EventsContext.Provider value={state}>

@@ -40,7 +40,7 @@ export default function TransportistaGroupLayout({
   children: React.ReactNode;
 }) {
   return (
-    <EventsProvider>
+    <EventsProvider vista="transportista">
       <PushNotificationSetup />
       <AppShell role="transportista" banner={<DisponibleBanner />}>
         {children}
