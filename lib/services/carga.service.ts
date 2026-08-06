@@ -15,6 +15,8 @@ import {
   createOfertaPrivada,
   findCargasVencidasSinCompletar,
   marcarRecordatorioCompletarEnviado,
+  findCargasProximasSinAceptar,
+  marcarRecordatorioSinPostulantesEnviado,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
@@ -284,4 +286,35 @@ export async function enviarRecordatoriosCompletar() {
 
   await marcarRecordatorioCompletarEnviado(vencidas.map((c) => c.id));
   return { ok: true, transportistas: porTransportista.size, cargas: vencidas.length };
+}
+
+/**
+ * Avisa a la empresa cuando una carga ACTIVA está por vencer (o ya venció)
+ * sin ningún transportista aceptado, para que edite la fecha o gestione la
+ * convocatoria a tiempo. Se repite cada 24hs mientras el problema siga
+ * sin resolverse (mismo patrón que enviarRecordatoriosCompletar).
+ */
+export async function enviarRecordatoriosSinPostulantes() {
+  const limite = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const umbral = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const cargas = await findCargasProximasSinAceptar(limite, umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  const ahora = new Date();
+
+  await Promise.allSettled(
+    cargas.map((c) => {
+      const vencida = c.fechaCarga < ahora;
+      return sendPushToUser(c.empresaId, {
+        title: vencida ? "Carga sin transportista, fecha vencida" : "Tu carga está por vencer sin postulantes",
+        body: vencida
+          ? `"${c.titulo}" ya pasó su fecha de carga y no tenés ningún transportista aceptado. Editá la fecha o revisá las postulaciones.`
+          : `"${c.titulo}" vence pronto y no tenés ningún transportista aceptado. Editá la fecha si hace falta.`,
+        url: `/empresa/cargas/${c.id}`,
+      });
+    }),
+  );
+
+  await marcarRecordatorioSinPostulantesEnviado(cargas.map((c) => c.id));
+  return { ok: true, cargas: cargas.length };
 }

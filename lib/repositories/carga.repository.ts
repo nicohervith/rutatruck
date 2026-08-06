@@ -226,6 +226,28 @@ export async function marcarRecordatorioCompletarEnviado(cargaIds: number[]) {
   });
 }
 
+export async function findCargasProximasSinAceptar(limite: Date, umbralReintento: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "ACTIVA",
+      fechaCarga: { lte: limite },
+      postulaciones: { none: { estado: "ACEPTADA" } },
+      OR: [
+        { recordatorioSinPostulantesEnviadoEn: null },
+        { recordatorioSinPostulantesEnviadoEn: { lt: umbralReintento } },
+      ],
+    },
+    select: { id: true, titulo: true, empresaId: true, fechaCarga: true },
+  });
+}
+
+export async function marcarRecordatorioSinPostulantesEnviado(cargaIds: number[]) {
+  await db.carga.updateMany({
+    where: { id: { in: cargaIds } },
+    data: { recordatorioSinPostulantesEnviadoEn: new Date() },
+  });
+}
+
 export async function findCargasAsignadasVencidasDeTransportista(transportistaId: string) {
   const ahora = new Date();
   return db.carga.findMany({
