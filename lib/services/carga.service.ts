@@ -186,9 +186,9 @@ export async function cerrarConvocatoriaCarga(
     };
   }
 
-  const singleCamionPostulacion =
-    carga.cantidadCamiones === 1 ? carga.postulaciones[0] : undefined;
-  await cerrarConvocatoriaDb(cargaId, singleCamionPostulacion?.transportistaId);
+  const unicoAceptado =
+    carga.postulaciones.length === 1 ? carga.postulaciones[0] : undefined;
+  await cerrarConvocatoriaDb(cargaId, unicoAceptado?.transportistaId);
 
   emit("convocatoria.cerrada", {
     cargaId,
