@@ -84,25 +84,29 @@ on("oferta-privada.respondida", ({ empresaId, transportistaId, cargaId, titulo, 
 });
 
 on("carga.completada", ({ empresaId, cargaId, titulo }) => {
-  after(() =>
-    sendPushToUser(empresaId, {
-      title: "Viaje marcado como completado",
-      body: `El transportista marcó "${titulo}" como completado. Confirmá o abrí una disputa.`,
-      url: `/empresa/cargas/${cargaId}`,
-    }).catch(() => {}),
-  );
+  after(async () => {
+    await Promise.allSettled([
+      sendPushToUser(empresaId, {
+        title: "Viaje marcado como completado",
+        body: `El transportista marcó "${titulo}" como completado. Confirmá o abrí una disputa.`,
+        url: `/empresa/cargas/${cargaId}`,
+      }),
+      notifyEmpresa(empresaId),
+    ]);
+  });
 });
 
 on("convocatoria.cerrada", ({ cargaId, titulo, transportistaIds }) => {
   after(async () => {
     await Promise.allSettled(
-      transportistaIds.map((transportistaId) =>
+      transportistaIds.flatMap((transportistaId) => [
         sendPushToUser(transportistaId, {
           title: "¡Convocatoria cerrada!",
           body: `Fuiste asignado para "${titulo}". Iniciá una conversación con la empresa desde la app para coordinar.`,
           url: `/transportista/conversaciones/${cargaId}`,
         }),
-      ),
+        notifyTransportista(transportistaId),
+      ]),
     );
   });
 });
