@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactElement } from "react";
-import { useNotifCount, usePrivCount, usePerfilIncompleto } from "./EventsProvider";
+import { useNotifCount, usePrivCount, usePerfilIncompleto, useMensajesNoLeidos } from "./EventsProvider";
 
 type Tab = {
   href: string;
@@ -11,8 +11,15 @@ type Tab = {
   showNotif?: boolean;
   showPriv?: boolean;
   showPerfilAlerta?: boolean;
+  showMensajes?: boolean;
   icon: (active: boolean) => ReactElement;
 };
+
+const conversacionesIcon = (active: boolean) => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </svg>
+);
 
 const TABS: Record<"transportista" | "empresa", Tab[]> = {
   transportista: [
@@ -57,13 +64,10 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
       ),
     },
     {
-      href: "/transportista/historial",
-      label: "Historial",
-      icon: (active) => (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      href: "/transportista/conversaciones",
+      label: "Conversac.",
+      showMensajes: true,
+      icon: conversacionesIcon,
     },
   ],
   empresa: [
@@ -106,13 +110,10 @@ const TABS: Record<"transportista" | "empresa", Tab[]> = {
       ),
     },
     {
-      href: "/empresa/historial",
-      label: "Historial",
-      icon: (active) => (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.25 : 1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      href: "/empresa/conversaciones",
+      label: "Conversac.",
+      showMensajes: true,
+      icon: conversacionesIcon,
     },
   ],
 };
@@ -131,6 +132,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   const notifCount = useNotifCount();
   const privCount = usePrivCount();
   const perfilIncompleto = usePerfilIncompleto();
+  const mensajesNoLeidos = useMensajesNoLeidos();
 
   return (
     <nav
@@ -157,6 +159,11 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
               {tab.showPriv && privCount > 0 && (
                 <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
                   {privCount > 9 ? "9+" : privCount}
+                </span>
+              )}
+              {tab.showMensajes && mensajesNoLeidos > 0 && (
+                <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
+                  {mensajesNoLeidos > 9 ? "9+" : mensajesNoLeidos}
                 </span>
               )}
               {tab.showPerfilAlerta && perfilIncompleto && (

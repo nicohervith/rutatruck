@@ -140,7 +140,7 @@ export default function NotificacionBell() {
                       <p className="text-sm font-medium" style={{ color: "#E5E7EB" }}>
                         ¡Tu postulación fue aceptada!
                       </p>
-                      <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--primary)" }}>
+                      <p className="text-xs mt-0.5 font-semibold" style={{ color: "#C4DCDC" }}>
                         {n.carga.titulo}
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>

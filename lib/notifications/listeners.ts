@@ -48,7 +48,7 @@ on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubi
     deadlineHoras !== undefined
       ? `Tenés ${deadlineHoras} horas para pagar la comisión y confirmar el viaje "${titulo}".`
       : convocatoriaCubierta
-        ? `Sos el transportista asignado para "${titulo}". Contactate con la empresa para coordinar.`
+        ? `Sos el transportista asignado para "${titulo}". Iniciá una conversación con la empresa desde la app para coordinar.`
         : `Fuiste aceptado para "${titulo}". La empresa está coordinando los transportistas restantes.`;
 
   after(async () => {
@@ -56,7 +56,7 @@ on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubi
       sendPushToUser(transportistaId, {
         title: "¡Fuiste seleccionado!",
         body,
-        url: `/transportista/cargas/${cargaId}`,
+        url: `/transportista/conversaciones/${cargaId}`,
       }),
       notifyTransportista(transportistaId),
     ]);
@@ -69,8 +69,8 @@ on("oferta-privada.respondida", ({ empresaId, transportistaId, cargaId, titulo, 
       accion === "aceptar"
         ? sendPushToUser(empresaId, {
             title: "¡Oferta aceptada!",
-            body: `El transportista aceptó tu oferta para "${titulo}".`,
-            url: `/empresa/cargas/${cargaId}`,
+            body: `El transportista aceptó tu oferta para "${titulo}". Iniciá una conversación desde la app para coordinar.`,
+            url: `/empresa/conversaciones/${cargaId}`,
           })
         : sendPushToUser(empresaId, {
             title: "Oferta rechazada",
@@ -99,8 +99,8 @@ on("convocatoria.cerrada", ({ cargaId, titulo, transportistaIds }) => {
       transportistaIds.map((transportistaId) =>
         sendPushToUser(transportistaId, {
           title: "¡Convocatoria cerrada!",
-          body: `Fuiste asignado para "${titulo}". Contactate con la empresa para coordinar.`,
-          url: `/transportista/cargas/${cargaId}`,
+          body: `Fuiste asignado para "${titulo}". Iniciá una conversación con la empresa desde la app para coordinar.`,
+          url: `/transportista/conversaciones/${cargaId}`,
         }),
       ),
     );
@@ -137,6 +137,21 @@ on("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
         url: `/transportista/cargas/${cargaId}`,
       }),
       notifyTransportista(transportistaId),
+    ]);
+  });
+});
+
+on("mensaje.creado", ({ cargaId, destinatarioId, destinatarioRole, autorNombre, cuerpo }) => {
+  const preview = cuerpo.length > 80 ? `${cuerpo.slice(0, 80)}…` : cuerpo;
+  const url =
+    destinatarioRole === "empresa"
+      ? `/empresa/conversaciones/${cargaId}`
+      : `/transportista/conversaciones/${cargaId}`;
+
+  after(async () => {
+    await Promise.allSettled([
+      sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
+      destinatarioRole === "empresa" ? notifyEmpresa(destinatarioId) : notifyTransportista(destinatarioId),
     ]);
   });
 });

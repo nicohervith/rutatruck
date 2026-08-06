@@ -22,10 +22,6 @@ const TIPO_LABELS: Record<string, string> = {
   otro: "Otro",
 };
 
-function formatWhatsApp(phone: string): string {
-  return phone.replace(/\D/g, "");
-}
-
 export default async function CargaPublicaPage({
   params,
   searchParams,
@@ -67,10 +63,6 @@ export default async function CargaPublicaPage({
 
   const soyAceptado = miPostulacion?.estado === "ACEPTADA";
   const soyAsignado = carga.transportistaAsignadoId === session.userId || soyAceptado;
-  const waPhone = formatWhatsApp(carga.contactoTelefono);
-  const waMsg = encodeURIComponent(
-    `Hola ${carga.contactoNombre}, soy el transportista seleccionado para la carga "${carga.titulo}". Me comunico para coordinar los detalles.`,
-  );
 
   const pendePago = soyAsignado && carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
   const puedeCompletar = soyAsignado && carga.estado === "ASIGNADA";
@@ -204,41 +196,32 @@ export default async function CargaPublicaPage({
           </div>
         </div>
 
-        {soyAceptado && carga.estado === "ASIGNADA" && (
-          <div
-            className="rounded-xl border p-6 mb-6"
+        {soyAsignado && (
+          <Link
+            href={`/transportista/conversaciones/${carga.id}`}
+            className="rounded-xl border p-6 mb-6 flex items-center gap-4 transition-colors hover:border-[var(--primary-27)]"
             style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
           >
-            <h2 className="font-medium mb-4" style={{ color: "var(--primary)" }}>
-              Datos de contacto de la empresa
-            </h2>
-            <p className="font-medium text-gray-900">{carga.contactoNombre}</p>
-            <p className="text-sm mt-0.5" style={{ color: "#374151" }}>{carga.contactoEmail}</p>
-            <div className="flex flex-wrap gap-3 mt-4">
-              <a
-                href={`tel:${carga.contactoTelefono}`}
-                className="inline-flex items-center gap-2 border text-sm font-medium rounded-lg px-4 py-2 transition-colors"
-                style={{ borderColor: "var(--primary-20)", color: "var(--primary)", backgroundColor: "var(--primary-5)" }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                Llamar ({carga.contactoTelefono})
-              </a>
-              <a
-                href={`https://wa.me/${waPhone}?text=${waMsg}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#25D366] text-gray-900 text-sm font-medium rounded-lg px-4 py-2 hover:bg-[#1ebe57] transition-colors"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.559 4.126 1.532 5.859L.053 23.447a.5.5 0 00.614.614l5.592-1.479A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.012-1.373l-.36-.213-3.723.984.984-3.723-.213-.36A9.818 9.818 0 1112 21.818z"/>
-                </svg>
-                WhatsApp
-              </a>
+            <span
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: "var(--primary-13)" }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium" style={{ color: "var(--primary)" }}>
+                Chat con {carga.contactoNombre}
+              </p>
+              <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
+                Coordiná los detalles del viaje desde la app
+              </p>
             </div>
-          </div>
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         )}
 
         {(puedeCompletar || puedeDisputa || esperandoConfirmacion) && (

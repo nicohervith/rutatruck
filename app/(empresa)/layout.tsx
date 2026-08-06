@@ -1,5 +1,5 @@
 import PushNotificationSetup from "../(transportista)/transportista/_components/PushNotificationSetup";
-import { BottomTabBar } from "@/app/_components/BottomTabBar";
+import { AppShell } from "@/app/_components/AppShell";
 import { EventsProvider } from "@/app/_components/EventsProvider";
 
 export default function EmpresaGroupLayout({
@@ -10,8 +10,7 @@ export default function EmpresaGroupLayout({
   return (
     <EventsProvider>
       <PushNotificationSetup />
-      <div className="pb-16 md:pb-0">{children}</div>
-      <BottomTabBar role="empresa" />
+      <AppShell role="empresa">{children}</AppShell>
     </EventsProvider>
   );
 }
