@@ -115,6 +115,50 @@ function CargaCard({
   );
 }
 
+// ── Mini list shown when a marker groups 2+ cargas with the same origen ─────
+
+function GrupoList({
+  cargas,
+  yaPostuladoSet,
+  onSelect,
+  onBack,
+}: {
+  cargas: CargaMapItem[];
+  yaPostuladoSet: Set<number>;
+  onSelect: (c: CargaMapItem) => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex flex-col h-full bg-white">
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b flex-shrink-0"
+        style={{ color: "var(--primary)", borderColor: "#E2E8E8" }}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+        </svg>
+        Ver todas las cargas
+      </button>
+      <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "#6B7280" }}>
+        {cargas.length} cargas con el mismo origen
+      </p>
+      <div className="flex-1 overflow-y-auto">
+        {cargas.map(c => (
+          <CargaCard
+            key={c.id}
+            carga={c}
+            yaPostulado={yaPostuladoSet.has(c.id)}
+            selected={false}
+            onClick={() => onSelect(c)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Expanded detail card (selected state) ────────────────────────────────────
 
 function SelectedDetail({
@@ -215,11 +259,24 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
   const markersRef = useRef<MapboxMarker[]>([]);
   const [panelState, setPanelState] = useState<"split" | "map-full">("split");
   const [selectedCarga, setSelectedCarga] = useState<CargaMapItem | null>(null);
+  const [selectedGrupo, setSelectedGrupo] = useState<CargaMapItem[] | null>(null);
   const touchStartY = useRef(0);
   const isDesktop = useIsDesktop();
 
   const yaPostuladoSet = new Set(yaPostuladoIds);
   const cargasConGeo = cargas.filter(c => c.origenLat != null && c.origenLng != null);
+
+  // Cargas con el mismo origen (coords redondeadas a ~1m) quedarían apiladas
+  // exactamente en el mismo punto — un solo pin las representa a todas, con
+  // un contador, en vez de tapar unas a otras silenciosamente.
+  const gruposPorCoord = new Map<string, CargaMapItem[]>();
+  for (const c of cargasConGeo) {
+    const key = `${c.origenLat!.toFixed(5)},${c.origenLng!.toFixed(5)}`;
+    const grupo = gruposPorCoord.get(key);
+    if (grupo) grupo.push(c);
+    else gruposPorCoord.set(key, [c]);
+  }
+  const grupos = Array.from(gruposPorCoord.values());
 
   // Lock body scroll while map is open
   useEffect(() => {
@@ -250,12 +307,14 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
       map.on("load", () => {
         if (!active) return;
 
-        for (const carga of cargasConGeo) {
+        for (const grupo of grupos) {
+          const carga = grupo[0];
           const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
           const color = getPinColor(carga.tipoCarga, carga.tipoCargaDetalle);
 
           const el = document.createElement("div");
           Object.assign(el.style, {
+            position: "relative",
             width: "42px", height: "42px", borderRadius: "50%",
             background: color, border: "2.5px solid white",
             boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
@@ -265,6 +324,21 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
             userSelect: "none",
           });
           el.textContent = emoji;
+
+          if (grupo.length > 1) {
+            const badge = document.createElement("span");
+            Object.assign(badge.style, {
+              position: "absolute", top: "-6px", right: "-6px",
+              minWidth: "20px", height: "20px", padding: "0 4px",
+              borderRadius: "10px", background: "#DC2626", color: "#FFFFFF",
+              border: "2px solid white", fontSize: "11px", fontWeight: "800",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            });
+            badge.textContent = String(grupo.length);
+            el.appendChild(badge);
+          }
+
           el.addEventListener("mouseenter", () => {
             el.style.transform = "scale(1.2)";
             el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.4)";
@@ -275,7 +349,13 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
           });
           el.addEventListener("click", (e) => {
             e.stopPropagation();
-            setSelectedCarga(carga);
+            if (grupo.length > 1) {
+              setSelectedCarga(null);
+              setSelectedGrupo(grupo);
+            } else {
+              setSelectedGrupo(null);
+              setSelectedCarga(carga);
+            }
             setPanelState("split");
             map.flyTo({
               center: [carga.origenLng!, carga.origenLat!],
@@ -300,7 +380,7 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
           map.flyTo({ center: [cargasConGeo[0].origenLng!, cargasConGeo[0].origenLat!], zoom: 9, duration: 1000 });
         }
 
-        map.on("click", () => setSelectedCarga(null));
+        map.on("click", () => { setSelectedCarga(null); setSelectedGrupo(null); });
       });
     })();
 
@@ -330,6 +410,7 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
   }
 
   function flyToAndSelect(carga: CargaMapItem) {
+    setSelectedGrupo(null);
     setSelectedCarga(carga);
     if (carga.origenLat != null && carga.origenLng != null) {
       mapRef.current?.flyTo({
@@ -437,6 +518,13 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
                   yaPostulado={yaPostuladoSet.has(selectedCarga.id)}
                   onBack={() => setSelectedCarga(null)}
                 />
+              ) : selectedGrupo ? (
+                <GrupoList
+                  cargas={selectedGrupo}
+                  yaPostuladoSet={yaPostuladoSet}
+                  onSelect={(c) => setSelectedCarga(c)}
+                  onBack={() => setSelectedGrupo(null)}
+                />
               ) : (
                 <>
                   {cargas.length === 0 ? (
@@ -470,6 +558,13 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
               carga={selectedCarga}
               yaPostulado={yaPostuladoSet.has(selectedCarga.id)}
               onBack={() => setSelectedCarga(null)}
+            />
+          ) : selectedGrupo ? (
+            <GrupoList
+              cargas={selectedGrupo}
+              yaPostuladoSet={yaPostuladoSet}
+              onSelect={(c) => setSelectedCarga(c)}
+              onBack={() => setSelectedGrupo(null)}
             />
           ) : (
             <>
