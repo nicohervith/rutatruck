@@ -44,6 +44,7 @@ on("pago.aprobado.publicacion", notificarCargaDisponibleCercana);
 on("carga.publicada", notificarCargaDisponibleCercana);
 
 on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubierta, deadlineHoras }) => {
+  console.log("[listener] postulacion.aceptada recibido", { transportistaId, cargaId });
   const body =
     deadlineHoras !== undefined
       ? `Tenés ${deadlineHoras} horas para pagar la comisión y confirmar el viaje "${titulo}".`
@@ -52,6 +53,7 @@ on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubi
         : `Fuiste aceptado para "${titulo}". La empresa está coordinando los transportistas restantes.`;
 
   after(async () => {
+    console.log("[listener] postulacion.aceptada after() ejecutando", { transportistaId });
     await Promise.allSettled([
       sendPushToUser(transportistaId, {
         title: "¡Fuiste seleccionado!",
@@ -146,6 +148,7 @@ on("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
 });
 
 on("mensaje.creado", ({ cargaId, destinatarioId, destinatarioRole, autorNombre, cuerpo }) => {
+  console.log("[listener] mensaje.creado recibido", { cargaId, destinatarioId });
   const preview = cuerpo.length > 80 ? `${cuerpo.slice(0, 80)}…` : cuerpo;
   const url =
     destinatarioRole === "empresa"
@@ -153,6 +156,7 @@ on("mensaje.creado", ({ cargaId, destinatarioId, destinatarioRole, autorNombre, 
       : `/transportista/conversaciones/${cargaId}`;
 
   after(async () => {
+    console.log("[listener] mensaje.creado after() ejecutando", { destinatarioId });
     await Promise.allSettled([
       sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
       destinatarioRole === "empresa" ? notifyEmpresa(destinatarioId) : notifyTransportista(destinatarioId),
