@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
 import { cerrarConvocatoriaCarga } from "@/lib/services/carga.service";
+import { isEmpresa } from "@/lib/roles";
 
 export async function POST(
   _req: NextRequest,
@@ -10,7 +11,7 @@ export async function POST(
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (session.role !== "EMPRESA") {
+  if (!isEmpresa(session.role)) {
     return NextResponse.json({ error: "Solo empresas" }, { status: 403 });
   }
 
