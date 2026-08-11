@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import InstallPWA from "./_components/InstallPWA";
+import ServiceWorkerRegister from "./_components/ServiceWorkerRegister";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <ServiceWorkerRegister />
         <InstallPWA />
       </body>
     </html>
