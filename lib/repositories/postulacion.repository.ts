@@ -22,6 +22,10 @@ export async function sumCamionesCubiertos(cargaId: number) {
   return aceptadas.reduce((sum, p) => sum + p.camionesCubiertos, 0);
 }
 
+export async function countPostulacionesAceptadas(cargaId: number) {
+  return db.postulacion.count({ where: { cargaId, estado: "ACEPTADA" } });
+}
+
 export async function crearPostulacion(data: Prisma.PostulacionUncheckedCreateInput) {
   return db.postulacion.create({ data });
 }

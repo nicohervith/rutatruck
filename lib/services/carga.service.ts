@@ -17,6 +17,8 @@ import {
   marcarRecordatorioCompletarEnviado,
   findCargasProximasSinAceptar,
   marcarRecordatorioSinPostulantesEnviado,
+  findCargasVencidasParaCancelar,
+  cancelarCargas,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
@@ -316,5 +318,30 @@ export async function enviarRecordatoriosSinPostulantes() {
   );
 
   await marcarRecordatorioSinPostulantesEnviado(cargas.map((c) => c.id));
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Cancela automáticamente cargas ACTIVA cuya fecha de carga pasó hace más
+ * de 2 días sin ningún transportista aceptado. La empresa ya fue avisada
+ * por enviarRecordatoriosSinPostulantes desde que la fecha se acercaba.
+ */
+export async function cancelarCargasVencidasSinAceptar() {
+  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const cargas = await findCargasVencidasParaCancelar(umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  await cancelarCargas(cargas.map((c) => c.id));
+
+  await Promise.allSettled(
+    cargas.map((c) =>
+      sendPushToUser(c.empresaId, {
+        title: "Carga cancelada automáticamente",
+        body: `"${c.titulo}" se canceló porque pasaron más de 2 días de su fecha sin transportista aceptado.`,
+        url: `/empresa/cargas/${c.id}`,
+      }),
+    ),
+  );
+
   return { ok: true, cargas: cargas.length };
 }

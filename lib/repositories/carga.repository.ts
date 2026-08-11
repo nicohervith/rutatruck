@@ -248,6 +248,24 @@ export async function marcarRecordatorioSinPostulantesEnviado(cargaIds: number[]
   });
 }
 
+export async function findCargasVencidasParaCancelar(umbral: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "ACTIVA",
+      fechaCarga: { lt: umbral },
+      postulaciones: { none: { estado: "ACEPTADA" } },
+    },
+    select: { id: true, titulo: true, empresaId: true },
+  });
+}
+
+export async function cancelarCargas(cargaIds: number[]) {
+  await db.carga.updateMany({
+    where: { id: { in: cargaIds } },
+    data: { estado: "CANCELADA" },
+  });
+}
+
 export async function findCargasAsignadasVencidasDeTransportista(transportistaId: string) {
   const ahora = new Date();
   return db.carga.findMany({

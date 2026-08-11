@@ -9,6 +9,7 @@ import {
   findPostulacionPendiente,
   aceptarPostulacion,
   sumCamionesCubiertos,
+  countPostulacionesAceptadas,
   crearPostulacion as crearPostulacionDb,
   marcarVistasTransportista,
   marcarVistasEmpresa,
@@ -45,10 +46,11 @@ export async function aceptarPostulacionParaCarga(
 
   if (FREE_TIER) {
     if (convocatoriaCubierta) {
+      const totalAceptadas = await countPostulacionesAceptadas(cargaId);
       await asignarCargaConvocatoriaCubierta(
         cargaId,
         postulacion.transportistaId,
-        carga.cantidadCamiones === 1,
+        totalAceptadas === 1,
       );
     }
 
