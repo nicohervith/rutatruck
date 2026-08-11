@@ -20,7 +20,7 @@ export default async function TransportistaConversacionPage({
   if (isNaN(cargaId)) redirect("/transportista/conversaciones");
 
   const carga = await findCargaParaChat(cargaId, session.userId);
-  if (!carga || carga.transportistaAsignadoId !== session.userId) redirect("/transportista/conversaciones");
+  if (!carga) redirect("/transportista/conversaciones");
 
   const [mensajes, marcados] = await Promise.all([
     findMensajesDeCarga(cargaId),

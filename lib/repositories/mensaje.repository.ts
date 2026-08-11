@@ -26,12 +26,20 @@ export async function countMensajesNoLeidos(userId: string, role: "empresa" | "t
     where: {
       autorId: { not: userId },
       leidoEn: null,
-      carga: role === "empresa" ? { empresaId: userId } : { transportistaAsignadoId: userId },
+      carga:
+        role === "empresa"
+          ? { empresaId: userId }
+          : { postulaciones: { some: { transportistaId: userId, estado: "ACEPTADA" } } },
     },
   });
 }
 
-/** Carga con datos de contraparte, solo si userId es la empresa o el transportista asignado y el chat no venció. */
+/**
+ * Carga con datos de contraparte, solo si userId es la empresa o un transportista
+ * con postulación ACEPTADA en esta carga (no solo el transportistaAsignadoId,
+ * que es un único campo escalar: cuando una convocatoria la cubren varios
+ * transportistas aceptados a la vez, ese campo solo guarda a uno).
+ */
 export async function findCargaParaChat(cargaId: number, userId: string) {
   const carga = await db.carga.findUnique({
     where: { id: cargaId },
@@ -46,10 +54,15 @@ export async function findCargaParaChat(cargaId: number, userId: string) {
       transportistaAsignadoId: true,
       empresa: { select: { name: true } },
       transportistaAsignado: { select: { name: true } },
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        select: { transportistaId: true },
+      },
     },
   });
-  if (!carga || !carga.transportistaAsignadoId) return null;
-  if (carga.empresaId !== userId && carga.transportistaAsignadoId !== userId) return null;
+  if (!carga) return null;
+  const esTransportistaAceptado = carga.postulaciones.some((p) => p.transportistaId === userId);
+  if (carga.empresaId !== userId && !esTransportistaAceptado) return null;
   if (!esChatVigente(carga)) return null;
   return carga;
 }
@@ -83,8 +96,8 @@ export async function findConversaciones(
   const cargas = await db.carga.findMany({
     where: {
       ...(role === "empresa"
-        ? { empresaId: userId, transportistaAsignadoId: { not: null } }
-        : { transportistaAsignadoId: userId }),
+        ? { empresaId: userId, postulaciones: { some: { estado: "ACEPTADA" } } }
+        : { postulaciones: { some: { transportistaId: userId, estado: "ACEPTADA" } } }),
       ...whereChatVigente(),
     },
     select: {
