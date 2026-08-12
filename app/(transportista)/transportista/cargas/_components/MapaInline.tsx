@@ -198,6 +198,12 @@ export default function MapaInline({ cargas, yaPostuladoIds }: Props) {
           const bounds = new mapboxgl.LngLatBounds();
           for (const c of cargasConGeo) bounds.extend([c.origenLng!, c.origenLat!]);
           map.fitBounds(bounds, { padding: 60, maxZoom: 10, duration: 1000 });
+          // Sin piso de zoom, cargas repartidas por todo el país dejan el mapa
+          // muy alejado y el basemap simplifica costas/ríos a esa escala —
+          // pueblos costeros bien geolocalizados terminan pareciendo "en el mar".
+          map.once("moveend", () => {
+            if (map.getZoom() < 5) map.easeTo({ zoom: 5, duration: 400 });
+          });
         } else if (cargasConGeo.length === 1) {
           map.flyTo({ center: [cargasConGeo[0].origenLng!, cargasConGeo[0].origenLat!], zoom: 9, duration: 800 });
         }

@@ -376,6 +376,13 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
           const bounds = new mapboxgl.LngLatBounds();
           for (const c of cargasConGeo) bounds.extend([c.origenLng!, c.origenLat!]);
           map.fitBounds(bounds, { padding: 80, maxZoom: 10, duration: 1200 });
+          // fitBounds no tiene piso de zoom: con cargas repartidas por todo el
+          // país termina muy alejado, y a esa escala el basemap simplifica
+          // costas/ríos/deltas — pueblos costeros bien geolocalizados (La
+          // Plata, Mar del Plata) se ven "en el mar" aunque el pin esté bien.
+          map.once("moveend", () => {
+            if (map.getZoom() < 5) map.easeTo({ zoom: 5, duration: 400 });
+          });
         } else if (cargasConGeo.length === 1) {
           map.flyTo({ center: [cargasConGeo[0].origenLng!, cargasConGeo[0].origenLat!], zoom: 9, duration: 1000 });
         }
