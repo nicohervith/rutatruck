@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export type Mensaje = {
   id: number;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function ChatThread({ cargaId, currentUserId, initialMensajes }: Props) {
+  const router = useRouter();
   const [mensajes, setMensajes] = useState<Mensaje[]>(initialMensajes);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -29,6 +31,20 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   const escribiendoTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ultimoTypingEnviadoRef = useRef(0);
 
+  // `initialMensajes` cambia de referencia cada vez que el Server Component
+  // vuelve a correr (p.ej. por el router.refresh() de abajo). Se sincroniza
+  // acá, en el cuerpo del render, en vez de en un efecto, siguiendo el patrón
+  // de React para "ajustar estado cuando cambia una prop".
+  const [syncedInitialMensajes, setSyncedInitialMensajes] = useState(initialMensajes);
+  if (initialMensajes !== syncedInitialMensajes) {
+    setSyncedInitialMensajes(initialMensajes);
+    const ids = new Set(mensajes.map((m) => m.id));
+    const nuevos = initialMensajes.filter((m) => !ids.has(m.id));
+    if (nuevos.length > 0) {
+      setMensajes([...mensajes, ...nuevos].sort((a, b) => a.id - b.id));
+    }
+  }
+
   function mergeMensajes(nuevos: Mensaje[]) {
     if (nuevos.length === 0) return;
     setMensajes((prev) => {
@@ -37,9 +53,24 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
       merged.sort((a, b) => a.id - b.id);
       return merged;
     });
-    const maxId = Math.max(...nuevos.map((m) => m.id));
-    if (maxId > lastIdRef.current) lastIdRef.current = maxId;
   }
+
+  // `mensajes` se mantiene ordenado ascendente por id, así que el último
+  // elemento siempre es el más nuevo — se usa como cursor de "after" al
+  // (re)conectar el EventSource, se actualiza acá (no durante el render).
+  useEffect(() => {
+    if (mensajes.length === 0) return;
+    const maxId = mensajes[mensajes.length - 1].id;
+    if (maxId > lastIdRef.current) lastIdRef.current = maxId;
+  }, [mensajes]);
+
+  // Next reusa el RSC payload cacheado en navegación back/forward sin volver
+  // a correr el Server Component — por eso el último mensaje enviado podía
+  // no aparecer al volver del listado. Forzamos un refresh al entrar para
+  // que `initialMensajes`/`marcarLeidos` se recalculen siempre con datos frescos.
+  useEffect(() => {
+    router.refresh();
+  }, [cargaId, router]);
 
   useEffect(() => {
     let es: EventSource;

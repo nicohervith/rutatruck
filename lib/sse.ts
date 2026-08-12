@@ -123,8 +123,10 @@ export async function notifyEmpresa(userId: string, extra?: Record<string, unkno
     perfilIncompleto(userId),
     countMensajesNoLeidos(userId, "empresa"),
   ]);
+  const hash = [`conf:${enConfirmacion}`, `post:${postulacionesNuevas}`, `msj:${mensajesNoLeidos}`].join(",");
   ssePush(userId, {
     count: enConfirmacion + postulacionesNuevas,
+    hash,
     perfilIncompleto: incompleto,
     mensajesNoLeidos,
     ...extra,

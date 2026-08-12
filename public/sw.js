@@ -74,6 +74,29 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
+// El navegador puede rotar/expirar la subscription push sin avisar a la
+// pestaña (ni siquiera hace falta que la app esté abierta). Sin este handler,
+// la única forma de renovarla es que PushNotificationSetup vuelva a correr,
+// o sea que el usuario abra la app — hasta entonces no le llega ningún push.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe(event.oldSubscription ? event.oldSubscription.options : undefined)
+      .then((subscription) => {
+        const json = subscription.toJSON();
+        return fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            endpoint: subscription.endpoint,
+            keys: { p256dh: json.keys?.p256dh, auth: json.keys?.auth },
+          }),
+        });
+      })
+      .catch(() => {})
+  );
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const rawUrl = event.notification.data?.url ?? "/";

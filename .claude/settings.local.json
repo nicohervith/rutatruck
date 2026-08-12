@@ -132,7 +132,8 @@
       "WebFetch(domain:clickcargo.com.ar)",
       "PowerShell(git status *)",
       "PowerShell(git *)",
-      "PowerShell(Get-Command *)"
+      "PowerShell(Get-Command *)",
+      "Bash(grep *)"
     ]
   }
 }
