@@ -438,24 +438,33 @@ export default function MapaTransportistas({ initialData }: Props) {
           const emoji = getVehiculoEmoji(t.vehiculo);
           const color = getVehiculoColor(t.vehiculo);
 
+          // `el` es el elemento que Mapbox posiciona (transform = translate en
+          // cada frame de pan/zoom). El hover va en un hijo (`pin`) aparte
+          // para no pisar ese transform y hacer "saltar" el pin a cualquier lado.
           const el = document.createElement("div");
           Object.assign(el.style, {
-            width: "44px", height: "44px", borderRadius: "50%",
+            width: "44px", height: "44px", cursor: "pointer",
+          });
+
+          const pin = document.createElement("div");
+          Object.assign(pin.style, {
+            width: "100%", height: "100%", borderRadius: "50%",
             background: color, border: "2.5px solid white",
             boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "22px", cursor: "pointer",
+            fontSize: "22px",
             transition: "transform 150ms ease, box-shadow 150ms ease",
             userSelect: "none",
           });
-          el.textContent = emoji;
+          pin.textContent = emoji;
+          el.appendChild(pin);
           el.addEventListener("mouseenter", () => {
-            el.style.transform = "scale(1.2)";
-            el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.4)";
+            pin.style.transform = "scale(1.2)";
+            pin.style.boxShadow = "0 4px 16px rgba(0,0,0,0.4)";
           });
           el.addEventListener("mouseleave", () => {
-            el.style.transform = "scale(1)";
-            el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
+            pin.style.transform = "scale(1)";
+            pin.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
           });
           el.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -473,6 +482,9 @@ export default function MapaTransportistas({ initialData }: Props) {
           const bounds = new mapboxgl.LngLatBounds();
           for (const t of data) bounds.extend([t.lng, t.lat]);
           map.fitBounds(bounds, { padding: 80, maxZoom: 10, duration: 1200 });
+          map.once("moveend", () => {
+            if (map.getZoom() < 5) map.easeTo({ zoom: 5, duration: 400 });
+          });
         } else if (data.length === 1) {
           map.flyTo({ center: [data[0].lng, data[0].lat], zoom: 9, duration: 1000 });
         }

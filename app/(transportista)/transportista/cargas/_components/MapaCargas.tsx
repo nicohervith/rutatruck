@@ -312,18 +312,29 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
           const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
           const color = getPinColor(carga.tipoCarga, carga.tipoCargaDetalle);
 
+          // `el` es el elemento que Mapbox posiciona: escribe su `transform`
+          // (translate) en cada frame de pan/zoom. Si el propio hover también
+          // escribe `el.style.transform` (scale), pisa esa posición y el pin
+          // "salta" a cualquier lado — por eso el hover/transición van en un
+          // hijo (`pin`) separado, que nunca es tocado por Mapbox.
           const el = document.createElement("div");
           Object.assign(el.style, {
+            width: "42px", height: "42px", cursor: "pointer",
+          });
+
+          const pin = document.createElement("div");
+          Object.assign(pin.style, {
             position: "relative",
-            width: "42px", height: "42px", borderRadius: "50%",
+            width: "100%", height: "100%", borderRadius: "50%",
             background: color, border: "2.5px solid white",
             boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "22px", cursor: "pointer",
+            fontSize: "22px",
             transition: "transform 150ms ease, box-shadow 150ms ease",
             userSelect: "none",
           });
-          el.textContent = emoji;
+          pin.textContent = emoji;
+          el.appendChild(pin);
 
           if (grupo.length > 1) {
             const badge = document.createElement("span");
@@ -336,16 +347,16 @@ export default function MapaCargas({ cargas, yaPostuladoIds, onClose }: Props) {
               lineHeight: 1,
             });
             badge.textContent = String(grupo.length);
-            el.appendChild(badge);
+            pin.appendChild(badge);
           }
 
           el.addEventListener("mouseenter", () => {
-            el.style.transform = "scale(1.2)";
-            el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.4)";
+            pin.style.transform = "scale(1.2)";
+            pin.style.boxShadow = "0 4px 16px rgba(0,0,0,0.4)";
           });
           el.addEventListener("mouseleave", () => {
-            el.style.transform = "scale(1)";
-            el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
+            pin.style.transform = "scale(1)";
+            pin.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
           });
           el.addEventListener("click", (e) => {
             e.stopPropagation();

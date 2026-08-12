@@ -138,20 +138,29 @@ export default function MapaInline({ cargas, yaPostuladoIds }: Props) {
           const emoji = getIconoCarga(carga.tipoCarga, carga.tipoCargaDetalle);
           const color = getPinColor(carga.tipoCarga, carga.tipoCargaDetalle);
 
+          // `el` es el elemento que Mapbox posiciona (transform = translate en
+          // cada frame de pan/zoom). El hover va en un hijo (`pin`) aparte
+          // para no pisar ese transform y hacer "saltar" el pin a cualquier lado.
           const el = document.createElement("div");
           Object.assign(el.style, {
+            width: "40px", height: "40px", cursor: "pointer",
+          });
+
+          const pin = document.createElement("div");
+          Object.assign(pin.style, {
             position: "relative",
-            width: "40px", height: "40px", borderRadius: "50%",
+            width: "100%", height: "100%", borderRadius: "50%",
             background: color, border: "2.5px solid white",
             boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "20px", cursor: "pointer",
+            fontSize: "20px",
             transition: "transform 150ms ease",
             userSelect: "none",
           });
-          el.textContent = emoji;
-          el.addEventListener("mouseenter", () => { el.style.transform = "scale(1.2)"; });
-          el.addEventListener("mouseleave", () => { el.style.transform = "scale(1)"; });
+          pin.textContent = emoji;
+          el.appendChild(pin);
+          el.addEventListener("mouseenter", () => { pin.style.transform = "scale(1.2)"; });
+          el.addEventListener("mouseleave", () => { pin.style.transform = "scale(1)"; });
 
           if (grupo.length > 1) {
             const badge = document.createElement("span");
@@ -164,7 +173,7 @@ export default function MapaInline({ cargas, yaPostuladoIds }: Props) {
               lineHeight: 1,
             });
             badge.textContent = String(grupo.length);
-            el.appendChild(badge);
+            pin.appendChild(badge);
           }
 
           el.addEventListener("click", (e) => {

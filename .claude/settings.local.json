@@ -133,7 +133,8 @@
       "PowerShell(git status *)",
       "PowerShell(git *)",
       "PowerShell(Get-Command *)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(npm run *)"
     ]
   }
 }
