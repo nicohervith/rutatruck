@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `clickcargo-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline.html";
 const APP_SHELL = [
@@ -22,6 +22,30 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// La rama `navigate` de abajo cachea el HTML de cada página visitada, incluidas
+// las autenticadas. Cache Storage es por origen, no por sesión: en un teléfono
+// compartido, el usuario siguiente podía ver páginas cacheadas del anterior.
+// Al llegar al login (logout explícito o sesión vencida) se purga todo lo que
+// no sea el app shell ni un asset con hash — esos son públicos e inmutables, y
+// borrarlos rompería el modo offline, porque `install` ya no vuelve a correr.
+function esAssetPublico(pathname) {
+  return pathname.startsWith("/_next/static/") || APP_SHELL.includes(pathname);
+}
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "PURGE_AUTHED_CACHE") return;
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const keys = await cache.keys();
+      await Promise.all(
+        keys
+          .filter((req) => !esAssetPublico(new URL(req.url).pathname))
+          .map((req) => cache.delete(req)),
+      );
+    }),
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
@@ -29,6 +53,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+
+  // Las navegaciones cliente del App Router no pegan a /api/: piden la propia
+  // ruta (p.ej. /transportista/conversaciones?_rsc=<hash>) con fetch(), así que
+  // `request.mode` es "cors" y caían en el stale-while-revalidate de abajo, que
+  // devuelve la copia vieja al instante. Eso servía payloads RSC viejos y
+  // anulaba los router.refresh() de ChatThread y EventsProvider — el chat sólo
+  // se veía al día tras una recarga manual (esa sí es mode "navigate").
+  // El hash de _rsc es determinístico, así que la entrada vieja se reusaba
+  // siempre. Estos pedidos van siempre a la red.
+  if (url.searchParams.has("_rsc") || request.headers.get("RSC") === "1") return;
 
   if (request.mode === "navigate") {
     event.respondWith(
