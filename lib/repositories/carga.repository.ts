@@ -62,21 +62,33 @@ export async function findCargaActivaDeEmpresa(cargaId: number, empresaId: strin
   });
 }
 
+/**
+ * Pasa la carga a ASIGNADA. `transportistaAsignadoId` es un escalar y solo
+ * puede guardar a uno, así que se le pone el primer aceptado: nunca queda en
+ * null, porque una carga ASIGNADA sin transportista se vuelve inmanejable (no
+ * se puede completar, no aparece en el historial ni en los recordatorios).
+ * La lista completa de asignados sigue siendo la de postulaciones ACEPTADA.
+ */
 export async function asignarCargaConvocatoriaCubierta(
   cargaId: number,
-  transportistaId: string,
-  singleCamion: boolean,
+  transportistaIds: string[],
 ) {
   await db.$transaction([
     db.carga.update({
       where: { id: cargaId },
       data: {
         estado: "ASIGNADA",
-        ...(singleCamion ? { transportistaAsignadoId: transportistaId } : {}),
+        ...(transportistaIds.length > 0
+          ? { transportistaAsignadoId: transportistaIds[0] }
+          : {}),
       },
     }),
+    db.postulacion.updateMany({
+      where: { cargaId, estado: "PENDIENTE" },
+      data: { estado: "RECHAZADA" },
+    }),
     db.disponibilidadTransportista.updateMany({
-      where: { transportistaId },
+      where: { transportistaId: { in: transportistaIds } },
       data: { activo: false },
     }),
   ]);
@@ -136,9 +148,27 @@ export async function aceptarOfertaPrivada(cargaId: number, transportistaId: str
   ]);
 }
 
+/**
+ * Un transportista "tiene" la carga si es el asignado escalar o si su
+ * postulación quedó ACEPTADA. Lo segundo cubre las convocatorias que cubren
+ * varios transportistas a la vez, donde el escalar solo guarda a uno.
+ */
+export function whereTransportistaDeLaCarga(transportistaId: string): Prisma.CargaWhereInput {
+  return {
+    OR: [
+      { transportistaAsignadoId: transportistaId },
+      { postulaciones: { some: { transportistaId, estado: "ACEPTADA" } } },
+    ],
+  };
+}
+
 export async function findCargaAsignadaTransportista(cargaId: number, transportistaId: string) {
-  return db.carga.findUnique({
-    where: { id: cargaId, transportistaAsignadoId: transportistaId, estado: "ASIGNADA" },
+  return db.carga.findFirst({
+    where: {
+      id: cargaId,
+      estado: "ASIGNADA",
+      ...whereTransportistaDeLaCarga(transportistaId),
+    },
   });
 }
 
@@ -150,19 +180,36 @@ export async function findCargaActivaConAceptadas(cargaId: number, empresaId: st
   return db.carga.findUnique({
     where: { id: cargaId, empresaId, estado: "ACTIVA" },
     include: {
-      postulaciones: { where: { estado: "ACEPTADA" }, select: { transportistaId: true } },
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        orderBy: { createdAt: "asc" },
+        select: { transportistaId: true },
+      },
     },
   });
 }
 
-export async function cerrarConvocatoria(cargaId: number, transportistaAsignadoId?: string) {
-  await db.carga.update({
-    where: { id: cargaId },
-    data: {
-      estado: "ASIGNADA",
-      ...(transportistaAsignadoId ? { transportistaAsignadoId } : {}),
-    },
-  });
+/** Mismo criterio que asignarCargaConvocatoriaCubierta: el escalar siempre queda seteado. */
+export async function cerrarConvocatoria(cargaId: number, transportistaIds: string[]) {
+  await db.$transaction([
+    db.carga.update({
+      where: { id: cargaId },
+      data: {
+        estado: "ASIGNADA",
+        ...(transportistaIds.length > 0
+          ? { transportistaAsignadoId: transportistaIds[0] }
+          : {}),
+      },
+    }),
+    db.postulacion.updateMany({
+      where: { cargaId, estado: "PENDIENTE" },
+      data: { estado: "RECHAZADA" },
+    }),
+    db.disponibilidadTransportista.updateMany({
+      where: { transportistaId: { in: transportistaIds } },
+      data: { activo: false },
+    }),
+  ]);
 }
 
 export async function activarCargaPagadaDesdeRedirect(cargaId: number, mpPaymentId: string | null) {
@@ -194,8 +241,8 @@ export async function findCargaActivaParaPostular(cargaId: number) {
 export async function findCargasEnViajeDeTransportista(transportistaId: string) {
   return db.carga.findMany({
     where: {
-      transportistaAsignadoId: transportistaId,
       estado: { in: ["ASIGNADA", "PENDIENTE_PAGO_TRANSPORTISTA"] },
+      ...whereTransportistaDeLaCarga(transportistaId),
     },
     select: { id: true, fechaCarga: true, fechaCupo: true, titulo: true },
   });
@@ -206,7 +253,6 @@ export async function findCargasVencidasSinCompletar(umbralReintento: Date) {
   return db.carga.findMany({
     where: {
       estado: "ASIGNADA",
-      transportistaAsignadoId: { not: null },
       OR: [
         { recordatorioCompletarEnviadoEn: null },
         { recordatorioCompletarEnviadoEn: { lt: umbralReintento } },
@@ -215,7 +261,15 @@ export async function findCargasVencidasSinCompletar(umbralReintento: Date) {
         { OR: [{ fechaCupo: { lt: ahora } }, { fechaCupo: null, fechaCarga: { lt: ahora } }] },
       ],
     },
-    select: { id: true, titulo: true, transportistaAsignadoId: true },
+    select: {
+      id: true,
+      titulo: true,
+      transportistaAsignadoId: true,
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        select: { transportistaId: true },
+      },
+    },
   });
 }
 
@@ -270,9 +324,11 @@ export async function findCargasAsignadasVencidasDeTransportista(transportistaId
   const ahora = new Date();
   return db.carga.findMany({
     where: {
-      transportistaAsignadoId: transportistaId,
       estado: "ASIGNADA",
-      OR: [{ fechaCupo: { lt: ahora } }, { fechaCupo: null, fechaCarga: { lt: ahora } }],
+      AND: [
+        whereTransportistaDeLaCarga(transportistaId),
+        { OR: [{ fechaCupo: { lt: ahora } }, { fechaCupo: null, fechaCarga: { lt: ahora } }] },
+      ],
     },
     select: { id: true, titulo: true, origen: true, destino: true },
     orderBy: { fechaCarga: "asc" },

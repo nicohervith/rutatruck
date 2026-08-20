@@ -14,16 +14,18 @@ export async function aceptarPostulacion(postulacionId: number) {
   });
 }
 
-export async function sumCamionesCubiertos(cargaId: number) {
-  const aceptadas = await db.postulacion.findMany({
+/**
+ * Postulaciones ACEPTADA de la carga, de la más antigua a la más nueva. Es la
+ * fuente de verdad de quién quedó asignado: `Carga.transportistaAsignadoId` es
+ * un escalar y solo puede guardar a uno cuando la convocatoria la cubren
+ * varios transportistas a la vez.
+ */
+export async function findPostulacionesAceptadas(cargaId: number) {
+  return db.postulacion.findMany({
     where: { cargaId, estado: "ACEPTADA" },
-    select: { camionesCubiertos: true },
+    orderBy: { createdAt: "asc" },
+    select: { transportistaId: true, camionesCubiertos: true },
   });
-  return aceptadas.reduce((sum, p) => sum + p.camionesCubiertos, 0);
-}
-
-export async function countPostulacionesAceptadas(cargaId: number) {
-  return db.postulacion.count({ where: { cargaId, estado: "ACEPTADA" } });
 }
 
 export async function crearPostulacion(data: Prisma.PostulacionUncheckedCreateInput) {

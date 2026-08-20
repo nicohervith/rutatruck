@@ -26,13 +26,22 @@ export async function enviarMensaje(
   const mensaje = await crearMensaje(cargaId, autorId, cuerpo);
 
   const esEmpresa = carga.empresaId === autorId;
-  const destinatarioId = esEmpresa ? carga.transportistaAsignadoId! : carga.empresaId;
+  // Si la convocatoria la cubren varios transportistas, el mensaje de la empresa
+  // le llega a todos: transportistaAsignadoId solo guarda a uno.
+  const destinatarioIds = esEmpresa
+    ? Array.from(
+        new Set([
+          ...carga.postulaciones.map((p) => p.transportistaId),
+          ...(carga.transportistaAsignadoId ? [carga.transportistaAsignadoId] : []),
+        ]),
+      )
+    : [carga.empresaId];
   const autorNombre = esEmpresa ? carga.empresa.name : (carga.transportistaAsignado?.name ?? "Transportista");
 
   emit("mensaje.creado", {
     cargaId,
     autorId,
-    destinatarioId,
+    destinatarioIds,
     destinatarioRole: esEmpresa ? "transportista" : "empresa",
     autorNombre,
     cuerpo,

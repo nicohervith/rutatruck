@@ -64,7 +64,11 @@ export default async function CargaPublicaPage({
   const soyAceptado = miPostulacion?.estado === "ACEPTADA";
   const soyAsignado = carga.transportistaAsignadoId === session.userId || soyAceptado;
 
-  const pendePago = soyAsignado && carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
+  // El cobro de comisión va contra el escalar transportistaAsignadoId, así que
+  // el botón de pagar solo se le muestra a ese transportista.
+  const pendePago =
+    carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA" &&
+    carga.transportistaAsignadoId === session.userId;
   const puedeCompletar = soyAsignado && carga.estado === "ASIGNADA";
   const puedeDisputa = soyAsignado && (carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION");
   const esperandoConfirmacion = soyAsignado && carga.estado === "EN_CONFIRMACION";

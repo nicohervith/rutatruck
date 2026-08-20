@@ -8,8 +8,7 @@ import {
 import {
   findPostulacionPendiente,
   aceptarPostulacion,
-  sumCamionesCubiertos,
-  countPostulacionesAceptadas,
+  findPostulacionesAceptadas,
   crearPostulacion as crearPostulacionDb,
   marcarVistasTransportista,
   marcarVistasEmpresa,
@@ -41,16 +40,15 @@ export async function aceptarPostulacionParaCarga(
 
   await aceptarPostulacion(postulacionId);
 
-  const totalCubiertos = await sumCamionesCubiertos(cargaId);
+  const aceptadas = await findPostulacionesAceptadas(cargaId);
+  const totalCubiertos = aceptadas.reduce((sum, p) => sum + p.camionesCubiertos, 0);
   const convocatoriaCubierta = totalCubiertos >= carga.cantidadCamiones;
 
   if (FREE_TIER) {
     if (convocatoriaCubierta) {
-      const totalAceptadas = await countPostulacionesAceptadas(cargaId);
       await asignarCargaConvocatoriaCubierta(
         cargaId,
-        postulacion.transportistaId,
-        totalAceptadas === 1,
+        aceptadas.map((p) => p.transportistaId),
       );
     }
 
@@ -64,9 +62,24 @@ export async function aceptarPostulacionParaCarga(
     return { ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones };
   }
 
+  // Modo pago: la carga solo sale de ACTIVA cuando la convocatoria está
+  // cubierta. Si saliera con el primer aceptado, en una carga de varios
+  // camiones la empresa ya no podría aceptar al resto ni cerrar la
+  // convocatoria (ambas exigen estado ACTIVA).
+  if (!convocatoriaCubierta) {
+    emit("postulacion.aceptada", {
+      transportistaId: postulacion.transportistaId,
+      cargaId,
+      titulo: carga.titulo,
+      convocatoriaCubierta: false,
+    });
+
+    return { ok: true, cubiertos: totalCubiertos, necesarios: carga.cantidadCamiones };
+  }
+
   const deadlineHoras = DEADLINE_HORAS();
   const deadline = new Date(Date.now() + deadlineHoras * 60 * 60 * 1000);
-  await asignarPagoPendienteTransportista(cargaId, postulacion.transportistaId, deadline);
+  await asignarPagoPendienteTransportista(cargaId, aceptadas[0].transportistaId, deadline);
 
   emit("postulacion.aceptada", {
     transportistaId: postulacion.transportistaId,

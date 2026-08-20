@@ -147,8 +147,8 @@ on("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
   });
 });
 
-on("mensaje.creado", ({ cargaId, destinatarioId, destinatarioRole, autorNombre, cuerpo }) => {
-  console.log("[listener] mensaje.creado recibido", { cargaId, destinatarioId });
+on("mensaje.creado", ({ cargaId, destinatarioIds, destinatarioRole, autorNombre, cuerpo }) => {
+  console.log("[listener] mensaje.creado recibido", { cargaId, destinatarioIds });
   const preview = cuerpo.length > 80 ? `${cuerpo.slice(0, 80)}…` : cuerpo;
   const url =
     destinatarioRole === "empresa"
@@ -156,10 +156,14 @@ on("mensaje.creado", ({ cargaId, destinatarioId, destinatarioRole, autorNombre, 
       : `/transportista/conversaciones/${cargaId}`;
 
   after(async () => {
-    console.log("[listener] mensaje.creado after() ejecutando", { destinatarioId });
-    await Promise.allSettled([
-      sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
-      destinatarioRole === "empresa" ? notifyEmpresa(destinatarioId) : notifyTransportista(destinatarioId),
-    ]);
+    console.log("[listener] mensaje.creado after() ejecutando", { destinatarioIds });
+    await Promise.allSettled(
+      destinatarioIds.flatMap((destinatarioId) => [
+        sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
+        destinatarioRole === "empresa"
+          ? notifyEmpresa(destinatarioId)
+          : notifyTransportista(destinatarioId),
+      ]),
+    );
   });
 });

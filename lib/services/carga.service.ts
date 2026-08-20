@@ -190,14 +190,13 @@ export async function cerrarConvocatoriaCarga(
     };
   }
 
-  const unicoAceptado =
-    carga.postulaciones.length === 1 ? carga.postulaciones[0] : undefined;
-  await cerrarConvocatoriaDb(cargaId, unicoAceptado?.transportistaId);
+  const transportistaIds = carga.postulaciones.map((p) => p.transportistaId);
+  await cerrarConvocatoriaDb(cargaId, transportistaIds);
 
   emit("convocatoria.cerrada", {
     cargaId,
     titulo: carga.titulo,
-    transportistaIds: carga.postulaciones.map((p) => p.transportistaId),
+    transportistaIds,
   });
 
   return { ok: true };
@@ -260,12 +259,17 @@ export async function enviarRecordatoriosCompletar() {
   const vencidas = await findCargasVencidasSinCompletar(umbral);
   if (vencidas.length === 0) return { ok: true, transportistas: 0, cargas: 0 };
 
+  // Una carga puede estar cubierta por varios transportistas aceptados; hay que
+  // avisarle a todos, no solo al que quedó en el escalar transportistaAsignadoId.
   const porTransportista = new Map<string, { id: number; titulo: string }[]>();
   for (const c of vencidas) {
-    if (!c.transportistaAsignadoId) continue;
-    const list = porTransportista.get(c.transportistaAsignadoId) ?? [];
-    list.push({ id: c.id, titulo: c.titulo });
-    porTransportista.set(c.transportistaAsignadoId, list);
+    const destinatarios = new Set(c.postulaciones.map((p) => p.transportistaId));
+    if (c.transportistaAsignadoId) destinatarios.add(c.transportistaAsignadoId);
+    for (const transportistaId of destinatarios) {
+      const list = porTransportista.get(transportistaId) ?? [];
+      list.push({ id: c.id, titulo: c.titulo });
+      porTransportista.set(transportistaId, list);
+    }
   }
 
   await Promise.allSettled(

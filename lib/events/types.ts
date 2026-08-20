@@ -60,7 +60,8 @@ export type Events = {
   "mensaje.creado": {
     cargaId: number;
     autorId: string;
-    destinatarioId: string;
+    /** Varios cuando la empresa le escribe a una carga cubierta por más de un transportista. */
+    destinatarioIds: string[];
     destinatarioRole: "empresa" | "transportista";
     autorNombre: string;
     cuerpo: string;
