@@ -18,7 +18,8 @@ import {
   findCargasProximasSinAceptar,
   marcarRecordatorioSinPostulantesEnviado,
   findCargasVencidasParaCancelar,
-  cancelarCargas,
+  findCargasCanceladasParaPurgar,
+  eliminarCargas,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
@@ -326,26 +327,45 @@ export async function enviarRecordatoriosSinPostulantes() {
 }
 
 /**
- * Cancela automáticamente cargas ACTIVA cuya fecha de carga pasó hace más
- * de 2 días sin ningún transportista aceptado. La empresa ya fue avisada
- * por enviarRecordatoriosSinPostulantes desde que la fecha se acercaba.
+ * Elimina automáticamente cargas ACTIVA cuya fecha de carga pasó hace más
+ * de 2 días sin ningún transportista aceptado (sin postulantes o con todos
+ * rechazados). La empresa ya fue avisada por enviarRecordatoriosSinPostulantes
+ * desde que la fecha se acercaba. Borrar la carga limpia el listado y saca la
+ * postulación pendiente de respuesta de la bandeja de los transportistas.
  */
 export async function cancelarCargasVencidasSinAceptar() {
   const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
   const cargas = await findCargasVencidasParaCancelar(umbral);
   if (cargas.length === 0) return { ok: true, cargas: 0 };
 
-  await cancelarCargas(cargas.map((c) => c.id));
-
+  // Notificar antes de borrar: después del delete ya no existe el id.
   await Promise.allSettled(
     cargas.map((c) =>
       sendPushToUser(c.empresaId, {
-        title: "Carga cancelada automáticamente",
-        body: `"${c.titulo}" se canceló porque pasaron más de 2 días de su fecha sin transportista aceptado.`,
-        url: `/empresa/cargas/${c.id}`,
+        title: "Carga eliminada automáticamente",
+        body: `"${c.titulo}" se eliminó porque pasaron más de 2 días de su fecha sin transportista aceptado.`,
+        url: `/empresa/cargas`,
       }),
     ),
   );
+
+  await eliminarCargas(cargas.map((c) => c.id));
+
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Purga cargas CANCELADA con más de 2 días desde su última actualización
+ * (que coincide con el momento de la cancelación). No tiene sentido guardar
+ * las canceladas indefinidamente; se dejan un par de días de gracia por si
+ * hay que consultarlas y luego se borran para limpiar el historial.
+ */
+export async function purgarCargasCanceladas() {
+  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const cargas = await findCargasCanceladasParaPurgar(umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  await eliminarCargas(cargas.map((c) => c.id));
 
   return { ok: true, cargas: cargas.length };
 }

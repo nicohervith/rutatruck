@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cancelarCargasVencidasSinAceptar } from "@/lib/services/carga.service";
+import {
+  cancelarCargasVencidasSinAceptar,
+  purgarCargasCanceladas,
+} from "@/lib/services/carga.service";
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -7,6 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const result = await cancelarCargasVencidasSinAceptar();
-  return NextResponse.json(result);
+  const vencidas = await cancelarCargasVencidasSinAceptar();
+  const canceladas = await purgarCargasCanceladas();
+  return NextResponse.json({ vencidas, canceladas });
 }

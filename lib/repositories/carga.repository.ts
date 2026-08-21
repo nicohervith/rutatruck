@@ -320,6 +320,27 @@ export async function cancelarCargas(cargaIds: number[]) {
   });
 }
 
+export async function findCargasCanceladasParaPurgar(umbral: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "CANCELADA",
+      updatedAt: { lt: umbral },
+      // Preservar las que pasaron por disputa: dejan evidencia del conflicto.
+      disputaAbiertaPor: null,
+    },
+    select: { id: true },
+  });
+}
+
+export async function eliminarCargas(cargaIds: number[]) {
+  if (cargaIds.length === 0) return;
+  await db.$transaction([
+    db.mensaje.deleteMany({ where: { cargaId: { in: cargaIds } } }),
+    db.postulacion.deleteMany({ where: { cargaId: { in: cargaIds } } }),
+    db.carga.deleteMany({ where: { id: { in: cargaIds } } }),
+  ]);
+}
+
 export async function findCargasAsignadasVencidasDeTransportista(transportistaId: string) {
   const ahora = new Date();
   return db.carga.findMany({
