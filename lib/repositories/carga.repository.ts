@@ -302,14 +302,28 @@ export async function marcarRecordatorioSinPostulantesEnviado(cargaIds: number[]
   });
 }
 
+/**
+ * Una carga sigue ACTIVA solo mientras la convocatoria no se cubrio: al
+ * completarse pasa a ASIGNADA. Por eso no se filtra por postulaciones
+ * aceptadas; una ACTIVA vencida es siempre una convocatoria incompleta,
+ * tenga cero aceptados o algunos. Se devuelven los aceptados para poder
+ * avisarles antes de borrar.
+ */
 export async function findCargasVencidasParaCancelar(umbral: Date) {
   return db.carga.findMany({
     where: {
       estado: "ACTIVA",
       fechaCarga: { lt: umbral },
-      postulaciones: { none: { estado: "ACEPTADA" } },
     },
-    select: { id: true, titulo: true, empresaId: true },
+    select: {
+      id: true,
+      titulo: true,
+      empresaId: true,
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        select: { transportistaId: true },
+      },
+    },
   });
 }
 

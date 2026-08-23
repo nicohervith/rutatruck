@@ -327,11 +327,13 @@ export async function enviarRecordatoriosSinPostulantes() {
 }
 
 /**
- * Elimina automáticamente cargas ACTIVA cuya fecha de carga pasó hace más
- * de 2 días sin ningún transportista aceptado (sin postulantes o con todos
- * rechazados). La empresa ya fue avisada por enviarRecordatoriosSinPostulantes
- * desde que la fecha se acercaba. Borrar la carga limpia el listado y saca la
- * postulación pendiente de respuesta de la bandeja de los transportistas.
+ * Elimina automáticamente cargas ACTIVA cuya fecha de carga pasó hace más de
+ * 2 días. Una carga solo sigue ACTIVA mientras la convocatoria está abierta
+ * (al cubrirse pasa a ASIGNADA), así que acá caen tanto las que no tuvieron
+ * ningún aceptado como las que quedaron a medio cubrir. La empresa ya fue
+ * avisada por enviarRecordatoriosSinPostulantes desde que la fecha se
+ * acercaba. Borrar la carga limpia el listado y saca la postulación de la
+ * bandeja de los transportistas.
  */
 export async function cancelarCargasVencidasSinAceptar() {
   const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
@@ -340,13 +342,22 @@ export async function cancelarCargasVencidasSinAceptar() {
 
   // Notificar antes de borrar: después del delete ya no existe el id.
   await Promise.allSettled(
-    cargas.map((c) =>
+    cargas.flatMap((c) => [
       sendPushToUser(c.empresaId, {
         title: "Carga eliminada automáticamente",
-        body: `"${c.titulo}" se eliminó porque pasaron más de 2 días de su fecha sin transportista aceptado.`,
+        body: `"${c.titulo}" se eliminó porque pasaron más de 2 días de su fecha sin cubrir la convocatoria.`,
         url: `/empresa/cargas`,
       }),
-    ),
+      // Los aceptados de una convocatoria que quedó incompleta pierden el
+      // viaje con el borrado: avisarles para que no lo sigan esperando.
+      ...c.postulaciones.map((p) =>
+        sendPushToUser(p.transportistaId, {
+          title: "Carga dada de baja",
+          body: `"${c.titulo}" se eliminó porque la empresa no llegó a cubrir la convocatoria a tiempo.`,
+          url: `/transportista/cargas`,
+        }),
+      ),
+    ]),
   );
 
   await eliminarCargas(cargas.map((c) => c.id));
