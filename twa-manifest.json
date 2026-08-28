@@ -17,11 +17,11 @@
   "maskableIconUrl": "https://clickcargo.com.ar/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "D:\\Programación\\rutatruck\\android.keystore",
+    "path": "C:\\Users\\Nicolás\\Documents\\Programación\\ClickCargo\\rutatruck\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "11",
-  "appVersionCode": 11,
+  "appVersionName": "12",
+  "appVersionCode": 12,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://clickcargo.com.ar/manifest.webmanifest",

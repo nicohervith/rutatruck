@@ -15,6 +15,10 @@ import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import RatingChip from "@/app/_components/RatingChip";
+import BadgeVerificado from "@/app/_components/BadgeVerificado";
+import ResenaForm from "@/app/_components/ResenaForm";
+import { findResenasEscritasEnCarga } from "@/lib/repositories/resena.repository";
 
 const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" } },
@@ -52,7 +56,15 @@ export default async function CargaDetallePage({
       postulaciones: {
         include: {
           transportista: {
-            select: { id: true, name: true, email: true, phone: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              emailVerified: true,
+              ratingPromedio: true,
+              ratingCantidad: true,
+            },
           },
         },
         orderBy: { createdAt: "asc" },
@@ -64,6 +76,9 @@ export default async function CargaDetallePage({
   });
 
   if (!carga) redirect("/empresa/cargas");
+
+  const resenasEscritas = await findResenasEscritasEnCarga(cargaId, session.userId);
+  const yaCalifique = new Set(resenasEscritas.map((r) => r.destinatarioId));
 
   // Mark new postulaciones as seen by empresa
   await db.postulacion.updateMany({
@@ -87,6 +102,9 @@ export default async function CargaDetallePage({
       email: p.contactoEmail ?? p.transportista.email,
       phone: p.contactoTelefono ?? p.transportista.phone,
       camionesCubiertos: p.camionesCubiertos ?? 1,
+      emailVerified: p.transportista.emailVerified,
+      ratingPromedio: p.transportista.ratingPromedio,
+      ratingCantidad: p.transportista.ratingCantidad,
     }));
 
   const puedeEditar = carga.estado === "ACTIVA";
@@ -95,6 +113,7 @@ export default async function CargaDetallePage({
   const puedeConfirmar = carga.estado === "EN_CONFIRMACION";
   const puedeDisputa = carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION";
   const esperandoPagoTransportista = carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
+  const puedeCalificar = carga.estado === "FINALIZADA" && asignados.length > 0;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
@@ -279,7 +298,14 @@ export default async function CargaDetallePage({
             {asignados.map((t) => (
               <div key={t.id} className="mb-3 last:mb-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-gray-900">{t.name}</p>
+                  <Link
+                    href={`/perfil/${t.id}`}
+                    className="font-medium text-gray-900 underline decoration-dotted underline-offset-4 hover:opacity-70"
+                  >
+                    {t.name}
+                  </Link>
+                  <RatingChip promedio={t.ratingPromedio} cantidad={t.ratingCantidad} />
+                  <BadgeVerificado verificado={t.emailVerified} />
                   {t.camionesCubiertos > 1 && (
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
                       {t.camionesCubiertos} camiones
@@ -382,7 +408,17 @@ export default async function CargaDetallePage({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-gray-900">{p.transportista.name}</p>
+                          <Link
+                            href={`/perfil/${p.transportista.id}`}
+                            className="font-medium text-gray-900 underline decoration-dotted underline-offset-4 hover:opacity-70"
+                          >
+                            {p.transportista.name}
+                          </Link>
+                          <RatingChip
+                            promedio={p.transportista.ratingPromedio}
+                            cantidad={p.transportista.ratingCantidad}
+                          />
+                          <BadgeVerificado verificado={p.transportista.emailVerified} />
                           {p.camionesCubiertos > 1 && (
                             <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
                               {p.camionesCubiertos} camiones
@@ -439,6 +475,41 @@ export default async function CargaDetallePage({
             </div>
           )}
         </div>
+        {puedeCalificar && (
+          <div
+            className="rounded-xl border p-6 mt-6"
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
+          >
+            <h2 className="font-medium text-gray-900 mb-1">Calificá el viaje</h2>
+            <p className="text-sm mb-4" style={{ color: "#6B7280" }}>
+              Tu calificación ayuda a que otras empresas sepan con quién están tratando.
+            </p>
+            <div className="space-y-4">
+              {asignados.map((t) =>
+                yaCalifique.has(t.id) ? (
+                  <div
+                    key={t.id}
+                    className="rounded-xl border px-4 py-3"
+                    style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
+                  >
+                    <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
+                      Ya calificaste a {t.name}
+                    </p>
+                  </div>
+                ) : (
+                  <ResenaForm
+                    key={t.id}
+                    cargaId={carga.id}
+                    destinatarioId={t.id}
+                    destinatarioNombre={t.name}
+                    tipo="A_TRANSPORTISTA"
+                  />
+                ),
+              )}
+            </div>
+          </div>
+        )}
+
         {puedeDisputa && (
           <div className="mt-10 pt-6 border-t" style={{ borderColor: "#E2E8E8" }}>
             <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>

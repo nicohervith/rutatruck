@@ -13,6 +13,9 @@ import PagarComisionButton from "./_components/PagarComisionButton";
 import CountdownTimer from "./_components/CountdownTimer";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import { getComisionConfig, calcularComision, expirarSeleccion } from "@/lib/comision";
+import RatingChip from "@/app/_components/RatingChip";
+import ResenaForm from "@/app/_components/ResenaForm";
+import { findResenasEscritasEnCarga } from "@/lib/repositories/resena.repository";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -37,7 +40,14 @@ export default async function CargaPublicaPage({
   if (isNaN(cargaId)) redirect("/transportista/cargas");
 
   const [carga, miPostulacion, user] = await Promise.all([
-    db.carga.findUnique({ where: { id: cargaId } }),
+    db.carga.findUnique({
+      where: { id: cargaId },
+      include: {
+        empresa: {
+          select: { id: true, name: true, ratingPromedio: true, ratingCantidad: true },
+        },
+      },
+    }),
     db.postulacion.findUnique({
       where: { cargaId_transportistaId: { cargaId, transportistaId: session.userId } },
     }),
@@ -72,6 +82,13 @@ export default async function CargaPublicaPage({
   const puedeCompletar = soyAsignado && carga.estado === "ASIGNADA";
   const puedeDisputa = soyAsignado && (carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION");
   const esperandoConfirmacion = soyAsignado && carga.estado === "EN_CONFIRMACION";
+  const puedeCalificar = soyAsignado && carga.estado === "FINALIZADA";
+
+  const yaCalifiqueEmpresa =
+    puedeCalificar &&
+    (await findResenasEscritasEnCarga(cargaId, session.userId)).some(
+      (r) => r.destinatarioId === carga.empresaId,
+    );
 
   let montoComision = 0;
   if (pendePago) {
@@ -113,6 +130,21 @@ export default async function CargaPublicaPage({
           <p className="mt-1.5 text-base" style={{ color: "#374151" }}>
             {carga.origen} <span style={{ color: "var(--primary)" }}>→</span> {carga.destino}
           </p>
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <span className="text-sm" style={{ color: "#6B7280" }}>
+              Publicado por{" "}
+              <Link
+                href={`/perfil/${carga.empresaId}`}
+                className="font-medium text-gray-900 underline decoration-dotted underline-offset-4 hover:opacity-70"
+              >
+                {carga.empresa.name}
+              </Link>
+            </span>
+            <RatingChip
+              promedio={carga.empresa.ratingPromedio}
+              cantidad={carga.empresa.ratingCantidad}
+            />
+          </div>
           <div
             className="mt-4 inline-flex items-center gap-2.5 rounded-xl px-4 py-2.5 border"
             style={{ backgroundColor: "var(--primary-10)", borderColor: "var(--primary-20)" }}
@@ -252,6 +284,35 @@ export default async function CargaPublicaPage({
             <p className="text-sm text-green-700 font-medium">
               Viaje completado y confirmado por la empresa.
             </p>
+          </div>
+        )}
+
+        {puedeCalificar && (
+          <div
+            className="rounded-xl border p-6 mb-6"
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
+          >
+            <h2 className="font-medium text-gray-900 mb-1">Calificá el viaje</h2>
+            <p className="text-sm mb-4" style={{ color: "#6B7280" }}>
+              Contá cómo fue trabajar con esta empresa. Ayuda al resto de los transportistas.
+            </p>
+            {yaCalifiqueEmpresa ? (
+              <div
+                className="rounded-xl border px-4 py-3"
+                style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
+              >
+                <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
+                  Ya calificaste a {carga.empresa.name}
+                </p>
+              </div>
+            ) : (
+              <ResenaForm
+                cargaId={carga.id}
+                destinatarioId={carga.empresaId}
+                destinatarioNombre={carga.empresa.name}
+                tipo="A_EMPRESA"
+              />
+            )}
           </div>
         )}
 

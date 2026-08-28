@@ -28,6 +28,10 @@ model User {
   favoritosComoEmpresa    FavoritoTransportista[]      @relation("EmpresaFavoritos")
   favoritosComoTransp     FavoritoTransportista[]      @relation("TransportistaFavoritos")
   mensajes                Mensaje[]
+  ratingPromedio          Float?
+  ratingCantidad          Int                          @default(0)
+  resenasEscritas         Resena[]                     @relation("ResenaAutor")
+  resenasRecibidas        Resena[]                     @relation("ResenaDestinatario")
 }
 
 model DisponibilidadTransportista {
@@ -103,6 +107,7 @@ model Carga {
   transportistaDestinado    User?         @relation("CargaPrivada", fields: [transportistaDestinadoId], references: [id])
   postulaciones             Postulacion[]
   mensajes                  Mensaje[]
+  resenas                   Resena[]
 }
 
 model Postulacion {
@@ -123,6 +128,35 @@ model Postulacion {
   transportista      User              @relation(fields: [transportistaId], references: [id])
 
   @@unique([cargaId, transportistaId])
+}
+
+/// Reseña bilateral de un viaje finalizado. Los puntajes son 1..5 y solo se
+/// completan los tres criterios que aplican al `tipo`; los otros dos quedan en
+/// null. `publicadaEn` implementa el doble ciego: la reseña no cuenta para el
+/// promedio ni se muestra hasta que la contraparte también califica o pasan
+/// DIAS_REVELADO días (cron `publicar-resenas`).
+model Resena {
+  id              Int        @id @default(autoincrement())
+  cargaId         Int
+  autorId         String
+  destinatarioId  String
+  tipo            TipoResena
+  comunicacion    Int
+  cumplioFecha    Int?
+  integridadCarga Int?
+  pagoEnTiempo    Int?
+  datosReales     Int?
+  promedio        Float
+  comentario      String?
+  creadaEn        DateTime   @default(now())
+  publicadaEn     DateTime?
+  carga           Carga      @relation(fields: [cargaId], references: [id], onDelete: Cascade)
+  autor           User       @relation("ResenaAutor", fields: [autorId], references: [id], onDelete: Cascade)
+  destinatario    User       @relation("ResenaDestinatario", fields: [destinatarioId], references: [id], onDelete: Cascade)
+
+  @@unique([cargaId, autorId, destinatarioId])
+  @@index([destinatarioId, publicadaEn])
+  @@index([publicadaEn, creadaEn])
 }
 
 model Mensaje {
@@ -192,6 +226,11 @@ enum EstadoCarga {
   PENDIENTE_PAGO_TRANSPORTISTA
   EN_CONFIRMACION
   DISPUTA
+}
+
+enum TipoResena {
+  A_TRANSPORTISTA
+  A_EMPRESA
 }
 
 enum EstadoPostulacion {

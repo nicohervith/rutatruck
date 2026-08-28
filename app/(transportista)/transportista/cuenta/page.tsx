@@ -4,6 +4,7 @@ import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import CuentaForm from "@/app/_components/CuentaForm";
 import CompletarPerfilBanner from "@/app/_components/CompletarPerfilBanner";
+import MiReputacion from "@/app/_components/MiReputacion";
 
 export default async function CuentaTransportistaPage() {
   const session = await verifySession();
@@ -41,6 +42,8 @@ export default async function CuentaTransportistaPage() {
         </div>
 
         <CompletarPerfilBanner phone={user.phone} emailVerified={user.emailVerified} />
+
+        <MiReputacion userId={session.userId} />
 
         <div
           className="rounded-2xl border p-5"
