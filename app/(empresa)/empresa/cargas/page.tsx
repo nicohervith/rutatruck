@@ -6,7 +6,9 @@ import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import FiltroEstado from "@/app/_components/FiltroEstado";
+import FreeTierBanner from "@/app/_components/FreeTierBanner";
 import { getIconoCarga } from "@/lib/iconos-carga";
+import { FREE_TIER, diasRestantesFreeTier } from "@/lib/free-tier";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -211,6 +213,10 @@ export default async function CargasPage({
             {cargas.length !== 1 ? "s" : ""}
           </p>
         </div>
+
+        {FREE_TIER && (
+          <FreeTierBanner role="empresa" diasRestantes={diasRestantesFreeTier()} />
+        )}
 
         {cargas.length > 0 && (
           <div className="mb-5">

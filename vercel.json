@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/recordatorio-completar",
       "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/recordatorio-sin-postulantes",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/cancelar-cargas-vencidas",
+      "schedule": "0 14 * * *"
     }
   ]
 }

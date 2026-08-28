@@ -3,6 +3,7 @@ import { getSession } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { EstadoCarga } from "@prisma/client";
 import { isEmpresa, isTransportista } from "@/lib/roles";
+import { whereTransportistaDeLaCarga } from "@/lib/repositories/carga.repository";
 
 export async function POST(
   req: NextRequest,
@@ -38,7 +39,11 @@ export async function POST(
     });
   } else {
     carga = await db.carga.findFirst({
-      where: { id: cargaId, transportistaAsignadoId: session.userId, estado: { in: estadosValidos } },
+      where: {
+        id: cargaId,
+        estado: { in: estadosValidos },
+        ...whereTransportistaDeLaCarga(session.userId),
+      },
     });
   }
 

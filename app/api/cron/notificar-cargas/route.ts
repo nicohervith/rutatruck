@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
           payload,
         );
       } catch (err: any) {
+        console.error("[cron/notificar-cargas] fallo envio", sub.endpoint, err.statusCode, err.body);
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
         }

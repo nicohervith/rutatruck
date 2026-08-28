@@ -15,6 +15,11 @@ import {
   createOfertaPrivada,
   findCargasVencidasSinCompletar,
   marcarRecordatorioCompletarEnviado,
+  findCargasProximasSinAceptar,
+  marcarRecordatorioSinPostulantesEnviado,
+  findCargasVencidasParaCancelar,
+  findCargasCanceladasParaPurgar,
+  eliminarCargas,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
@@ -186,14 +191,13 @@ export async function cerrarConvocatoriaCarga(
     };
   }
 
-  const singleCamionPostulacion =
-    carga.cantidadCamiones === 1 ? carga.postulaciones[0] : undefined;
-  await cerrarConvocatoriaDb(cargaId, singleCamionPostulacion?.transportistaId);
+  const transportistaIds = carga.postulaciones.map((p) => p.transportistaId);
+  await cerrarConvocatoriaDb(cargaId, transportistaIds);
 
   emit("convocatoria.cerrada", {
     cargaId,
     titulo: carga.titulo,
-    transportistaIds: carga.postulaciones.map((p) => p.transportistaId),
+    transportistaIds,
   });
 
   return { ok: true };
@@ -256,12 +260,17 @@ export async function enviarRecordatoriosCompletar() {
   const vencidas = await findCargasVencidasSinCompletar(umbral);
   if (vencidas.length === 0) return { ok: true, transportistas: 0, cargas: 0 };
 
+  // Una carga puede estar cubierta por varios transportistas aceptados; hay que
+  // avisarle a todos, no solo al que quedó en el escalar transportistaAsignadoId.
   const porTransportista = new Map<string, { id: number; titulo: string }[]>();
   for (const c of vencidas) {
-    if (!c.transportistaAsignadoId) continue;
-    const list = porTransportista.get(c.transportistaAsignadoId) ?? [];
-    list.push({ id: c.id, titulo: c.titulo });
-    porTransportista.set(c.transportistaAsignadoId, list);
+    const destinatarios = new Set(c.postulaciones.map((p) => p.transportistaId));
+    if (c.transportistaAsignadoId) destinatarios.add(c.transportistaAsignadoId);
+    for (const transportistaId of destinatarios) {
+      const list = porTransportista.get(transportistaId) ?? [];
+      list.push({ id: c.id, titulo: c.titulo });
+      porTransportista.set(transportistaId, list);
+    }
   }
 
   await Promise.allSettled(
@@ -284,4 +293,90 @@ export async function enviarRecordatoriosCompletar() {
 
   await marcarRecordatorioCompletarEnviado(vencidas.map((c) => c.id));
   return { ok: true, transportistas: porTransportista.size, cargas: vencidas.length };
+}
+
+/**
+ * Avisa a la empresa cuando una carga ACTIVA está por vencer (o ya venció)
+ * sin ningún transportista aceptado, para que edite la fecha o gestione la
+ * convocatoria a tiempo. Se repite cada 24hs mientras el problema siga
+ * sin resolverse (mismo patrón que enviarRecordatoriosCompletar).
+ */
+export async function enviarRecordatoriosSinPostulantes() {
+  const limite = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const umbral = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const cargas = await findCargasProximasSinAceptar(limite, umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  const ahora = new Date();
+
+  await Promise.allSettled(
+    cargas.map((c) => {
+      const vencida = c.fechaCarga < ahora;
+      return sendPushToUser(c.empresaId, {
+        title: vencida ? "Carga sin transportista, fecha vencida" : "Tu carga está por vencer sin postulantes",
+        body: vencida
+          ? `"${c.titulo}" ya pasó su fecha de carga y no tenés ningún transportista aceptado. Editá la fecha o revisá las postulaciones.`
+          : `"${c.titulo}" vence pronto y no tenés ningún transportista aceptado. Editá la fecha si hace falta.`,
+        url: `/empresa/cargas/${c.id}`,
+      });
+    }),
+  );
+
+  await marcarRecordatorioSinPostulantesEnviado(cargas.map((c) => c.id));
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Elimina automáticamente cargas ACTIVA cuya fecha de carga pasó hace más de
+ * 2 días. Una carga solo sigue ACTIVA mientras la convocatoria está abierta
+ * (al cubrirse pasa a ASIGNADA), así que acá caen tanto las que no tuvieron
+ * ningún aceptado como las que quedaron a medio cubrir. La empresa ya fue
+ * avisada por enviarRecordatoriosSinPostulantes desde que la fecha se
+ * acercaba. Borrar la carga limpia el listado y saca la postulación de la
+ * bandeja de los transportistas.
+ */
+export async function cancelarCargasVencidasSinAceptar() {
+  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const cargas = await findCargasVencidasParaCancelar(umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  // Notificar antes de borrar: después del delete ya no existe el id.
+  await Promise.allSettled(
+    cargas.flatMap((c) => [
+      sendPushToUser(c.empresaId, {
+        title: "Carga eliminada automáticamente",
+        body: `"${c.titulo}" se eliminó porque pasaron más de 2 días de su fecha sin cubrir la convocatoria.`,
+        url: `/empresa/cargas`,
+      }),
+      // Los aceptados de una convocatoria que quedó incompleta pierden el
+      // viaje con el borrado: avisarles para que no lo sigan esperando.
+      ...c.postulaciones.map((p) =>
+        sendPushToUser(p.transportistaId, {
+          title: "Carga dada de baja",
+          body: `"${c.titulo}" se eliminó porque la empresa no llegó a cubrir la convocatoria a tiempo.`,
+          url: `/transportista/cargas`,
+        }),
+      ),
+    ]),
+  );
+
+  await eliminarCargas(cargas.map((c) => c.id));
+
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Purga cargas CANCELADA con más de 2 días desde su última actualización
+ * (que coincide con el momento de la cancelación). No tiene sentido guardar
+ * las canceladas indefinidamente; se dejan un par de días de gracia por si
+ * hay que consultarlas y luego se borran para limpiar el historial.
+ */
+export async function purgarCargasCanceladas() {
+  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const cargas = await findCargasCanceladasParaPurgar(umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  await eliminarCargas(cargas.map((c) => c.id));
+
+  return { ok: true, cargas: cargas.length };
 }

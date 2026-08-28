@@ -20,7 +20,7 @@ export default async function TransportistaConversacionPage({
   if (isNaN(cargaId)) redirect("/transportista/conversaciones");
 
   const carga = await findCargaParaChat(cargaId, session.userId);
-  if (!carga || carga.transportistaAsignadoId !== session.userId) redirect("/transportista/conversaciones");
+  if (!carga) redirect("/transportista/conversaciones");
 
   const [mensajes, marcados] = await Promise.all([
     findMensajesDeCarga(cargaId),
@@ -75,7 +75,12 @@ export default async function TransportistaConversacionPage({
         )}
       </div>
 
+      {/* `key` fuerza remount al cambiar de carga: React no desmonta cuando sólo
+          cambia un parámetro de ruta, y ChatThread mergea `initialMensajes` por
+          id sin mirar el cargaId (y `lastIdRef` tampoco se resetea), así que
+          reusar la instancia arrastraría los mensajes de la conversación previa. */}
       <ChatThread
+        key={carga.id}
         cargaId={carga.id}
         currentUserId={session.userId}
         initialMensajes={mensajes.map((m) => ({

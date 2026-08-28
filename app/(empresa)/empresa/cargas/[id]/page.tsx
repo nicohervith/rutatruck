@@ -76,6 +76,19 @@ export default async function CargaDetallePage({
     badgeStyle: { backgroundColor: "#F3F4F6", color: "#4B5563", border: "1px solid #E5E7EB" },
   };
 
+  // Los asignados salen de las postulaciones ACEPTADA, no del escalar
+  // transportistaAsignadoId: cuando la convocatoria la cubren varios
+  // transportistas, ese campo solo guarda a uno.
+  const asignados = carga.postulaciones
+    .filter((p) => p.estado === "ACEPTADA")
+    .map((p) => ({
+      id: p.transportista.id,
+      name: p.transportista.name,
+      email: p.contactoEmail ?? p.transportista.email,
+      phone: p.contactoTelefono ?? p.transportista.phone,
+      camionesCubiertos: p.camionesCubiertos ?? 1,
+    }));
+
   const puedeEditar = carga.estado === "ACTIVA";
   const puedeCancelar = carga.estado === "ACTIVA";
   const pendientePago = carga.estado === "PENDIENTE_PAGO";
@@ -255,14 +268,30 @@ export default async function CargaDetallePage({
           </div>
         </div>
 
-        {carga.transportistaAsignado && (
+        {asignados.length > 0 && (
           <div
             className="rounded-xl border p-6 mb-6"
             style={{ backgroundColor: "#FFFFFF", borderColor: "var(--primary-20)" }}
           >
-            <h2 className="font-medium text-gray-900 mb-3">Transportista asignado</h2>
-            <p className="font-medium text-gray-900">{carga.transportistaAsignado.name}</p>
-            <p className="text-sm mt-0.5" style={{ color: "#374151" }}>{carga.transportistaAsignado.email}</p>
+            <h2 className="font-medium text-gray-900 mb-3">
+              {asignados.length === 1 ? "Transportista asignado" : `Transportistas asignados (${asignados.length})`}
+            </h2>
+            {asignados.map((t) => (
+              <div key={t.id} className="mb-3 last:mb-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-gray-900">{t.name}</p>
+                  {t.camionesCubiertos > 1 && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
+                      {t.camionesCubiertos} camiones
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm mt-0.5" style={{ color: "#374151" }}>{t.email}</p>
+                {t.phone && (
+                  <p className="text-sm" style={{ color: "#374151" }}>{t.phone}</p>
+                )}
+              </div>
+            ))}
             <Link
               href={`/empresa/conversaciones/${carga.id}`}
               className="mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors hover:border-[var(--primary-27)]"
@@ -278,7 +307,9 @@ export default async function CargaDetallePage({
               </span>
               <div className="flex-1 min-w-0">
                 <p className="font-medium" style={{ color: "var(--primary)" }}>
-                  Chat con {carga.transportistaAsignado.name}
+                  {asignados.length === 1
+                    ? `Chat con ${asignados[0].name}`
+                    : "Chat de la carga"}
                 </p>
                 <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
                   Coordiná los detalles del viaje desde la app

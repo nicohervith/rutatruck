@@ -1,5 +1,13 @@
+import { NextRequest } from "next/server";
 import { getSession } from "@/lib/dal";
-import { sseSubscribe, sseUnsubscribe, notifyTransportista, notifyEmpresa } from "@/lib/sse";
+import {
+  sseSubscribe,
+  sseUnsubscribe,
+  notifyTransportista,
+  notifyEmpresa,
+  totalPendienteEmpresa,
+  totalPendienteTransportista,
+} from "@/lib/sse";
 import { isTransportista, isEmpresa } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -8,13 +16,41 @@ export const dynamic = "force-dynamic";
 // reconnect loop. 60s is the max allowed on Hobby; raise if the plan allows more.
 export const maxDuration = 60;
 
-const enc = new TextEncoder();
+/**
+ * Cuentas EMPRESA_TRANSPORTISTA son ambos roles a la vez: `vista` indica en
+ * qué sección está parado el usuario ahora (viene de AppShell/EventsProvider),
+ * no reemplaza el chequeo de permiso. Sin esto, isTransportista() siempre
+ * gana primero para esas cuentas y el lado empresa nunca se calculaba,
+ * pasara lo que pasara en la URL.
+ */
+function resolverVista(role: string, vista: string | null): "empresa" | "transportista" | null {
+  if (vista === "empresa" && isEmpresa(role)) return "empresa";
+  if (vista === "transportista" && isTransportista(role)) return "transportista";
+  if (isTransportista(role)) return "transportista";
+  if (isEmpresa(role)) return "empresa";
+  return null;
+}
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return new Response("Unauthorized", { status: 401 });
 
   const { userId, role } = session;
+  const vista = resolverVista(role, new URL(req.url).searchParams.get("vista"));
+  if (!vista) return new Response("Forbidden", { status: 403 });
+
+  const esDual = role === "EMPRESA_TRANSPORTISTA";
+
+  async function pushEstado() {
+    if (vista === "transportista") {
+      const otroRolPendiente = esDual ? await totalPendienteEmpresa(userId) : undefined;
+      await notifyTransportista(userId, esDual ? { otroRolPendiente } : undefined);
+    } else {
+      const otroRolPendiente = esDual ? await totalPendienteTransportista(userId) : undefined;
+      await notifyEmpresa(userId, esDual ? { otroRolPendiente } : undefined);
+    }
+  }
+
   let ctrl: ReadableStreamDefaultController<Uint8Array>;
   let pingId: ReturnType<typeof setInterval>;
 
@@ -24,8 +60,7 @@ export async function GET() {
       sseSubscribe(userId, ctrl);
 
       // Send initial state immediately
-      if (isTransportista(role)) await notifyTransportista(userId);
-      else if (isEmpresa(role)) await notifyEmpresa(userId);
+      await pushEstado();
 
       // Recompute from DB every 10s instead of a plain keep-alive ping.
       // Deployed on Vercel, the request that mutates data (nueva postulación,
@@ -37,9 +72,7 @@ export async function GET() {
       pingId = setInterval(() => {
         (async () => {
           try {
-            if (isTransportista(role)) await notifyTransportista(userId);
-            else if (isEmpresa(role)) await notifyEmpresa(userId);
-            else controller.enqueue(enc.encode(": ping\n\n"));
+            await pushEstado();
           } catch {
             clearInterval(pingId);
           }

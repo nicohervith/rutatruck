@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
+import { whereTransportistaDeLaCarga } from "@/lib/repositories/carga.repository";
 
 const TIPO_LABELS: Record<string, string> = {
   granos: "Granos",
@@ -17,7 +18,10 @@ export default async function TransportistaHistorialPage() {
   const session = await verifySession();
 
   const cargas = await db.carga.findMany({
-    where: { transportistaAsignadoId: session.userId, estado: { in: ["FINALIZADA", "CANCELADA"] } },
+    where: {
+      estado: { in: ["FINALIZADA", "CANCELADA"] },
+      ...whereTransportistaDeLaCarga(session.userId),
+    },
     orderBy: { updatedAt: "desc" },
   });
 

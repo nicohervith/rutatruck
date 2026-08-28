@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/dal";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
+import RefreshOnVisible from "@/app/_components/RefreshOnVisible";
 import { findConversaciones } from "@/lib/repositories/mensaje.repository";
 
 export default async function EmpresaConversacionesPage() {
@@ -11,6 +12,7 @@ export default async function EmpresaConversacionesPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
+      <RefreshOnVisible />
       <header
         className="sticky top-0 z-30 border-b px-5 py-3.5 flex items-center justify-between"
         style={{ backgroundColor: "#0A1A1A", borderColor: "#1E3838" }}

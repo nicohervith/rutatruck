@@ -5,6 +5,7 @@ import NotificacionBell from "../_components/NotificacionBell";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import Link from "next/link";
 import CargasClientWrapper from "./_components/CargasClientWrapper";
+import { FREE_TIER, diasRestantesFreeTier } from "@/lib/free-tier";
 
 export default async function TransportistasCargasPage({
   searchParams,
@@ -114,6 +115,8 @@ export default async function TransportistasCargasPage({
         cargasPrivadas={cargasPrivadas}
         success={success}
         pago={pago}
+        freeTier={FREE_TIER}
+        freeTierDias={diasRestantesFreeTier()}
       />
     </div>
   );

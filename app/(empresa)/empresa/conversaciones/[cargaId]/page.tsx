@@ -77,7 +77,12 @@ export default async function EmpresaConversacionPage({
         )}
       </div>
 
+      {/* `key` fuerza remount al cambiar de carga: React no desmonta cuando sólo
+          cambia un parámetro de ruta, y ChatThread mergea `initialMensajes` por
+          id sin mirar el cargaId (y `lastIdRef` tampoco se resetea), así que
+          reusar la instancia arrastraría los mensajes de la conversación previa. */}
       <ChatThread
+        key={carga.id}
         cargaId={carga.id}
         currentUserId={session.userId}
         initialMensajes={mensajes.map((m: (typeof mensajes)[number]) => ({

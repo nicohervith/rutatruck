@@ -29,15 +29,28 @@ export default function PushNotificationSetup() {
           if (result !== "granted") return;
         }
 
+        const currentKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
         const existing = await registration.pushManager.getSubscription();
         if (existing) {
-          await sendSubscription(existing);
-          return;
+          const existingKey = existing.options.applicationServerKey
+            ? new Uint8Array(existing.options.applicationServerKey)
+            : null;
+          const sameKey =
+            existingKey &&
+            existingKey.length === currentKey.length &&
+            existingKey.every((b, i) => b === currentKey[i]);
+
+          if (sameKey) {
+            await sendSubscription(existing);
+            return;
+          }
+
+          await existing.unsubscribe();
         }
 
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          applicationServerKey: currentKey,
         });
         await sendSubscription(subscription);
       } catch {

@@ -8,6 +8,7 @@ import type { CargaMapItem } from "./MapaCargas";
 import CountdownTimer from "../[id]/_components/CountdownTimer";
 import { getIconoCarga } from "@/lib/iconos-carga";
 import BottomNavTransportista from "../../_components/BottomNavTransportista";
+import FreeTierBanner from "@/app/_components/FreeTierBanner";
 
 const MapaCargas = dynamic(() => import("./MapaCargas"), { ssr: false });
 const MapaInline = dynamic(() => import("./MapaInline"), { ssr: false });
@@ -92,6 +93,8 @@ interface Props {
   cargasPrivadas: CargaPrivada[];
   success?: string;
   pago?: string;
+  freeTier: boolean;
+  freeTierDias: number | null;
 }
 
 export default function CargasClientWrapper({
@@ -101,6 +104,8 @@ export default function CargasClientWrapper({
   cargasPrivadas: initialPrivadas,
   success,
   pago,
+  freeTier,
+  freeTierDias,
 }: Props) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"listado" | "mapa">("listado");
@@ -165,6 +170,10 @@ export default function CargasClientWrapper({
       {/* ── Scrollable list ──────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto pb-20">
           <main className="max-w-2xl mx-auto px-5 py-6 w-full">
+            {freeTier && (
+              <FreeTierBanner role="transportista" diasRestantes={freeTierDias} />
+            )}
+
             {pago === "1" && (
               <div
                 className="mb-6 rounded-xl px-4 py-3 flex items-center gap-3 border"
