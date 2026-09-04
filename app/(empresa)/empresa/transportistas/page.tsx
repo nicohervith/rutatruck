@@ -6,6 +6,7 @@ import { BottomTabBar } from "@/app/_components/BottomTabBar";
 import type { TransportistaDisp } from "./_components/MapaTransportistas";
 import MapaTransportistasWrapper from "./_components/MapaTransportistasWrapper";
 import { whereDisponibilidadVigente } from "@/lib/disponibilidad";
+import { findRatingsDeUsuarios } from "@/lib/repositories/resena.repository";
 
 export default async function TransportistasMapPage() {
   const session = await verifySession();
@@ -39,10 +40,18 @@ export default async function TransportistasMapPage() {
   });
   const favSet = new Set(favs.map((f: { transportistaId: string }) => f.transportistaId));
 
+  // El mapa es anónimo (sin nombre ni contacto), pero la reputación sí se
+  // muestra: es lo que le permite a la empresa elegir a quién le escribe.
+  const ratings = await findRatingsDeUsuarios(disponibilidades.map((d) => d.transportistaId));
+  const ratingPorId = new Map(ratings.map((r) => [r.id, r]));
+
   const data: TransportistaDisp[] = disponibilidades.map((d: typeof disponibilidades[0]) => ({
     ...d,
     actualizadoEn: d.actualizadoEn.toISOString(),
     esFavorito: favSet.has(d.transportistaId),
+    ratingPromedio: ratingPorId.get(d.transportistaId)?.ratingPromedio ?? null,
+    ratingCantidad: ratingPorId.get(d.transportistaId)?.ratingCantidad ?? 0,
+    emailVerified: ratingPorId.get(d.transportistaId)?.emailVerified ?? false,
   }));
 
   return (

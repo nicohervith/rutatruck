@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { Map as MapboxMap, Marker as MapboxMarker } from "mapbox-gl";
+import RatingChip from "@/app/_components/RatingChip";
+import BadgeVerificado from "@/app/_components/BadgeVerificado";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -51,6 +53,9 @@ export type TransportistaDisp = {
   salidaDestino: string | null;
   actualizadoEn: string;
   esFavorito: boolean;
+  ratingPromedio: number | null;
+  ratingCantidad: number;
+  emailVerified: boolean;
 };
 
 function formatRelative(isoDate: string) {
@@ -332,6 +337,10 @@ function DetailPanel({
               <p className="text-sm" style={{ color: "#6B7280" }}>
                 {t.zona}
               </p>
+              <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                <RatingChip promedio={t.ratingPromedio} cantidad={t.ratingCantidad} />
+                <BadgeVerificado verificado={t.emailVerified} />
+              </div>
             </div>
           </div>
 

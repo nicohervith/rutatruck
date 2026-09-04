@@ -10,11 +10,17 @@ import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import ReintentarPagoButton from "./_components/ReintentarPagoButton";
 import CancelarCargaButton from "./_components/CancelarCargaButton";
+import ReactivarCargaButton from "./_components/ReactivarCargaButton";
 import RepetirCargaButton from "./_components/RepetirCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import { AutoRefresh } from "@/app/_components/AutoRefresh";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import RatingChip from "@/app/_components/RatingChip";
+import BadgeVerificado from "@/app/_components/BadgeVerificado";
+import ResenaForm from "@/app/_components/ResenaForm";
+import { findResenasEscritasEnCarga } from "@/lib/repositories/resena.repository";
+import { DIAS_GRACIA_CANCELADA, DIAS_EN_CONFIRMACION_ABANDONADA } from "@/lib/plazos";
 
 const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" } },
@@ -30,6 +36,12 @@ const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }
 function toDateInput(date: Date | null): string {
   if (!date) return "";
   return date.toISOString().split("T")[0];
+}
+
+/** Días que faltan para que se cumpla un plazo de `dias` contado desde `desde`. */
+function diasHasta(desde: Date, dias: number): number {
+  const vence = desde.getTime() + dias * 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.ceil((vence - Date.now()) / (24 * 60 * 60 * 1000)));
 }
 
 export default async function CargaDetallePage({
@@ -52,7 +64,15 @@ export default async function CargaDetallePage({
       postulaciones: {
         include: {
           transportista: {
-            select: { id: true, name: true, email: true, phone: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              emailVerified: true,
+              ratingPromedio: true,
+              ratingCantidad: true,
+            },
           },
         },
         orderBy: { createdAt: "asc" },
@@ -64,6 +84,9 @@ export default async function CargaDetallePage({
   });
 
   if (!carga) redirect("/empresa/cargas");
+
+  const resenasEscritas = await findResenasEscritasEnCarga(cargaId, session.userId);
+  const yaCalifique = new Set(resenasEscritas.map((r) => r.destinatarioId));
 
   // Mark new postulaciones as seen by empresa
   await db.postulacion.updateMany({
@@ -87,6 +110,9 @@ export default async function CargaDetallePage({
       email: p.contactoEmail ?? p.transportista.email,
       phone: p.contactoTelefono ?? p.transportista.phone,
       camionesCubiertos: p.camionesCubiertos ?? 1,
+      emailVerified: p.transportista.emailVerified,
+      ratingPromedio: p.transportista.ratingPromedio,
+      ratingCantidad: p.transportista.ratingCantidad,
     }));
 
   const puedeEditar = carga.estado === "ACTIVA";
@@ -95,6 +121,23 @@ export default async function CargaDetallePage({
   const puedeConfirmar = carga.estado === "EN_CONFIRMACION";
   const puedeDisputa = carga.estado === "ASIGNADA" || carga.estado === "EN_CONFIRMACION";
   const esperandoPagoTransportista = carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
+  const puedeCalificar = carga.estado === "FINALIZADA" && asignados.length > 0;
+
+  // Una CANCELADA vive DIAS_GRACIA_CANCELADA días desde su updatedAt (el
+  // momento en que se canceló) y después la purga el cron. Mientras dura esa
+  // ventana la empresa puede devolverla al ruedo con una fecha nueva.
+  // Una cancelada sin pagar no se puede reactivar: volvería a ACTIVA sin pasar
+  // por el checkout. Para esas el camino es "Repetir carga".
+  const estaCancelada = carga.estado === "CANCELADA" && carga.disputaAbiertaPor === null;
+  const puedeReactivar = estaCancelada && carga.pagado;
+  const diasParaBorrado = diasHasta(carga.updatedAt, DIAS_GRACIA_CANCELADA);
+
+  // Mismo reloj del lado de EN_CONFIRMACION: pasado el plazo, el cron
+  // cerrar-viajes-abandonados la finaliza sin la confirmación de la empresa.
+  const diasParaCierreAutomatico = diasHasta(
+    carga.updatedAt,
+    DIAS_EN_CONFIRMACION_ABANDONADA,
+  );
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
@@ -145,6 +188,35 @@ export default async function CargaDetallePage({
           </div>
         )}
 
+        {puedeConfirmar && (
+          <div
+            className="mb-6 rounded-xl border px-4 py-3"
+            style={{ backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }}
+          >
+            <p className="text-sm" style={{ color: "#C2410C" }}>
+              {diasParaCierreAutomatico > 0
+                ? `El transportista marcó el viaje como completado. Si no confirmás ni abrís una disputa, se cierra automáticamente en ${diasParaCierreAutomatico} ${diasParaCierreAutomatico === 1 ? "día" : "días"}.`
+                : "El transportista marcó el viaje como completado. Se cierra automáticamente en las próximas horas si no confirmás ni abrís una disputa."}
+            </p>
+          </div>
+        )}
+
+        {estaCancelada && (
+          <div
+            className="mb-6 rounded-xl border px-4 py-3"
+            style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}
+          >
+            <p className="text-sm" style={{ color: "#B91C1C" }}>
+              {diasParaBorrado > 0
+                ? `Esta carga está cancelada y se elimina en ${diasParaBorrado} ${diasParaBorrado === 1 ? "día" : "días"}. `
+                : "Esta carga está cancelada y se elimina en las próximas horas. "}
+              {puedeReactivar
+                ? "Reactivala con una fecha nueva si querés volver a publicarla."
+                : "El pago de la publicación nunca se completó, así que no se puede reactivar: usá “Repetir carga” para publicarla de nuevo."}
+            </p>
+          </div>
+        )}
+
         <div
           className="rounded-xl border p-5 mb-6"
           style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
@@ -157,6 +229,7 @@ export default async function CargaDetallePage({
                 <CancelarCargaButton cargaId={carga.id} />
               </>
             )}
+            {puedeReactivar && <ReactivarCargaButton cargaId={carga.id} />}
             {(puedeEditar || puedeCancelar) && (
               <EditarCargaPanel
                 sinTransportista={carga.transportistaAsignadoId === null}
@@ -279,7 +352,14 @@ export default async function CargaDetallePage({
             {asignados.map((t) => (
               <div key={t.id} className="mb-3 last:mb-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-gray-900">{t.name}</p>
+                  <Link
+                    href={`/perfil/${t.id}`}
+                    className="font-medium text-gray-900 underline decoration-dotted underline-offset-4 hover:opacity-70"
+                  >
+                    {t.name}
+                  </Link>
+                  <RatingChip promedio={t.ratingPromedio} cantidad={t.ratingCantidad} />
+                  <BadgeVerificado verificado={t.emailVerified} />
                   {t.camionesCubiertos > 1 && (
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
                       {t.camionesCubiertos} camiones
@@ -382,7 +462,17 @@ export default async function CargaDetallePage({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-gray-900">{p.transportista.name}</p>
+                          <Link
+                            href={`/perfil/${p.transportista.id}`}
+                            className="font-medium text-gray-900 underline decoration-dotted underline-offset-4 hover:opacity-70"
+                          >
+                            {p.transportista.name}
+                          </Link>
+                          <RatingChip
+                            promedio={p.transportista.ratingPromedio}
+                            cantidad={p.transportista.ratingCantidad}
+                          />
+                          <BadgeVerificado verificado={p.transportista.emailVerified} />
                           {p.camionesCubiertos > 1 && (
                             <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>
                               {p.camionesCubiertos} camiones
@@ -439,6 +529,41 @@ export default async function CargaDetallePage({
             </div>
           )}
         </div>
+        {puedeCalificar && (
+          <div
+            className="rounded-xl border p-6 mt-6"
+            style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
+          >
+            <h2 className="font-medium text-gray-900 mb-1">Calificá el viaje</h2>
+            <p className="text-sm mb-4" style={{ color: "#6B7280" }}>
+              Tu calificación ayuda a que otras empresas sepan con quién están tratando.
+            </p>
+            <div className="space-y-4">
+              {asignados.map((t) =>
+                yaCalifique.has(t.id) ? (
+                  <div
+                    key={t.id}
+                    className="rounded-xl border px-4 py-3"
+                    style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
+                  >
+                    <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>
+                      Ya calificaste a {t.name}
+                    </p>
+                  </div>
+                ) : (
+                  <ResenaForm
+                    key={t.id}
+                    cargaId={carga.id}
+                    destinatarioId={t.id}
+                    destinatarioNombre={t.name}
+                    tipo="A_TRANSPORTISTA"
+                  />
+                ),
+              )}
+            </div>
+          </div>
+        )}
+
         {puedeDisputa && (
           <div className="mt-10 pt-6 border-t" style={{ borderColor: "#E2E8E8" }}>
             <p className="text-sm mb-3" style={{ color: "#9CA3AF" }}>¿Tuviste algún inconveniente?</p>

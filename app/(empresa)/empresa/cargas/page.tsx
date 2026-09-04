@@ -125,10 +125,12 @@ export default async function CargasPage({
   const session = await verifySession();
   const { success, error, estado: estadoFiltro = "" } = await searchParams;
 
+  // Las CANCELADA se muestran a propósito: el cron las purga a los pocos días,
+  // así que las que llegan acá siguen dentro de la ventana de reactivación.
   const cargas = await db.carga.findMany({
     where: {
       empresaId: session.userId,
-      estado: { notIn: ["FINALIZADA", "CANCELADA"] },
+      estado: { notIn: ["FINALIZADA"] },
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -137,8 +139,11 @@ export default async function CargasPage({
   });
 
   const enConfirmacion = cargas.filter((c) => c.estado === "EN_CONFIRMACION");
-  const resto = cargas.filter((c) => c.estado !== "EN_CONFIRMACION");
-  const sorted = [...enConfirmacion, ...resto];
+  const canceladas = cargas.filter((c) => c.estado === "CANCELADA");
+  const resto = cargas.filter(
+    (c) => c.estado !== "EN_CONFIRMACION" && c.estado !== "CANCELADA",
+  );
+  const sorted = [...enConfirmacion, ...resto, ...canceladas];
 
   const estadosCounts = cargas.reduce(
     (acc, c) => {

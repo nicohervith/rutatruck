@@ -16,8 +16,17 @@ const TIPO_LABELS: Record<string, string> = {
 export default async function EmpresaHistorialPage() {
   const session = await verifySession();
 
+  // Las CANCELADA reactivables siguen en "Mis cargas" hasta que el cron las
+  // purga; acá solo entran las que quedan de forma definitiva, que son las que
+  // pasaron por una disputa (las únicas que la purga preserva).
   const cargas = await db.carga.findMany({
-    where: { empresaId: session.userId, estado: { in: ["FINALIZADA", "CANCELADA"] } },
+    where: {
+      empresaId: session.userId,
+      OR: [
+        { estado: "FINALIZADA" },
+        { estado: "CANCELADA", disputaAbiertaPor: { not: null } },
+      ],
+    },
     orderBy: { updatedAt: "desc" },
     include: {
       transportistaAsignado: { select: { name: true } },

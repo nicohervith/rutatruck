@@ -18,12 +18,25 @@ import {
   findCargasProximasSinAceptar,
   marcarRecordatorioSinPostulantesEnviado,
   findCargasVencidasParaCancelar,
+  findCargasPendientePagoVencidas,
   findCargasCanceladasParaPurgar,
+  cancelarCargas,
   eliminarCargas,
+  findCargaCanceladaDeEmpresa,
+  reactivarCarga,
+  findCargasAsignadasAbandonadas,
+  marcarCargasEnConfirmacion,
+  findCargasEnConfirmacionAbandonadas,
+  finalizarCargas,
 } from "@/lib/repositories/carga.repository";
 import { findUserById, findUserContacto, linkPhoneSiFalta } from "@/lib/repositories/user.repository";
 import { emit } from "@/lib/events/bus";
 import { sendPushToUser } from "@/lib/push";
+import {
+  DIAS_GRACIA_CANCELADA,
+  DIAS_ASIGNADA_ABANDONADA,
+  DIAS_EN_CONFIRMACION_ABANDONADA,
+} from "@/lib/plazos";
 
 type CargaData = Omit<Prisma.CargaUncheckedCreateInput, "estado" | "pagado"> & {
   titulo: string;
@@ -327,38 +340,91 @@ export async function enviarRecordatoriosSinPostulantes() {
 }
 
 /**
- * Elimina automáticamente cargas ACTIVA cuya fecha de carga pasó hace más de
- * 2 días. Una carga solo sigue ACTIVA mientras la convocatoria está abierta
- * (al cubrirse pasa a ASIGNADA), así que acá caen tanto las que no tuvieron
- * ningún aceptado como las que quedaron a medio cubrir. La empresa ya fue
- * avisada por enviarRecordatoriosSinPostulantes desde que la fecha se
- * acercaba. Borrar la carga limpia el listado y saca la postulación de la
- * bandeja de los transportistas.
+ * Cancela automáticamente las cargas ACTIVA cuya fecha de carga ya pasó. Una
+ * carga solo sigue ACTIVA mientras la convocatoria está abierta (al cubrirse
+ * pasa a ASIGNADA), así que acá caen tanto las que no tuvieron ningún aceptado
+ * como las que quedaron a medio cubrir.
+ *
+ * No se borra en el acto: la carga queda CANCELADA y visible en el listado de
+ * la empresa durante DIAS_GRACIA_CANCELADA para que pueda reactivarla con una
+ * fecha nueva. Pasada esa ventana sin tocarla, purgarCargasCanceladas la borra.
+ *
+ * El umbral es el inicio del día de hoy, no `now`: la comparación es contra
+ * `fechaCarga`, que se guarda a medianoche, y usar `now` mataría una carga
+ * fechada hoy mismo cuando el cron corre a las 14:00.
  */
 export async function cancelarCargasVencidasSinAceptar() {
-  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-  const cargas = await findCargasVencidasParaCancelar(umbral);
+  const inicioDeHoy = new Date();
+  inicioDeHoy.setUTCHours(0, 0, 0, 0);
+  const cargas = await findCargasVencidasParaCancelar(inicioDeHoy);
   if (cargas.length === 0) return { ok: true, cargas: 0 };
 
-  // Notificar antes de borrar: después del delete ya no existe el id.
+  await cancelarCargas(cargas.map((c) => c.id));
+
   await Promise.allSettled(
     cargas.flatMap((c) => [
       sendPushToUser(c.empresaId, {
-        title: "Carga eliminada automáticamente",
-        body: `"${c.titulo}" se eliminó porque pasaron más de 2 días de su fecha sin cubrir la convocatoria.`,
-        url: `/empresa/cargas`,
+        title: "Carga cancelada automáticamente",
+        body: `"${c.titulo}" se canceló porque pasó su fecha sin cubrir la convocatoria. Podés reactivarla con una fecha nueva durante ${DIAS_GRACIA_CANCELADA} días.`,
+        url: `/empresa/cargas/${c.id}`,
       }),
       // Los aceptados de una convocatoria que quedó incompleta pierden el
-      // viaje con el borrado: avisarles para que no lo sigan esperando.
+      // viaje: su postulación se rechaza, avisarles para que no la esperen.
       ...c.postulaciones.map((p) =>
         sendPushToUser(p.transportistaId, {
           title: "Carga dada de baja",
-          body: `"${c.titulo}" se eliminó porque la empresa no llegó a cubrir la convocatoria a tiempo.`,
+          body: `"${c.titulo}" se canceló porque la empresa no llegó a cubrir la convocatoria a tiempo.`,
           url: `/transportista/cargas`,
         }),
       ),
     ]),
   );
+
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Cancela las PENDIENTE_PAGO cuya fecha ya pasó. Va aparte de
+ * cancelarCargasVencidasSinAceptar porque el caso es otro: acá no hubo
+ * convocatoria que cubrir ni transportistas a los que avisar, solo un pago de
+ * publicación que nunca se completó.
+ *
+ * Quedan CANCELADA y no borradas para que la empresa vea qué pasó con lo que
+ * cargó, pero no son reactivables: la carga nunca se pagó, así que
+ * reactivarCargaCancelada las rechaza y el camino correcto es "Repetir carga",
+ * que pasa de nuevo por el checkout.
+ */
+export async function cancelarPendientesDePagoVencidas() {
+  const inicioDeHoy = new Date();
+  inicioDeHoy.setUTCHours(0, 0, 0, 0);
+  const cargas = await findCargasPendientePagoVencidas(inicioDeHoy);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
+
+  await cancelarCargas(cargas.map((c) => c.id));
+
+  await Promise.allSettled(
+    cargas.map((c) =>
+      sendPushToUser(c.empresaId, {
+        title: "Carga cancelada por falta de pago",
+        body: `"${c.titulo}" se canceló: pasó su fecha de carga y el pago de la publicación nunca se completó.`,
+        url: `/empresa/cargas/${c.id}`,
+      }),
+    ),
+  );
+
+  return { ok: true, cargas: cargas.length };
+}
+
+/**
+ * Purga cargas CANCELADA con más de DIAS_GRACIA_CANCELADA días desde su
+ * última actualización. Ese updatedAt es el momento en que se cancelaron (o
+ * el de la última modificación de la empresa dentro de la ventana), así que
+ * lo que se borra es lo que quedó cancelado y sin tocar.
+ */
+export async function purgarCargasCanceladas() {
+  const umbral = new Date(Date.now() - DIAS_GRACIA_CANCELADA * 24 * 60 * 60 * 1000);
+  const cargas = await findCargasCanceladasParaPurgar(umbral);
+  if (cargas.length === 0) return { ok: true, cargas: 0 };
 
   await eliminarCargas(cargas.map((c) => c.id));
 
@@ -366,17 +432,144 @@ export async function cancelarCargasVencidasSinAceptar() {
 }
 
 /**
- * Purga cargas CANCELADA con más de 2 días desde su última actualización
- * (que coincide con el momento de la cancelación). No tiene sentido guardar
- * las canceladas indefinidamente; se dejan un par de días de gracia por si
- * hay que consultarlas y luego se borran para limpiar el historial.
+ * Cierra los viajes que quedaron colgados porque nadie apretó el botón que
+ * les tocaba. Sin esto una ASIGNADA se queda en el listado para siempre: no
+ * hay ninguna otra transición automática desde ASIGNADA ni desde
+ * EN_CONFIRMACION.
+ *
+ * La escalera es de dos pasos y usa los estados que ya existen:
+ *
+ *   ASIGNADA (viaje vencido hace DIAS_ASIGNADA_ABANDONADA)
+ *     -> EN_CONFIRMACION, dando el viaje por realizado
+ *   EN_CONFIRMACION (sin respuesta hace DIAS_EN_CONFIRMACION_ABANDONADA)
+ *     -> FINALIZADA
+ *
+ * Cada paso avisa a las dos partes, y en ninguno se pierde la salida de
+ * emergencia: mientras la carga esté en ASIGNADA o EN_CONFIRMACION cualquiera
+ * de los dos puede abrir una disputa, que la saca de este circuito.
+ *
+ * No hay plata retenida por la plataforma en estos estados: la publicación la
+ * paga la empresa antes de que la carga sea ACTIVA y la comisión la paga el
+ * transportista antes de que la carga sea ASIGNADA, así que llegar acá no
+ * mueve ningún cobro. El flete se arregla entre las partes fuera de la app.
  */
-export async function purgarCargasCanceladas() {
-  const umbral = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-  const cargas = await findCargasCanceladasParaPurgar(umbral);
-  if (cargas.length === 0) return { ok: true, cargas: 0 };
+export async function cerrarViajesAbandonados() {
+  const umbralAsignada = new Date(
+    Date.now() - DIAS_ASIGNADA_ABANDONADA * 24 * 60 * 60 * 1000,
+  );
+  const asignadas = await findCargasAsignadasAbandonadas(umbralAsignada);
 
-  await eliminarCargas(cargas.map((c) => c.id));
+  if (asignadas.length > 0) {
+    await marcarCargasEnConfirmacion(asignadas.map((c) => c.id));
 
-  return { ok: true, cargas: cargas.length };
+    await Promise.allSettled(
+      asignadas.flatMap((c) => [
+        sendPushToUser(c.empresaId, {
+          title: "Viaje dado por realizado",
+          body: `"${c.titulo}" quedó sin cerrar y se dio por realizado. Tenés ${DIAS_EN_CONFIRMACION_ABANDONADA} días para confirmarlo o abrir una disputa.`,
+          url: `/empresa/cargas/${c.id}`,
+        }),
+        ...destinatariosTransportistas(c).map((transportistaId) =>
+          sendPushToUser(transportistaId, {
+            title: "Viaje dado por realizado",
+            body: `"${c.titulo}" quedó sin marcar como completado y se dio por realizado. Si hubo algún problema, abrí una disputa.`,
+            url: `/transportista/cargas/${c.id}`,
+          }),
+        ),
+      ]),
+    );
+  }
+
+  // Las que se acaban de mover arriba tienen updatedAt de recién, así que no
+  // caen en esta query: recién entran dentro de DIAS_EN_CONFIRMACION_ABANDONADA.
+  const umbralConfirmacion = new Date(
+    Date.now() - DIAS_EN_CONFIRMACION_ABANDONADA * 24 * 60 * 60 * 1000,
+  );
+  const enConfirmacion = await findCargasEnConfirmacionAbandonadas(umbralConfirmacion);
+
+  if (enConfirmacion.length > 0) {
+    await finalizarCargas(enConfirmacion.map((c) => c.id));
+
+    await Promise.allSettled(
+      enConfirmacion.flatMap((c) => [
+        sendPushToUser(c.empresaId, {
+          title: "Viaje cerrado automáticamente",
+          body: `"${c.titulo}" se cerró sin tu confirmación tras ${DIAS_EN_CONFIRMACION_ABANDONADA} días. Ya podés calificar al transportista.`,
+          url: `/empresa/cargas/${c.id}`,
+        }),
+        ...destinatariosTransportistas(c).map((transportistaId) =>
+          sendPushToUser(transportistaId, {
+            title: "Viaje cerrado automáticamente",
+            body: `"${c.titulo}" se cerró sin confirmación de la empresa. Ya podés calificarla.`,
+            url: `/transportista/cargas/${c.id}`,
+          }),
+        ),
+      ]),
+    );
+  }
+
+  return {
+    ok: true,
+    dadasPorRealizadas: asignadas.length,
+    finalizadas: enConfirmacion.length,
+  };
+}
+
+/**
+ * Una carga cubierta por varios camiones tiene un transportista por
+ * postulación aceptada; transportistaAsignadoId guarda solo al primero, así
+ * que hay que unir las dos fuentes para no dejar a nadie sin aviso.
+ */
+function destinatariosTransportistas(carga: {
+  transportistaAsignadoId: string | null;
+  postulaciones: { transportistaId: string }[];
+}): string[] {
+  const ids = new Set(carga.postulaciones.map((p) => p.transportistaId));
+  if (carga.transportistaAsignadoId) ids.add(carga.transportistaAsignadoId);
+  return Array.from(ids);
+}
+
+export type ReactivarCargaResult =
+  | { ok: true }
+  | { ok: false; status: number; error: string };
+
+/**
+ * Devuelve una CANCELADA al ruedo con fecha nueva. Se exige fecha futura: sin
+ * eso el cron la volvería a cancelar en la corrida siguiente.
+ */
+export async function reactivarCargaCancelada(
+  cargaId: number,
+  empresaId: string,
+  fechaCarga: Date,
+  fechaCupo: Date | null,
+): Promise<ReactivarCargaResult> {
+  const carga = await findCargaCanceladaDeEmpresa(cargaId, empresaId);
+  if (!carga) {
+    return { ok: false, status: 404, error: "Carga no encontrada o no reactivable" };
+  }
+
+  // Sin este chequeo, una PENDIENTE_PAGO cancelada por falta de pago volvería
+  // a ACTIVA sin pasar por el checkout: publicación gratis. `pagado` es true
+  // en las tres vías de publicación (free tier, pago aprobado y oferta
+  // privada), así que en false significa que nunca se publicó.
+  if (!carga.pagado) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Esta carga nunca se pagó. Usá \"Repetir carga\" para publicarla de nuevo.",
+    };
+  }
+
+  const inicioDeHoy = new Date();
+  inicioDeHoy.setUTCHours(0, 0, 0, 0);
+  if (fechaCarga < inicioDeHoy) {
+    return { ok: false, status: 400, error: "La fecha de carga tiene que ser futura" };
+  }
+  if (fechaCupo && fechaCupo < fechaCarga) {
+    return { ok: false, status: 400, error: "La fecha de cupo no puede ser anterior a la fecha de carga" };
+  }
+
+  await reactivarCarga(cargaId, fechaCarga, fechaCupo);
+
+  return { ok: true };
 }
