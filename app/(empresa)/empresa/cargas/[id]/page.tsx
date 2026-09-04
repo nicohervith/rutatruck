@@ -10,6 +10,7 @@ import ConfirmarCompletadoButton from "./_components/ConfirmarCompletadoButton";
 import AbrirDisputaEmpresaButton from "./_components/AbrirDisputaEmpresaButton";
 import ReintentarPagoButton from "./_components/ReintentarPagoButton";
 import CancelarCargaButton from "./_components/CancelarCargaButton";
+import ReactivarCargaButton from "./_components/ReactivarCargaButton";
 import RepetirCargaButton from "./_components/RepetirCargaButton";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
@@ -19,6 +20,7 @@ import RatingChip from "@/app/_components/RatingChip";
 import BadgeVerificado from "@/app/_components/BadgeVerificado";
 import ResenaForm from "@/app/_components/ResenaForm";
 import { findResenasEscritasEnCarga } from "@/lib/repositories/resena.repository";
+import { DIAS_GRACIA_CANCELADA, DIAS_EN_CONFIRMACION_ABANDONADA } from "@/lib/plazos";
 
 const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }> = {
   PENDIENTE_PAGO: { label: "Pago pendiente", badgeStyle: { backgroundColor: "#FEF9C3", color: "#A16207", border: "1px solid #FEF08A" } },
@@ -34,6 +36,12 @@ const ESTADO_LABELS: Record<string, { label: string; badgeStyle: CSSProperties }
 function toDateInput(date: Date | null): string {
   if (!date) return "";
   return date.toISOString().split("T")[0];
+}
+
+/** Días que faltan para que se cumpla un plazo de `dias` contado desde `desde`. */
+function diasHasta(desde: Date, dias: number): number {
+  const vence = desde.getTime() + dias * 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.ceil((vence - Date.now()) / (24 * 60 * 60 * 1000)));
 }
 
 export default async function CargaDetallePage({
@@ -115,6 +123,22 @@ export default async function CargaDetallePage({
   const esperandoPagoTransportista = carga.estado === "PENDIENTE_PAGO_TRANSPORTISTA";
   const puedeCalificar = carga.estado === "FINALIZADA" && asignados.length > 0;
 
+  // Una CANCELADA vive DIAS_GRACIA_CANCELADA días desde su updatedAt (el
+  // momento en que se canceló) y después la purga el cron. Mientras dura esa
+  // ventana la empresa puede devolverla al ruedo con una fecha nueva.
+  // Una cancelada sin pagar no se puede reactivar: volvería a ACTIVA sin pasar
+  // por el checkout. Para esas el camino es "Repetir carga".
+  const estaCancelada = carga.estado === "CANCELADA" && carga.disputaAbiertaPor === null;
+  const puedeReactivar = estaCancelada && carga.pagado;
+  const diasParaBorrado = diasHasta(carga.updatedAt, DIAS_GRACIA_CANCELADA);
+
+  // Mismo reloj del lado de EN_CONFIRMACION: pasado el plazo, el cron
+  // cerrar-viajes-abandonados la finaliza sin la confirmación de la empresa.
+  const diasParaCierreAutomatico = diasHasta(
+    carga.updatedAt,
+    DIAS_EN_CONFIRMACION_ABANDONADA,
+  );
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F2F5F5" }}>
       <AutoRefresh url={`/api/cargas/${carga.id}/estado`} />
@@ -164,6 +188,35 @@ export default async function CargaDetallePage({
           </div>
         )}
 
+        {puedeConfirmar && (
+          <div
+            className="mb-6 rounded-xl border px-4 py-3"
+            style={{ backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }}
+          >
+            <p className="text-sm" style={{ color: "#C2410C" }}>
+              {diasParaCierreAutomatico > 0
+                ? `El transportista marcó el viaje como completado. Si no confirmás ni abrís una disputa, se cierra automáticamente en ${diasParaCierreAutomatico} ${diasParaCierreAutomatico === 1 ? "día" : "días"}.`
+                : "El transportista marcó el viaje como completado. Se cierra automáticamente en las próximas horas si no confirmás ni abrís una disputa."}
+            </p>
+          </div>
+        )}
+
+        {estaCancelada && (
+          <div
+            className="mb-6 rounded-xl border px-4 py-3"
+            style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}
+          >
+            <p className="text-sm" style={{ color: "#B91C1C" }}>
+              {diasParaBorrado > 0
+                ? `Esta carga está cancelada y se elimina en ${diasParaBorrado} ${diasParaBorrado === 1 ? "día" : "días"}. `
+                : "Esta carga está cancelada y se elimina en las próximas horas. "}
+              {puedeReactivar
+                ? "Reactivala con una fecha nueva si querés volver a publicarla."
+                : "El pago de la publicación nunca se completó, así que no se puede reactivar: usá “Repetir carga” para publicarla de nuevo."}
+            </p>
+          </div>
+        )}
+
         <div
           className="rounded-xl border p-5 mb-6"
           style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
@@ -176,6 +229,7 @@ export default async function CargaDetallePage({
                 <CancelarCargaButton cargaId={carga.id} />
               </>
             )}
+            {puedeReactivar && <ReactivarCargaButton cargaId={carga.id} />}
             {(puedeEditar || puedeCancelar) && (
               <EditarCargaPanel
                 sinTransportista={carga.transportistaAsignadoId === null}

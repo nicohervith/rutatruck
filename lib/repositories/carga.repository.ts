@@ -280,6 +280,72 @@ export async function marcarRecordatorioCompletarEnviado(cargaIds: number[]) {
   });
 }
 
+/**
+ * ASIGNADA que el transportista nunca marcó como completada, con la fecha del
+ * viaje pasada hace rato. Se compara contra fechaCupo y, si no hay, contra
+ * fechaCarga: mismo criterio que findCargasVencidasSinCompletar, que es el
+ * recordatorio que estos transportistas vienen ignorando hace días.
+ */
+export async function findCargasAsignadasAbandonadas(umbral: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "ASIGNADA",
+      OR: [{ fechaCupo: { lt: umbral } }, { fechaCupo: null, fechaCarga: { lt: umbral } }],
+    },
+    select: {
+      id: true,
+      titulo: true,
+      empresaId: true,
+      transportistaAsignadoId: true,
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        select: { transportistaId: true },
+      },
+    },
+  });
+}
+
+export async function marcarCargasEnConfirmacion(cargaIds: number[]) {
+  if (cargaIds.length === 0) return;
+  await db.carga.updateMany({
+    where: { id: { in: cargaIds } },
+    data: { estado: "EN_CONFIRMACION" },
+  });
+}
+
+/**
+ * EN_CONFIRMACION que la empresa nunca respondió. Igual que en la purga de
+ * canceladas, `updatedAt` sirve de reloj: a EN_CONFIRMACION solo se entra por
+ * un cambio de estado y de ahí solo se sale por confirmar o por disputa, así
+ * que ese timestamp es el momento en que la carga quedó esperando respuesta.
+ */
+export async function findCargasEnConfirmacionAbandonadas(umbral: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "EN_CONFIRMACION",
+      updatedAt: { lt: umbral },
+    },
+    select: {
+      id: true,
+      titulo: true,
+      empresaId: true,
+      transportistaAsignadoId: true,
+      postulaciones: {
+        where: { estado: "ACEPTADA" },
+        select: { transportistaId: true },
+      },
+    },
+  });
+}
+
+export async function finalizarCargas(cargaIds: number[]) {
+  if (cargaIds.length === 0) return;
+  await db.carga.updateMany({
+    where: { id: { in: cargaIds } },
+    data: { estado: "FINALIZADA" },
+  });
+}
+
 export async function findCargasProximasSinAceptar(limite: Date, umbralReintento: Date) {
   return db.carga.findMany({
     where: {
@@ -307,7 +373,7 @@ export async function marcarRecordatorioSinPostulantesEnviado(cargaIds: number[]
  * completarse pasa a ASIGNADA. Por eso no se filtra por postulaciones
  * aceptadas; una ACTIVA vencida es siempre una convocatoria incompleta,
  * tenga cero aceptados o algunos. Se devuelven los aceptados para poder
- * avisarles antes de borrar.
+ * avisarles antes de cancelar.
  */
 export async function findCargasVencidasParaCancelar(umbral: Date) {
   return db.carga.findMany({
@@ -327,13 +393,75 @@ export async function findCargasVencidasParaCancelar(umbral: Date) {
   });
 }
 
-export async function cancelarCargas(cargaIds: number[]) {
-  await db.carga.updateMany({
-    where: { id: { in: cargaIds } },
-    data: { estado: "CANCELADA" },
+/**
+ * PENDIENTE_PAGO cuya fecha ya pasó: la empresa llenó el formulario, nunca
+ * completó el pago de la publicación y ahora la fecha no sirve. Nunca llegó a
+ * ser visible para ningún transportista, así que no hay postulaciones ni
+ * nadie más a quien avisar.
+ */
+export async function findCargasPendientePagoVencidas(umbral: Date) {
+  return db.carga.findMany({
+    where: {
+      estado: "PENDIENTE_PAGO",
+      fechaCarga: { lt: umbral },
+    },
+    select: { id: true, titulo: true, empresaId: true },
   });
 }
 
+/**
+ * Pasa las cargas a CANCELADA y cierra sus postulaciones. La convocatoria
+ * queda vacía a proposito: si la empresa reactiva, arranca de cero y no
+ * hereda aceptados que ya perdieron el viaje. El updatedAt que deja este
+ * update es el que arranca el reloj de gracia de findCargasCanceladasParaPurgar.
+ */
+export async function cancelarCargas(cargaIds: number[]) {
+  if (cargaIds.length === 0) return;
+  await db.$transaction([
+    db.postulacion.updateMany({
+      where: { cargaId: { in: cargaIds }, estado: { not: "RECHAZADA" } },
+      data: { estado: "RECHAZADA" },
+    }),
+    db.carga.updateMany({
+      where: { id: { in: cargaIds } },
+      data: { estado: "CANCELADA", transportistaAsignadoId: null },
+    }),
+  ]);
+}
+
+export async function findCargaCanceladaDeEmpresa(cargaId: number, empresaId: string) {
+  return db.carga.findUnique({
+    where: { id: cargaId, empresaId, estado: "CANCELADA" },
+  });
+}
+
+/**
+ * Vuelve una CANCELADA a ACTIVA con fecha nueva. Se limpian los flags de
+ * recordatorio para que el ciclo de avisos vuelva a correr sobre la fecha
+ * nueva en lugar de darse por enviado.
+ */
+export async function reactivarCarga(
+  cargaId: number,
+  fechaCarga: Date,
+  fechaCupo: Date | null,
+) {
+  await db.carga.update({
+    where: { id: cargaId },
+    data: {
+      estado: "ACTIVA",
+      fechaCarga,
+      fechaCupo,
+      recordatorioCompletarEnviadoEn: null,
+      recordatorioSinPostulantesEnviadoEn: null,
+    },
+  });
+}
+
+/**
+ * `updatedAt` es el reloj de gracia: lo pone la cancelación y lo pisa
+ * cualquier cambio posterior, así que una carga que la empresa tocó dentro
+ * de la ventana se queda otros dos días.
+ */
 export async function findCargasCanceladasParaPurgar(umbral: Date) {
   return db.carga.findMany({
     where: {

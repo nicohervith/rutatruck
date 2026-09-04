@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { on } from "@/lib/events/bus";
 import { sendPushToTransportistasCercanos, sendPushToUser } from "@/lib/push";
 import { notifyEmpresa, notifyTransportista } from "@/lib/sse";
+import { DIAS_EN_CONFIRMACION_ABANDONADA } from "@/lib/plazos";
 
 /**
  * Los listeners disparan trabajo async (push + SSE) sin bloquear la respuesta
@@ -90,7 +91,7 @@ on("carga.completada", ({ empresaId, cargaId, titulo }) => {
     await Promise.allSettled([
       sendPushToUser(empresaId, {
         title: "Viaje marcado como completado",
-        body: `El transportista marcó "${titulo}" como completado. Confirmá o abrí una disputa.`,
+        body: `El transportista marcó "${titulo}" como completado. Confirmá o abrí una disputa: si no respondés en ${DIAS_EN_CONFIRMACION_ABANDONADA} días se cierra solo.`,
         url: `/empresa/cargas/${cargaId}`,
       }),
       notifyEmpresa(empresaId),
