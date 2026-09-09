@@ -72,7 +72,7 @@ export async function findPostulacionParaChat(postulacionId: number, userId: str
           origen: true,
           destino: true,
           estado: true,
-          updatedAt: true,
+          finalizadaEn: true,
           empresaId: true,
           empresa: { select: { name: true } },
         },
@@ -98,7 +98,7 @@ export async function findPostulacionAceptadaDeTransportista(cargaId: number, tr
 export async function eliminarMensajesFinalizadosVencidos() {
   const cutoff = new Date(Date.now() - CHAT_RETENCION_FINALIZADA_MS);
   const { count } = await db.mensaje.deleteMany({
-    where: { postulacion: { carga: { estado: "FINALIZADA", updatedAt: { lt: cutoff } } } },
+    where: { postulacion: { carga: { estado: "FINALIZADA", finalizadaEn: { lt: cutoff } } } },
   });
   return count;
 }
@@ -144,6 +144,7 @@ export async function findConversaciones(
           destino: true,
           estado: true,
           updatedAt: true,
+          finalizadaEn: true,
           empresa: { select: { name: true } },
         },
       },
@@ -203,4 +204,28 @@ export async function findConversaciones(
       };
     })
     .sort((a, b) => b.ultimoMensajeEn.getTime() - a.ultimoMensajeEn.getTime());
+}
+
+/** Mensajes que este autor escribió desde `desde`, para el límite de envío. */
+export async function contarMensajesRecientesDeAutor(autorId: string, desde: Date) {
+  return db.mensaje.count({ where: { autorId, creadoEn: { gte: desde } } });
+}
+
+/**
+ * Chequeo mínimo de pertenencia al hilo. Lo usa el ping de "está escribiendo",
+ * que se dispara cada 2s mientras alguien teclea: resolverlo con
+ * findPostulacionParaChat traía la carga entera y los nombres de las dos partes
+ * para una señal efímera que ni siquiera se persiste.
+ */
+export async function esParteDelHilo(postulacionId: number, userId: string) {
+  const encontrada = await db.postulacion.findFirst({
+    where: {
+      id: postulacionId,
+      estado: "ACEPTADA",
+      carga: whereChatVigente(),
+      OR: [{ transportistaId: userId }, { carga: { empresaId: userId } }],
+    },
+    select: { id: true },
+  });
+  return encontrada !== null;
 }

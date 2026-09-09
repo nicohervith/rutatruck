@@ -125,7 +125,13 @@ export async function notifyEmpresa(userId: string, extra?: Record<string, unkno
   ]);
   const hash = [`conf:${enConfirmacion}`, `post:${postulacionesNuevas}`, `msj:${mensajesNoLeidos}`].join(",");
   ssePush(userId, {
-    count: enConfirmacion + postulacionesNuevas,
+    // `count` es solo lo que el usuario puede marcar como visto. Las cargas
+    // EN_CONFIRMACION son una acción pendiente: se van cuando confirma el
+    // viaje, no cuando mira la campana. Sumarlas acá dejaba un badge rojo que
+    // "Marcar todas como vistas" no podía limpiar nunca, y el usuario aprendía
+    // a ignorarlo.
+    count: postulacionesNuevas,
+    accionesPendientes: enConfirmacion,
     hash,
     perfilIncompleto: incompleto,
     mensajesNoLeidos,

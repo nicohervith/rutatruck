@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/dal";
-import { findPostulacionParaChat } from "@/lib/repositories/mensaje.repository";
+import { esParteDelHilo } from "@/lib/repositories/mensaje.repository";
 import { chatPushTyping } from "@/lib/sse";
 
 export async function POST(
@@ -14,8 +14,9 @@ export async function POST(
   const postulacionId = parseInt(postulacionIdParam);
   if (isNaN(postulacionId)) return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-  const postulacion = await findPostulacionParaChat(postulacionId, session.userId);
-  if (!postulacion) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (!(await esParteDelHilo(postulacionId, session.userId))) {
+    return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  }
 
   chatPushTyping(postulacionId, session.userId);
 

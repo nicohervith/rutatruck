@@ -1,26 +1,48 @@
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 
-export async function findCargaPendientePago(cargaId: number) {
-  return db.carga.findUnique({
-    where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-    select: {
-      id: true,
-      titulo: true,
-      origen: true,
-      destino: true,
-      origenLat: true,
-      origenLng: true,
-      empresaId: true,
-    },
-  });
+const SELECT_CARGA_PUBLICADA = {
+  id: true,
+  titulo: true,
+  origen: true,
+  destino: true,
+  origenLat: true,
+  origenLng: true,
+  empresaId: true,
+} as const;
+
+/**
+ * Activa la carga solo si sigue en PENDIENTE_PAGO; devuelve null si ya no lo
+ * estaba.
+ *
+ * El filtro por estado va DENTRO del update a propósito. El webhook de Mercado
+ * Pago y el redirect de success llegan por caminos separados y pueden cruzarse:
+ * con un chequeo previo suelto los dos leían PENDIENTE_PAGO antes de que el
+ * otro escribiera, y la carga se anunciaba dos veces por push a todos los
+ * transportistas de la zona. Acá el que pierde la carrera recibe null y no
+ * vuelve a emitir.
+ */
+export async function activarCargaPagadaSiPendiente(cargaId: number, mpPaymentId: string | null) {
+  try {
+    return await db.carga.update({
+      where: { id: cargaId, estado: "PENDIENTE_PAGO" },
+      data: { estado: "ACTIVA", pagado: true, mpPaymentId },
+      select: SELECT_CARGA_PUBLICADA,
+    });
+  } catch (err) {
+    // P2025 = no matcheó ninguna fila, o sea que ya la activó el otro camino.
+    if ((err as { code?: string }).code === "P2025") return null;
+    throw err;
+  }
 }
 
-export async function activarCargaPagada(cargaId: number, mpPaymentId: string) {
-  return db.carga.update({
+/** Si la carga ya salió de PENDIENTE_PAGO con el pago acreditado, sin importar quién la activó. */
+export async function cargaYaActivada(cargaId: number) {
+  const carga = await db.carga.findUnique({
     where: { id: cargaId },
-    data: { estado: "ACTIVA", pagado: true, mpPaymentId },
+    select: { estado: true, pagado: true },
   });
+  return !!carga && carga.pagado && carga.estado !== "PENDIENTE_PAGO";
 }
 
 export async function asignarCargaPorComision(cargaId: number, mpPaymentId: string | null) {
@@ -212,21 +234,6 @@ export async function cerrarConvocatoria(cargaId: number, transportistaIds: stri
   ]);
 }
 
-export async function activarCargaPagadaDesdeRedirect(cargaId: number, mpPaymentId: string | null) {
-  return db.carga.update({
-    where: { id: cargaId, estado: "PENDIENTE_PAGO" },
-    data: { estado: "ACTIVA", pagado: true, mpPaymentId },
-    select: {
-      titulo: true,
-      origen: true,
-      destino: true,
-      origenLat: true,
-      origenLng: true,
-      empresaId: true,
-    },
-  });
-}
-
 export async function createOfertaPrivada(data: Prisma.CargaUncheckedCreateInput) {
   return db.carga.create({ data });
 }
@@ -342,7 +349,7 @@ export async function finalizarCargas(cargaIds: number[]) {
   if (cargaIds.length === 0) return;
   await db.carga.updateMany({
     where: { id: { in: cargaIds } },
-    data: { estado: "FINALIZADA" },
+    data: { estado: "FINALIZADA", finalizadaEn: new Date() },
   });
 }
 

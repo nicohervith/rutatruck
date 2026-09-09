@@ -88,6 +88,20 @@ async function enviar(
   }
 }
 
+
+/**
+ * Techo de envíos simultáneos. Un `Promise.allSettled` sobre todas las
+ * subscripciones abría N conexiones HTTPS a la vez desde una sola función
+ * serverless: con miles de suscriptores eso choca contra los límites de sockets
+ * y contra el tiempo que `after()` mantiene viva la invocación.
+ */
+const CONCURRENCIA_PUSH = 25;
+
+async function enLotes<T>(items: T[], tarea: (item: T) => Promise<unknown>) {
+  for (let i = 0; i < items.length; i += CONCURRENCIA_PUSH) {
+    await Promise.allSettled(items.slice(i, i + CONCURRENCIA_PUSH).map(tarea));
+  }
+}
 export async function sendPushToAllTransportistas(
   payload: PushPayload,
   excludeUserId?: string
@@ -101,9 +115,7 @@ export async function sendPushToAllTransportistas(
     },
   });
 
-  await Promise.allSettled(
-    subscriptions.map((sub) => enviar(sub, payload, "sendPushToAllTransportistas")),
-  );
+  await enLotes(subscriptions, (sub) => enviar(sub, payload, "sendPushToAllTransportistas"));
 }
 
 export async function sendPushToTransportistasCercanos(
@@ -126,9 +138,7 @@ export async function sendPushToTransportistasCercanos(
 
   const filtered = subscriptions.filter((sub) => enZona(sub.user, origenLat, origenLng));
 
-  await Promise.allSettled(
-    filtered.map((sub) => enviar(sub, payload, "sendPushToTransportistasCercanos")),
-  );
+  await enLotes(filtered, (sub) => enviar(sub, payload, "sendPushToTransportistasCercanos"));
 }
 
 export async function sendPushToUser(userId: string, payload: PushPayload) {
@@ -136,9 +146,7 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
     where: { userId },
   });
 
-  await Promise.allSettled(
-    subscriptions.map((sub) => enviar(sub, payload, "sendPushToUser")),
-  );
+  await enLotes(subscriptions, (sub) => enviar(sub, payload, "sendPushToUser"));
 }
 
 /**
@@ -166,8 +174,7 @@ export async function sendDigestCargasDisponibles(
   let fallidas = 0;
   let sinCargasEnZona = 0;
 
-  await Promise.allSettled(
-    subscriptions.map(async (sub) => {
+  await enLotes(subscriptions, async (sub) => {
       const relevantes = cargas.filter((c) => enZona(sub.user, c.origenLat, c.origenLng)).length;
       if (relevantes === 0) {
         sinCargasEnZona++;
@@ -186,8 +193,7 @@ export async function sendDigestCargasDisponibles(
       );
       if (ok) enviadas++;
       else fallidas++;
-    }),
-  );
+  });
 
   return { suscripciones: subscriptions.length, enviadas, fallidas, sinCargasEnZona };
 }

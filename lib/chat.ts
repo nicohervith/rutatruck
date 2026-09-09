@@ -12,13 +12,21 @@
 
 export const CHAT_RETENCION_FINALIZADA_MS = 24 * 60 * 60 * 1000;
 
-type CargaChatEstado = { estado: string; updatedAt: Date | string };
+type CargaChatEstado = { estado: string; finalizadaEn: Date | string | null };
 
-/** ms hasta que se elimine el chat. null si no aplica (no está FINALIZADA). Negativo si ya venció. */
+/**
+ * ms hasta que se elimine el chat. null si no aplica (no está FINALIZADA, o no
+ * se sabe cuándo se finalizó). Negativo si ya venció.
+ *
+ * El reloj es `finalizadaEn` y no `updatedAt`: éste último se mueve con
+ * cualquier escritura sobre la carga, así que un flag de recordatorio le
+ * regalaba 24h más al hilo, mientras que una conversación activa —que no toca
+ * la fila de la carga— se cortaba igual a mitad de charla.
+ */
 export function msHastaEliminarChat(carga: CargaChatEstado): number | null {
-  if (carga.estado !== "FINALIZADA") return null;
-  const updatedAt = new Date(carga.updatedAt).getTime();
-  return updatedAt + CHAT_RETENCION_FINALIZADA_MS - Date.now();
+  if (carga.estado !== "FINALIZADA" || carga.finalizadaEn === null) return null;
+  const finalizadaEn = new Date(carga.finalizadaEn).getTime();
+  return finalizadaEn + CHAT_RETENCION_FINALIZADA_MS - Date.now();
 }
 
 export function esChatVigente(carga: CargaChatEstado): boolean {
@@ -30,7 +38,11 @@ export function esChatVigente(carga: CargaChatEstado): boolean {
 export function whereChatVigente() {
   const cutoff = new Date(Date.now() - CHAT_RETENCION_FINALIZADA_MS);
   return {
-    OR: [{ estado: { not: "FINALIZADA" as const } }, { estado: "FINALIZADA" as const, updatedAt: { gte: cutoff } }],
+    OR: [
+      { estado: { not: "FINALIZADA" as const } },
+      { estado: "FINALIZADA" as const, finalizadaEn: null },
+      { estado: "FINALIZADA" as const, finalizadaEn: { gte: cutoff } },
+    ],
   };
 }
 

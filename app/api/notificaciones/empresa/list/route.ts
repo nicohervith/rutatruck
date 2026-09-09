@@ -27,7 +27,7 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
       }),
       db.postulacion.findMany({
-        where: { carga: { empresaId: session.userId }, vistaEmpresa: true },
+        where: { carga: { empresaId: session.userId }, estado: "PENDIENTE", vistaEmpresa: true },
         select: postulacionSelect,
         orderBy: { createdAt: "desc" },
         take: 4,

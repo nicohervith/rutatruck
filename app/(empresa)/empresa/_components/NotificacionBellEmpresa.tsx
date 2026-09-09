@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useNotifCount } from "@/app/_components/EventsProvider";
+import { useNotifCount, useAccionesPendientes } from "@/app/_components/EventsProvider";
 
 type Notif = {
   tipo: "confirmacion" | "postulacion";
@@ -17,6 +17,7 @@ type Notif = {
 
 export default function NotificacionBellEmpresa() {
   const count = useNotifCount();
+  const accionesPendientes = useAccionesPendientes();
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,10 +84,20 @@ export default function NotificacionBellEmpresa() {
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
           />
         </svg>
-        {count > 0 && (
+        {count > 0 ? (
           <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-gray-900 leading-none">
             {count > 9 ? "9+" : count}
           </span>
+        ) : (
+          // Punto y no número: una carga esperando confirmación no es algo "sin
+          // leer" que se pueda bajar a cero mirando la campana, así que un
+          // contador ahí se lee como un badge que no anda.
+          accionesPendientes > 0 && (
+            <span
+              className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-orange-500"
+              aria-label="Tenés acciones pendientes"
+            />
+          )
         )}
       </button>
 

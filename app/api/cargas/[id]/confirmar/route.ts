@@ -22,7 +22,7 @@ export async function POST(
 
   await db.carga.update({
     where: { id: cargaId },
-    data: { estado: "FINALIZADA" },
+    data: { estado: "FINALIZADA", finalizadaEn: new Date() },
   });
 
   return NextResponse.json({ ok: true });

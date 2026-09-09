@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactElement } from "react";
-import { useNotifCount, usePrivCount, usePerfilIncompleto, useMensajesNoLeidos } from "./EventsProvider";
+import {
+  useNotifCount,
+  usePrivCount,
+  usePerfilIncompleto,
+  useMensajesNoLeidos,
+  useAccionesPendientes,
+} from "./EventsProvider";
 
 type Tab = {
   href: string;
@@ -133,6 +139,7 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
   const privCount = usePrivCount();
   const perfilIncompleto = usePerfilIncompleto();
   const mensajesNoLeidos = useMensajesNoLeidos();
+  const accionesPendientes = useAccionesPendientes();
 
   return (
     <nav
@@ -155,6 +162,9 @@ export function BottomTabBar({ role }: { role: "transportista" | "empresa" }) {
                 <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
                   {notifCount > 9 ? "9+" : notifCount}
                 </span>
+              )}
+              {tab.showNotif && notifCount === 0 && accionesPendientes > 0 && (
+                <span className="absolute -top-1 -right-1.5 h-2.5 w-2.5 rounded-full bg-orange-500" />
               )}
               {tab.showPriv && privCount > 0 && (
                 <span className="absolute -top-1 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">

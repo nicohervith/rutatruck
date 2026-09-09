@@ -101,6 +101,11 @@ model Carga {
   recordatorioSinPostulantesEnviadoEn DateTime?
   pesoUnidad                String?
   esPrivada                 Boolean       @default(false)
+  /// Momento en que la carga pasó a FINALIZADA. Es el reloj de la retención del
+  /// chat: usar updatedAt para eso hacía que cualquier update ajeno a la carga
+  /// (un flag de recordatorio, por ejemplo) le regalara 24h más al hilo, y que
+  /// mandar mensajes —que no toca la carga— no las extendiera nunca.
+  finalizadaEn              DateTime?
   transportistaDestinadoId  String?
   empresa                   User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
   transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
