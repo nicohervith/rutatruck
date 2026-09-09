@@ -1,12 +1,20 @@
-import { crearMensaje, findCargaParaChat } from "@/lib/repositories/mensaje.repository";
+import {
+  crearMensaje,
+  findPostulacionParaChat,
+  contarMensajesRecientesDeAutor,
+} from "@/lib/repositories/mensaje.repository";
 import { emit } from "@/lib/events/bus";
+
+/** Techo de envío: 10 mensajes cada 10 segundos por autor, sumando todos sus hilos. */
+const MAX_MENSAJES_POR_VENTANA = 10;
+const VENTANA_ENVIO_MS = 10_000;
 
 export type EnviarMensajeResult =
   | { ok: true; mensaje: Awaited<ReturnType<typeof crearMensaje>> }
   | { ok: false; status: number; error: string };
 
 export async function enviarMensaje(
-  cargaId: number,
+  postulacionId: number,
   autorId: string,
   cuerpoCrudo: string,
 ): Promise<EnviarMensajeResult> {
@@ -18,34 +26,42 @@ export async function enviarMensaje(
     return { ok: false, status: 400, error: "Mensaje demasiado largo" };
   }
 
-  const carga = await findCargaParaChat(cargaId, autorId);
-  if (!carga) {
+  // Cada mensaje dispara un push al otro extremo, así que sin techo un cliente
+  // en loop se convierte en un generador de notificaciones. Se chequea antes de
+  // resolver permisos para que el intento cueste un count y no un join.
+  const recientes = await contarMensajesRecientesDeAutor(
+    autorId,
+    new Date(Date.now() - VENTANA_ENVIO_MS),
+  );
+  if (recientes >= MAX_MENSAJES_POR_VENTANA) {
+    return {
+      ok: false,
+      status: 429,
+      error: "Estás enviando mensajes demasiado rápido. Esperá unos segundos.",
+    };
+  }
+
+  const postulacion = await findPostulacionParaChat(postulacionId, autorId);
+  if (!postulacion) {
     return { ok: false, status: 404, error: "Conversación no encontrada" };
   }
 
-  const mensaje = await crearMensaje(cargaId, autorId, cuerpo);
+  const mensaje = await crearMensaje(postulacionId, autorId, cuerpo);
 
-  const esEmpresa = carga.empresaId === autorId;
-  // Si la convocatoria la cubren varios transportistas, el mensaje de la empresa
-  // le llega a todos: transportistaAsignadoId solo guarda a uno.
-  const destinatarioIds = esEmpresa
-    ? Array.from(
-        new Set([
-          ...carga.postulaciones.map((p) => p.transportistaId),
-          ...(carga.transportistaAsignadoId ? [carga.transportistaAsignadoId] : []),
-        ]),
-      )
-    : [carga.empresaId];
-  const autorNombre = esEmpresa ? carga.empresa.name : (carga.transportistaAsignado?.name ?? "Transportista");
+  // Un hilo es una postulación, así que siempre son exactamente dos partes: el
+  // destinatario es el otro extremo, sin listas ni broadcast.
+  const esEmpresa = postulacion.carga.empresaId === autorId;
+  const destinatarioId = esEmpresa ? postulacion.transportistaId : postulacion.carga.empresaId;
+  const autorNombre = esEmpresa ? postulacion.carga.empresa.name : postulacion.transportista.name;
 
   emit("mensaje.creado", {
-    cargaId,
+    postulacionId,
     autorId,
-    destinatarioIds,
+    destinatarioId,
     destinatarioRole: esEmpresa ? "transportista" : "empresa",
     autorNombre,
     cuerpo,
-    titulo: carga.titulo,
+    titulo: postulacion.carga.titulo,
   });
 
   return { ok: true, mensaje };

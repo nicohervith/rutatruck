@@ -58,10 +58,10 @@ export type Events = {
     titulo: string;
   };
   "mensaje.creado": {
-    cargaId: number;
+    postulacionId: number;
     autorId: string;
-    /** Varios cuando la empresa le escribe a una carga cubierta por más de un transportista. */
-    destinatarioIds: string[];
+    /** Un hilo es una postulación: siempre hay exactamente un destinatario. */
+    destinatarioId: string;
     destinatarioRole: "empresa" | "transportista";
     autorNombre: string;
     cuerpo: string;

@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { on } from "@/lib/events/bus";
+import { onUnaVez } from "@/lib/events/bus";
 import { sendPushToTransportistasCercanos, sendPushToUser } from "@/lib/push";
 import { notifyEmpresa, notifyTransportista } from "@/lib/sse";
 import { DIAS_EN_CONFIRMACION_ABANDONADA } from "@/lib/plazos";
@@ -41,10 +41,10 @@ function notificarCargaDisponibleCercana({
   );
 }
 
-on("pago.aprobado.publicacion", notificarCargaDisponibleCercana);
-on("carga.publicada", notificarCargaDisponibleCercana);
+onUnaVez("pago.aprobado.publicacion", notificarCargaDisponibleCercana);
+onUnaVez("carga.publicada", notificarCargaDisponibleCercana);
 
-on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubierta, deadlineHoras }) => {
+onUnaVez("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubierta, deadlineHoras }) => {
   console.log("[listener] postulacion.aceptada recibido", { transportistaId, cargaId });
   const body =
     deadlineHoras !== undefined
@@ -59,21 +59,21 @@ on("postulacion.aceptada", ({ transportistaId, cargaId, titulo, convocatoriaCubi
       sendPushToUser(transportistaId, {
         title: "¡Fuiste seleccionado!",
         body,
-        url: `/transportista/conversaciones/${cargaId}`,
+        url: `/transportista/cargas/${cargaId}`,
       }),
       notifyTransportista(transportistaId),
     ]);
   });
 });
 
-on("oferta-privada.respondida", ({ empresaId, transportistaId, cargaId, titulo, accion }) => {
+onUnaVez("oferta-privada.respondida", ({ empresaId, transportistaId, cargaId, titulo, accion }) => {
   after(async () => {
     await Promise.allSettled([
       accion === "aceptar"
         ? sendPushToUser(empresaId, {
             title: "¡Oferta aceptada!",
             body: `El transportista aceptó tu oferta para "${titulo}". Iniciá una conversación desde la app para coordinar.`,
-            url: `/empresa/conversaciones/${cargaId}`,
+            url: `/empresa/cargas/${cargaId}`,
           })
         : sendPushToUser(empresaId, {
             title: "Oferta rechazada",
@@ -86,7 +86,7 @@ on("oferta-privada.respondida", ({ empresaId, transportistaId, cargaId, titulo, 
   });
 });
 
-on("carga.completada", ({ empresaId, cargaId, titulo }) => {
+onUnaVez("carga.completada", ({ empresaId, cargaId, titulo }) => {
   after(async () => {
     await Promise.allSettled([
       sendPushToUser(empresaId, {
@@ -99,14 +99,14 @@ on("carga.completada", ({ empresaId, cargaId, titulo }) => {
   });
 });
 
-on("convocatoria.cerrada", ({ cargaId, titulo, transportistaIds }) => {
+onUnaVez("convocatoria.cerrada", ({ cargaId, titulo, transportistaIds }) => {
   after(async () => {
     await Promise.allSettled(
       transportistaIds.flatMap((transportistaId) => [
         sendPushToUser(transportistaId, {
           title: "¡Convocatoria cerrada!",
           body: `Fuiste asignado para "${titulo}". Iniciá una conversación con la empresa desde la app para coordinar.`,
-          url: `/transportista/conversaciones/${cargaId}`,
+          url: `/transportista/cargas/${cargaId}`,
         }),
         notifyTransportista(transportistaId),
       ]),
@@ -114,7 +114,7 @@ on("convocatoria.cerrada", ({ cargaId, titulo, transportistaIds }) => {
   });
 });
 
-on("postulacion.creada", ({ cargaId, empresaId, titulo }) => {
+onUnaVez("postulacion.creada", ({ cargaId, empresaId, titulo }) => {
   after(async () => {
     await Promise.allSettled([
       sendPushToUser(empresaId, {
@@ -127,15 +127,15 @@ on("postulacion.creada", ({ cargaId, empresaId, titulo }) => {
   });
 });
 
-on("postulacion.vista_transportista", ({ transportistaId }) => {
+onUnaVez("postulacion.vista_transportista", ({ transportistaId }) => {
   after(() => notifyTransportista(transportistaId).catch(() => {}));
 });
 
-on("postulacion.vista_empresa", ({ empresaId }) => {
+onUnaVez("postulacion.vista_empresa", ({ empresaId }) => {
   after(() => notifyEmpresa(empresaId).catch(() => {}));
 });
 
-on("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
+onUnaVez("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
   after(async () => {
     await Promise.allSettled([
       sendPushToUser(transportistaId, {
@@ -148,23 +148,19 @@ on("oferta-privada.creada", ({ transportistaId, cargaId, titulo }) => {
   });
 });
 
-on("mensaje.creado", ({ cargaId, destinatarioIds, destinatarioRole, autorNombre, cuerpo }) => {
-  console.log("[listener] mensaje.creado recibido", { cargaId, destinatarioIds });
+onUnaVez("mensaje.creado", ({ postulacionId, destinatarioId, destinatarioRole, autorNombre, cuerpo }) => {
   const preview = cuerpo.length > 80 ? `${cuerpo.slice(0, 80)}…` : cuerpo;
   const url =
     destinatarioRole === "empresa"
-      ? `/empresa/conversaciones/${cargaId}`
-      : `/transportista/conversaciones/${cargaId}`;
+      ? `/empresa/conversaciones/${postulacionId}`
+      : `/transportista/conversaciones/${postulacionId}`;
 
   after(async () => {
-    console.log("[listener] mensaje.creado after() ejecutando", { destinatarioIds });
-    await Promise.allSettled(
-      destinatarioIds.flatMap((destinatarioId) => [
-        sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
-        destinatarioRole === "empresa"
-          ? notifyEmpresa(destinatarioId)
-          : notifyTransportista(destinatarioId),
-      ]),
-    );
+    await Promise.allSettled([
+      sendPushToUser(destinatarioId, { title: `Mensaje de ${autorNombre}`, body: preview, url }),
+      destinatarioRole === "empresa"
+        ? notifyEmpresa(destinatarioId)
+        : notifyTransportista(destinatarioId),
+    ]);
   });
 });

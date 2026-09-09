@@ -105,6 +105,7 @@ export default async function CargaDetallePage({
   const asignados = carga.postulaciones
     .filter((p) => p.estado === "ACEPTADA")
     .map((p) => ({
+      postulacionId: p.id,
       id: p.transportista.id,
       name: p.transportista.name,
       email: p.contactoEmail ?? p.transportista.email,
@@ -372,33 +373,36 @@ export default async function CargaDetallePage({
                 )}
               </div>
             ))}
-            <Link
-              href={`/empresa/conversaciones/${carga.id}`}
-              className="mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors hover:border-[var(--primary-27)]"
-              style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
-            >
-              <span
-                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: "var(--primary-13)" }}
+            {/* Un hilo por transportista: en una convocatoria de varios camiones
+                cada uno tiene su conversación aparte con la empresa. */}
+            {asignados.map((t) => (
+              <Link
+                key={t.postulacionId}
+                href={`/empresa/conversaciones/${t.postulacionId}`}
+                className="mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors hover:border-[var(--primary-27)]"
+                style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <span
+                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: "var(--primary-13)" }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate" style={{ color: "var(--primary)" }}>
+                    Chat con {t.name}
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
+                    Coordiná los detalles del viaje desde la app
+                  </p>
+                </div>
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium" style={{ color: "var(--primary)" }}>
-                  {asignados.length === 1
-                    ? `Chat con ${asignados[0].name}`
-                    : "Chat de la carga"}
-                </p>
-                <p className="text-sm mt-0.5" style={{ color: "#374151" }}>
-                  Coordiná los detalles del viaje desde la app
-                </p>
-              </div>
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+              </Link>
+            ))}
           </div>
         )}
 

@@ -103,6 +103,11 @@ self.addEventListener("push", (event) => {
     icon: "/icon-192.png",
     badge: "/badge-96.png",
     data: { url: data.url ?? "/" },
+    // Sin tag cada push apila una notificación nueva: diez mensajes de un chat
+    // eran diez avisos. La url identifica el destino (hilo o carga), así que
+    // sirve de clave para que el nuevo reemplace al anterior en vez de sumarse.
+    tag: data.tag ?? data.url ?? "clickcargo",
+    renotify: true,
   };
 
   event.waitUntil(self.registration.showNotification(title, options));

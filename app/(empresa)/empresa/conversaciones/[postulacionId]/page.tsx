@@ -5,28 +5,26 @@ import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import NotificacionBellEmpresa from "../../_components/NotificacionBellEmpresa";
 import { HamburgerMenu } from "@/app/_components/HamburgerMenu";
 import ChatThread from "@/app/_components/ChatThread";
-import { findCargaParaChat, findMensajesDeCarga, marcarLeidos } from "@/lib/repositories/mensaje.repository";
+import { findPostulacionParaChat, findMensajesDeHilo } from "@/lib/repositories/mensaje.repository";
 import { labelChatPorVencer } from "@/lib/chat";
-import { chatPushLeido } from "@/lib/sse";
 
 export default async function EmpresaConversacionPage({
   params,
 }: {
-  params: Promise<{ cargaId: string }>;
+  params: Promise<{ postulacionId: string }>;
 }) {
   const session = await verifySession();
-  const { cargaId: cargaIdParam } = await params;
-  const cargaId = parseInt(cargaIdParam);
-  if (isNaN(cargaId)) redirect("/empresa/conversaciones");
+  const { postulacionId: postulacionIdParam } = await params;
+  const postulacionId = parseInt(postulacionIdParam);
+  if (isNaN(postulacionId)) redirect("/empresa/conversaciones");
 
-  const carga = await findCargaParaChat(cargaId, session.userId);
-  if (!carga || carga.empresaId !== session.userId) redirect("/empresa/conversaciones");
+  const postulacion = await findPostulacionParaChat(postulacionId, session.userId);
+  if (!postulacion || postulacion.carga.empresaId !== session.userId) {
+    redirect("/empresa/conversaciones");
+  }
 
-  const [mensajes, marcados] = await Promise.all([
-    findMensajesDeCarga(cargaId),
-    marcarLeidos(cargaId, session.userId),
-  ]);
-  if (marcados > 0) chatPushLeido(cargaId, session.userId, new Date().toISOString());
+  const { carga } = postulacion;
+  const mensajes = await findMensajesDeHilo(postulacionId);
   const avisoVencimiento = labelChatPorVencer(carga);
 
   return (
@@ -56,9 +54,7 @@ export default async function EmpresaConversacionPage({
           </svg>
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-gray-900 truncate">
-            {carga.transportistaAsignado?.name ?? "Transportista"}
-          </p>
+          <p className="font-semibold text-gray-900 truncate">{postulacion.transportista.name}</p>
           <Link
             href={`/empresa/cargas/${carga.id}`}
             className="text-xs truncate block transition-opacity hover:opacity-80"
@@ -77,15 +73,15 @@ export default async function EmpresaConversacionPage({
         )}
       </div>
 
-      {/* `key` fuerza remount al cambiar de carga: React no desmonta cuando sólo
+      {/* `key` fuerza remount al cambiar de hilo: React no desmonta cuando sólo
           cambia un parámetro de ruta, y ChatThread mergea `initialMensajes` por
-          id sin mirar el cargaId (y `lastIdRef` tampoco se resetea), así que
-          reusar la instancia arrastraría los mensajes de la conversación previa. */}
+          id sin mirar el postulacionId (y `lastIdRef` tampoco se resetea), así
+          que reusar la instancia arrastraría los mensajes del hilo previo. */}
       <ChatThread
-        key={carga.id}
-        cargaId={carga.id}
+        key={postulacion.id}
+        postulacionId={postulacion.id}
         currentUserId={session.userId}
-        initialMensajes={mensajes.map((m: (typeof mensajes)[number]) => ({
+        initialMensajes={mensajes.map((m) => ({
           id: m.id,
           autorId: m.autorId,
           cuerpo: m.cuerpo,

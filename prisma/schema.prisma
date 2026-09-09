@@ -101,12 +101,16 @@ model Carga {
   recordatorioSinPostulantesEnviadoEn DateTime?
   pesoUnidad                String?
   esPrivada                 Boolean       @default(false)
+  /// Momento en que la carga pasó a FINALIZADA. Es el reloj de la retención del
+  /// chat: usar updatedAt para eso hacía que cualquier update ajeno a la carga
+  /// (un flag de recordatorio, por ejemplo) le regalara 24h más al hilo, y que
+  /// mandar mensajes —que no toca la carga— no las extendiera nunca.
+  finalizadaEn              DateTime?
   transportistaDestinadoId  String?
   empresa                   User          @relation("EmpresaCarga", fields: [empresaId], references: [id])
   transportistaAsignado     User?         @relation("TransportistaAsignado", fields: [transportistaAsignadoId], references: [id])
   transportistaDestinado    User?         @relation("CargaPrivada", fields: [transportistaDestinadoId], references: [id])
   postulaciones             Postulacion[]
-  mensajes                  Mensaje[]
   resenas                   Resena[]
 }
 
@@ -126,6 +130,7 @@ model Postulacion {
   vistaEmpresa       Boolean           @default(false)
   carga              Carga             @relation(fields: [cargaId], references: [id])
   transportista      User              @relation(fields: [transportistaId], references: [id])
+  mensajes           Mensaje[]
 
   @@unique([cargaId, transportistaId])
 }
@@ -159,17 +164,22 @@ model Resena {
   @@index([publicadaEn, creadaEn])
 }
 
+/// Un hilo de chat es una Postulacion, no una Carga: en una convocatoria de
+/// varios camiones hay varias postulaciones ACEPTADA sobre la misma carga, y
+/// con la carga como clave todos los transportistas compartían la misma sala
+/// —incluido el precio que cada uno había cerrado con la empresa—.
 model Mensaje {
-  id       Int       @id @default(autoincrement())
-  cargaId  Int
-  autorId  String
-  cuerpo   String
-  creadoEn DateTime  @default(now())
-  leidoEn  DateTime?
-  carga    Carga     @relation(fields: [cargaId], references: [id])
-  autor    User      @relation(fields: [autorId], references: [id])
+  id            Int         @id @default(autoincrement())
+  postulacionId Int
+  autorId       String
+  cuerpo        String
+  creadoEn      DateTime    @default(now())
+  leidoEn       DateTime?
+  postulacion   Postulacion @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  autor         User        @relation(fields: [autorId], references: [id])
 
-  @@index([cargaId, creadoEn])
+  @@index([postulacionId, creadoEn])
+  @@index([autorId, leidoEn])
 }
 
 model PushSubscription {

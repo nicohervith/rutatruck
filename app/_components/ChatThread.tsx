@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLiveStream } from "./useLiveStream";
 
 export type Mensaje = {
   id: number;
@@ -12,12 +13,12 @@ export type Mensaje = {
 };
 
 interface Props {
-  cargaId: number;
+  postulacionId: number;
   currentUserId: string;
   initialMensajes: Mensaje[];
 }
 
-export default function ChatThread({ cargaId, currentUserId, initialMensajes }: Props) {
+export default function ChatThread({ postulacionId, currentUserId, initialMensajes }: Props) {
   const router = useRouter();
   const [mensajes, setMensajes] = useState<Mensaje[]>(initialMensajes);
   const [texto, setTexto] = useState("");
@@ -25,6 +26,13 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   const [error, setError] = useState("");
   const [otroEscribiendo, setOtroEscribiendo] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listaRef = useRef<HTMLDivElement>(null);
+  // Si el usuario subió a leer historia, un mensaje entrante no debe arrastrarlo
+  // al fondo. Se mide antes de que el DOM crezca, de ahí el ref y no un cálculo
+  // dentro del efecto.
+  const cercaDelFinalRef = useRef(true);
+  const forzarScrollRef = useRef(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastIdRef = useRef(
     initialMensajes.length > 0 ? initialMensajes[initialMensajes.length - 1].id : 0,
   );
@@ -70,15 +78,14 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   // que `initialMensajes`/`marcarLeidos` se recalculen siempre con datos frescos.
   useEffect(() => {
     router.refresh();
-  }, [cargaId, router]);
+  }, [postulacionId, router]);
 
-  useEffect(() => {
-    let es: EventSource;
-    let retryId: ReturnType<typeof setTimeout>;
-
-    function connect() {
-      es = new EventSource(`/api/conversaciones/${cargaId}/stream?after=${lastIdRef.current}`);
-
+  useLiveStream(
+    postulacionId,
+    // Se reevalúa en cada reconexión: al volver del segundo plano pide solo lo
+    // posterior al último mensaje que ya tiene.
+    () => `/api/conversaciones/${postulacionId}/stream?after=${lastIdRef.current}`,
+    (es) => {
       es.addEventListener("mensajes", (e: MessageEvent) => {
         mergeMensajes(JSON.parse(e.data) as Mensaje[]);
       });
@@ -98,41 +105,61 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
           prev.map((m) => (m.autorId === currentUserId && !m.leidoEn ? { ...m, leidoEn: en } : m)),
         );
       });
-
-      es.onerror = () => {
-        es.close();
-        retryId = setTimeout(connect, 3000);
-      };
-    }
-
-    connect();
-    return () => {
-      es?.close();
-      clearTimeout(retryId);
-      clearTimeout(escribiendoTimeoutRef.current);
-    };
-  }, [cargaId, currentUserId]);
+    },
+  );
 
   useEffect(() => {
+    return () => clearTimeout(escribiendoTimeoutRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!cercaDelFinalRef.current && !forzarScrollRef.current) return;
+    forzarScrollRef.current = false;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes.length]);
 
-  function handleTextoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleScrollLista(e: React.UIEvent<HTMLDivElement>) {
+    const c = e.currentTarget;
+    cercaDelFinalRef.current = c.scrollHeight - c.scrollTop - c.clientHeight < 120;
+  }
+
+  // El textarea arranca en una línea y crece con el contenido hasta un tope,
+  // en vez del <input> de una sola línea que tenía antes: coordinar un viaje
+  // suele necesitar más de un renglón.
+  function ajustarAlto() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }
+
+  function handleTextoChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setTexto(e.target.value);
+    ajustarAlto();
     const ahora = Date.now();
     if (ahora - ultimoTypingEnviadoRef.current < 2000) return;
     ultimoTypingEnviadoRef.current = ahora;
-    fetch(`/api/conversaciones/${cargaId}/typing`, { method: "POST" }).catch(() => {});
+    fetch(`/api/conversaciones/${postulacionId}/typing`, { method: "POST" }).catch(() => {});
+  }
+
+  // Enter manda, Shift+Enter hace salto de línea.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void handleSend(e);
+    }
   }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const cuerpo = texto.trim();
     if (!cuerpo) return;
+    // Mandar siempre baja al final, aunque estuvieras leyendo más arriba.
+    forzarScrollRef.current = true;
     setEnviando(true);
     setError("");
     try {
-      const res = await fetch(`/api/conversaciones/${cargaId}/mensajes`, {
+      const res = await fetch(`/api/conversaciones/${postulacionId}/mensajes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cuerpo }),
@@ -141,6 +168,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
       if (!res.ok) throw new Error(data.error ?? "Error al enviar");
       mergeMensajes([data.mensaje as Mensaje]);
       setTexto("");
+      if (inputRef.current) inputRef.current.style.height = "auto";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -150,7 +178,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div ref={listaRef} onScroll={handleScrollLista} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {mensajes.length === 0 && (
           <p className="text-center text-sm py-10" style={{ color: "#9CA3AF" }}>
             Todavía no hay mensajes. Escribí el primero para coordinar el viaje.
@@ -202,16 +230,19 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
 
       <form
         onSubmit={handleSend}
-        className="flex-shrink-0 border-t px-4 py-3 flex gap-2"
+        className="flex-shrink-0 border-t px-4 py-3 flex items-end gap-2"
         style={{ borderColor: "#E2E8E8", backgroundColor: "#FFFFFF" }}
       >
-        <input
-          type="text"
+        <textarea
+          ref={inputRef}
+          rows={1}
           value={texto}
           onChange={handleTextoChange}
+          onKeyDown={handleKeyDown}
           placeholder="Escribí un mensaje..."
-          className="flex-1 rounded-full border px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
-          style={{ borderColor: "#E2E8E8", color: "#111827" }}
+          maxLength={2000}
+          className="flex-1 resize-none rounded-2xl border px-4 py-2.5 text-sm leading-5 focus:outline-none focus:ring-2"
+          style={{ borderColor: "#E2E8E8", color: "#111827", maxHeight: 120 }}
         />
         <button
           type="submit"

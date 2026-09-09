@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useLiveStream } from "./useLiveStream";
 import { useRouter } from "next/navigation";
 
 type EventsState = {
@@ -10,6 +11,8 @@ type EventsState = {
   perfilIncompleto: boolean;
   mensajesNoLeidos: number;
   otroRolPendiente: number;
+  /** Cosas que exigen una acción y no se limpian mirándolas (cargas EN_CONFIRMACION). */
+  accionesPendientes: number;
 };
 
 const EventsContext = createContext<EventsState>({
@@ -19,6 +22,7 @@ const EventsContext = createContext<EventsState>({
   perfilIncompleto: false,
   mensajesNoLeidos: 0,
   otroRolPendiente: 0,
+  accionesPendientes: 0,
 });
 
 export function useNotifCount() {
@@ -42,6 +46,11 @@ export function useOtroRolPendiente() {
   return useContext(EventsContext).otroRolPendiente;
 }
 
+/** Acciones pendientes del lado empresa: se limpian actuando, no mirando. */
+export function useAccionesPendientes() {
+  return useContext(EventsContext).accionesPendientes;
+}
+
 export function EventsProvider({
   children,
   vista,
@@ -57,16 +66,14 @@ export function EventsProvider({
     perfilIncompleto: false,
     mensajesNoLeidos: 0,
     otroRolPendiente: 0,
+    accionesPendientes: 0,
   });
   const hashRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    let es: EventSource;
-    let retryId: ReturnType<typeof setTimeout>;
-
-    function connect() {
-      es = new EventSource(`/api/events?vista=${vista}`);
-
+  useLiveStream(
+    vista,
+    () => `/api/events?vista=${vista}`,
+    (es) => {
       es.addEventListener("update", (e: MessageEvent) => {
         const payload = JSON.parse(e.data) as {
           count?: number;
@@ -75,6 +82,7 @@ export function EventsProvider({
           perfilIncompleto?: boolean;
           mensajesNoLeidos?: number;
           otroRolPendiente?: number;
+          accionesPendientes?: number;
         };
 
         setState((prev) => ({
@@ -84,6 +92,7 @@ export function EventsProvider({
           perfilIncompleto: payload.perfilIncompleto ?? prev.perfilIncompleto,
           mensajesNoLeidos: payload.mensajesNoLeidos ?? prev.mensajesNoLeidos,
           otroRolPendiente: payload.otroRolPendiente ?? prev.otroRolPendiente,
+          accionesPendientes: payload.accionesPendientes ?? prev.accionesPendientes,
         }));
 
         if (payload.hash !== undefined) {
@@ -93,19 +102,23 @@ export function EventsProvider({
           hashRef.current = payload.hash;
         }
       });
+    },
+  );
 
-      es.onerror = () => {
-        es.close();
-        retryId = setTimeout(connect, 4000);
-      };
-    }
-
-    connect();
-    return () => {
-      es?.close();
-      clearTimeout(retryId);
+  // Numerito sobre el ícono de la app. En la TWA de Android es la señal de
+  // "tenés algo pendiente" que se ve sin abrir nada. No está en todos los
+  // navegadores y puede tirar si el origen no tiene permiso, de ahí el guard.
+  const pendientes =
+    state.notifCount + state.privCount + state.mensajesNoLeidos + state.accionesPendientes;
+  useEffect(() => {
+    if (!("setAppBadge" in navigator)) return;
+    const nav = navigator as Navigator & {
+      setAppBadge: (n?: number) => Promise<void>;
+      clearAppBadge: () => Promise<void>;
     };
-  }, [router, vista]);
+    const accion = pendientes > 0 ? nav.setAppBadge(pendientes) : nav.clearAppBadge();
+    accion.catch(() => {});
+  }, [pendientes]);
 
   return (
     <EventsContext.Provider value={state}>

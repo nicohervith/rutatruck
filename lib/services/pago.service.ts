@@ -1,11 +1,42 @@
 import { obtenerPago } from "@/lib/mercadopago";
 import {
-  findCargaPendientePago,
-  activarCargaPagada,
+  activarCargaPagadaSiPendiente,
+  cargaYaActivada,
   asignarCargaPorComision,
-  activarCargaPagadaDesdeRedirect,
 } from "@/lib/repositories/carga.repository";
 import { emit } from "@/lib/events/bus";
+
+/**
+ * Punto único donde una carga pasa a ACTIVA por pago acreditado. Lo llaman los
+ * dos caminos que Mercado Pago dispara —el webhook y el redirect de success—,
+ * que pueden llegar en cualquier orden e incluso a la vez.
+ *
+ * Devuelve si la carga quedó publicada, no si la publicó esta llamada: el que
+ * pierde la carrera igual reporta éxito, porque el pago se acreditó. Antes el
+ * redirect devolvía error en ese caso y mandaba al usuario a `?error=pago` con
+ * la carga ya activa. El anuncio por push, en cambio, sale una sola vez.
+ */
+async function publicarCargaPagada(
+  cargaId: number,
+  paymentId: string | null,
+): Promise<boolean> {
+  const carga = await activarCargaPagadaSiPendiente(cargaId, paymentId);
+
+  if (carga) {
+    emit("pago.aprobado.publicacion", {
+      cargaId: carga.id,
+      titulo: carga.titulo,
+      origen: carga.origen,
+      destino: carga.destino,
+      origenLat: carga.origenLat,
+      origenLng: carga.origenLng,
+      empresaId: carga.empresaId,
+    });
+    return true;
+  }
+
+  return cargaYaActivada(cargaId);
+}
 
 export async function procesarPago(paymentId: string) {
   const pago = await obtenerPago(paymentId);
@@ -17,20 +48,7 @@ export async function procesarPago(paymentId: string) {
 
   const matchPublicar = externalReference.match(/^publicar_(\d+)$/);
   if (matchPublicar) {
-    const cargaId = parseInt(matchPublicar[1]);
-    const carga = await findCargaPendientePago(cargaId);
-    if (carga) {
-      await activarCargaPagada(cargaId, String(pago.id));
-      emit("pago.aprobado.publicacion", {
-        cargaId,
-        titulo: carga.titulo,
-        origen: carga.origen,
-        destino: carga.destino,
-        origenLat: carga.origenLat,
-        origenLng: carga.origenLng,
-        empresaId: carga.empresaId,
-      });
-    }
+    await publicarCargaPagada(parseInt(matchPublicar[1]), String(pago.id));
     return;
   }
 
@@ -45,24 +63,7 @@ export async function confirmarPagoPublicacion(
   cargaId: number,
   paymentId: string | null,
 ): Promise<{ ok: boolean }> {
-  let carga;
-  try {
-    carga = await activarCargaPagadaDesdeRedirect(cargaId, paymentId);
-  } catch {
-    return { ok: false };
-  }
-
-  emit("pago.aprobado.publicacion", {
-    cargaId,
-    titulo: carga.titulo,
-    origen: carga.origen,
-    destino: carga.destino,
-    origenLat: carga.origenLat,
-    origenLng: carga.origenLng,
-    empresaId: carga.empresaId,
-  });
-
-  return { ok: true };
+  return { ok: await publicarCargaPagada(cargaId, paymentId) };
 }
 
 export async function confirmarPagoComision(
@@ -70,6 +71,8 @@ export async function confirmarPagoComision(
   paymentId: string | null,
 ): Promise<{ ok: boolean }> {
   try {
+    // asignarCargaPorComision ya filtra por estado dentro del updateMany, así
+    // que si el webhook llegó primero simplemente no afecta filas.
     await asignarCargaPorComision(cargaId, paymentId);
     return { ok: true };
   } catch {

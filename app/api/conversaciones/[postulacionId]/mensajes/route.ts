@@ -5,16 +5,16 @@ import { chatPush } from "@/lib/sse";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ cargaId: string }> },
+  { params }: { params: Promise<{ postulacionId: string }> },
 ) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const { cargaId: cargaIdParam } = await params;
-  const cargaId = parseInt(cargaIdParam);
-  if (isNaN(cargaId)) {
+  const { postulacionId: postulacionIdParam } = await params;
+  const postulacionId = parseInt(postulacionIdParam);
+  if (isNaN(postulacionId)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
@@ -29,12 +29,12 @@ export async function POST(
     return NextResponse.json({ error: "Falta el mensaje" }, { status: 400 });
   }
 
-  const result = await enviarMensaje(cargaId, session.userId, body.cuerpo);
+  const result = await enviarMensaje(postulacionId, session.userId, body.cuerpo);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  chatPush(cargaId, [result.mensaje]);
+  chatPush(postulacionId, [result.mensaje]);
 
   return NextResponse.json({ mensaje: result.mensaje }, { status: 201 });
 }

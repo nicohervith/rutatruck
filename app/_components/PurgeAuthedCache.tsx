@@ -6,10 +6,15 @@ import { useEffect } from "react";
 // autenticadas, y Cache Storage es por origen — no por sesión. Sin esto, en un
 // dispositivo compartido el próximo usuario podía ver páginas del anterior.
 //
-// Se dispara desde el login porque ahí convergen todas las salidas de sesión:
-// el logout explícito de `app/actions/auth.ts` y también los redirects por
-// sesión vencida. La purga la hace el propio service worker, para no duplicar
-// acá el nombre del cache y que se desincronice al subir CACHE_VERSION.
+// Se dispara desde el login y el registro porque ahí convergen todas las
+// salidas de sesión: el logout explícito de `app/actions/auth.ts`, los
+// redirects por sesión vencida, y el dispositivo prestado donde el usuario
+// nuevo se crea una cuenta en vez de loguearse. proxy.ts saca de ambas rutas a
+// cualquiera con sesión válida, así que llegar acá significa que en este
+// dispositivo ya no hay sesión.
+//
+// La purga la hace el propio service worker, para no duplicar acá el nombre
+// del cache y que se desincronice al subir CACHE_VERSION.
 export default function PurgeAuthedCache() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;

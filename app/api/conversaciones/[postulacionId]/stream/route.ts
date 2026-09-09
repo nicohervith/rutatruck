@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getSession } from "@/lib/dal";
-import { findCargaParaChat, findMensajesDeCarga, marcarLeidos } from "@/lib/repositories/mensaje.repository";
+import { findPostulacionParaChat, findMensajesDeHilo, marcarLeidos } from "@/lib/repositories/mensaje.repository";
 import { chatSubscribe, chatUnsubscribe, chatPushLeido } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
@@ -12,17 +12,17 @@ const enc = new TextEncoder();
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ cargaId: string }> },
+  { params }: { params: Promise<{ postulacionId: string }> },
 ) {
   const session = await getSession();
   if (!session) return new Response("Unauthorized", { status: 401 });
 
-  const { cargaId: cargaIdParam } = await params;
-  const cargaId = parseInt(cargaIdParam);
-  if (isNaN(cargaId)) return new Response("Not found", { status: 404 });
+  const { postulacionId: postulacionIdParam } = await params;
+  const postulacionId = parseInt(postulacionIdParam);
+  if (isNaN(postulacionId)) return new Response("Not found", { status: 404 });
 
-  const carga = await findCargaParaChat(cargaId, session.userId);
-  if (!carga) return new Response("Not found", { status: 404 });
+  const postulacion = await findPostulacionParaChat(postulacionId, session.userId);
+  if (!postulacion) return new Response("Not found", { status: 404 });
 
   const url = new URL(req.url);
   let lastId = parseInt(url.searchParams.get("after") ?? "0") || 0;
@@ -31,9 +31,16 @@ export async function GET(
   let pollId: ReturnType<typeof setInterval>;
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
+    async start(controller) {
       ctrl = controller;
-      chatSubscribe(cargaId, ctrl);
+      chatSubscribe(postulacionId, ctrl);
+
+      // Marcar leído al abrir el hilo. Vivía en el render del Server Component
+      // de la página, o sea una escritura como efecto de renderizar, que se
+      // repetía en cada router.refresh(). Acá corre cuando el usuario realmente
+      // abre la conversación (y en cada reconexión, que es idempotente).
+      const alAbrir = await marcarLeidos(postulacionId, session.userId);
+      if (alAbrir > 0) chatPushLeido(postulacionId, session.userId, new Date().toISOString());
 
       // El push cross-instancia de chatPush (ver lib/sse.ts) puede no llegar
       // si el POST que crea el mensaje cae en otra instancia serverless. Este
@@ -43,11 +50,11 @@ export async function GET(
       pollId = setInterval(() => {
         (async () => {
           try {
-            const nuevos = await findMensajesDeCarga(cargaId, lastId);
+            const nuevos = await findMensajesDeHilo(postulacionId, lastId);
             if (nuevos.length > 0) {
               lastId = nuevos[nuevos.length - 1].id;
-              const marcados = await marcarLeidos(cargaId, session.userId);
-              if (marcados > 0) chatPushLeido(cargaId, session.userId, new Date().toISOString());
+              const marcados = await marcarLeidos(postulacionId, session.userId);
+              if (marcados > 0) chatPushLeido(postulacionId, session.userId, new Date().toISOString());
               controller.enqueue(enc.encode(`event: mensajes\ndata: ${JSON.stringify(nuevos)}\n\n`));
             } else {
               controller.enqueue(enc.encode(": ping\n\n"));
@@ -59,7 +66,7 @@ export async function GET(
       }, 2500);
     },
     cancel() {
-      chatUnsubscribe(cargaId, ctrl);
+      chatUnsubscribe(postulacionId, ctrl);
       clearInterval(pollId);
     },
   });
