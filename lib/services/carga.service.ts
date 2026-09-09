@@ -311,12 +311,17 @@ export async function enviarRecordatoriosCompletar() {
 /**
  * Avisa a la empresa cuando una carga ACTIVA está por vencer (o ya venció)
  * sin ningún transportista aceptado, para que edite la fecha o gestione la
- * convocatoria a tiempo. Se repite cada 24hs mientras el problema siga
+ * convocatoria a tiempo. Se repite una vez por día mientras el problema siga
  * sin resolverse (mismo patrón que enviarRecordatoriosCompletar).
+ *
+ * El umbral de reintento son 20hs y no 24: el cron corre una vez por día, y
+ * con 24hs exactas alcanzaba con que hoy arrancara un segundo antes que ayer
+ * para que el recordatorio de ayer no contara todavía como vencido y se
+ * saltara el día entero.
  */
 export async function enviarRecordatoriosSinPostulantes() {
   const limite = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const umbral = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const umbral = new Date(Date.now() - 20 * 60 * 60 * 1000);
   const cargas = await findCargasProximasSinAceptar(limite, umbral);
   if (cargas.length === 0) return { ok: true, cargas: 0 };
 

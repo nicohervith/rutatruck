@@ -12,12 +12,12 @@ export type Mensaje = {
 };
 
 interface Props {
-  cargaId: number;
+  postulacionId: number;
   currentUserId: string;
   initialMensajes: Mensaje[];
 }
 
-export default function ChatThread({ cargaId, currentUserId, initialMensajes }: Props) {
+export default function ChatThread({ postulacionId, currentUserId, initialMensajes }: Props) {
   const router = useRouter();
   const [mensajes, setMensajes] = useState<Mensaje[]>(initialMensajes);
   const [texto, setTexto] = useState("");
@@ -70,14 +70,14 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
   // que `initialMensajes`/`marcarLeidos` se recalculen siempre con datos frescos.
   useEffect(() => {
     router.refresh();
-  }, [cargaId, router]);
+  }, [postulacionId, router]);
 
   useEffect(() => {
     let es: EventSource;
     let retryId: ReturnType<typeof setTimeout>;
 
     function connect() {
-      es = new EventSource(`/api/conversaciones/${cargaId}/stream?after=${lastIdRef.current}`);
+      es = new EventSource(`/api/conversaciones/${postulacionId}/stream?after=${lastIdRef.current}`);
 
       es.addEventListener("mensajes", (e: MessageEvent) => {
         mergeMensajes(JSON.parse(e.data) as Mensaje[]);
@@ -111,7 +111,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
       clearTimeout(retryId);
       clearTimeout(escribiendoTimeoutRef.current);
     };
-  }, [cargaId, currentUserId]);
+  }, [postulacionId, currentUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -122,7 +122,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
     const ahora = Date.now();
     if (ahora - ultimoTypingEnviadoRef.current < 2000) return;
     ultimoTypingEnviadoRef.current = ahora;
-    fetch(`/api/conversaciones/${cargaId}/typing`, { method: "POST" }).catch(() => {});
+    fetch(`/api/conversaciones/${postulacionId}/typing`, { method: "POST" }).catch(() => {});
   }
 
   async function handleSend(e: React.FormEvent) {
@@ -132,7 +132,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
     setEnviando(true);
     setError("");
     try {
-      const res = await fetch(`/api/conversaciones/${cargaId}/mensajes`, {
+      const res = await fetch(`/api/conversaciones/${postulacionId}/mensajes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cuerpo }),
@@ -210,6 +210,7 @@ export default function ChatThread({ cargaId, currentUserId, initialMensajes }: 
           value={texto}
           onChange={handleTextoChange}
           placeholder="Escribí un mensaje..."
+          maxLength={2000}
           className="flex-1 rounded-full border px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
           style={{ borderColor: "#E2E8E8", color: "#111827" }}
         />

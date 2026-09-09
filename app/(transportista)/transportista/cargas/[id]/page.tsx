@@ -232,9 +232,9 @@ export default async function CargaPublicaPage({
           </div>
         </div>
 
-        {soyAsignado && (
+        {soyAceptado && miPostulacion && (
           <Link
-            href={`/transportista/conversaciones/${carga.id}`}
+            href={`/transportista/conversaciones/${miPostulacion.id}`}
             className="rounded-xl border p-6 mb-6 flex items-center gap-4 transition-colors hover:border-[var(--primary-27)]"
             style={{ backgroundColor: "var(--primary-5)", borderColor: "var(--primary-20)" }}
           >

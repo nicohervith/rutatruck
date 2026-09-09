@@ -1,58 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import webpush from "web-push";
-
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
+import { sendDigestCargasDisponibles } from "@/lib/push";
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  
-  const cargasActivas = await db.carga.count({ where: { estado: "ACTIVA" } });
 
-  if (cargasActivas === 0) {
+  // `esPrivada: false` replica el filtro del tablero del transportista
+  // (app/(transportista)/transportista/cargas/page.tsx). Sin él, el resumen
+  // contaba las ofertas dirigidas a un transportista puntual: el push decía
+  // "5 cargas disponibles" y al entrar se veían 2.
+  const cargas = await db.carga.findMany({
+    where: { estado: "ACTIVA", esPrivada: false },
+    select: { origenLat: true, origenLng: true },
+  });
+
+  if (cargas.length === 0) {
     return NextResponse.json({ skipped: true, reason: "sin cargas activas" });
   }
 
-  const suscripciones = await db.pushSubscription.findMany({
-    where: { user: { role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] } } },
-  });
+  // El conteo por transportista y el filtro de zona viven en lib/push.ts: este
+  // cron mandaba a todos ignorando notifZonaLat/notifRadioKm porque tenía su
+  // propia copia del envío.
+  const resultado = await sendDigestCargasDisponibles(cargas);
 
-  if (suscripciones.length === 0) {
+  if (resultado.suscripciones === 0) {
     return NextResponse.json({ skipped: true, reason: "sin suscriptores" });
   }
 
-  const payload = JSON.stringify({
-    title: "¡Hay cargas disponibles!",
-    body: `${cargasActivas} carga${cargasActivas !== 1 ? "s" : ""} activa${cargasActivas !== 1 ? "s" : ""} esperando transportistas.`,
-    url: "/transportista/cargas",
-  });
-
-  const resultados = await Promise.allSettled(
-    suscripciones.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          payload,
-        );
-      } catch (err: any) {
-        console.error("[cron/notificar-cargas] fallo envio", sub.endpoint, err.statusCode, err.body);
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
-        }
-        throw err;
-      }
-    }),
-  );
-
-  const enviadas = resultados.filter((r) => r.status === "fulfilled").length;
-  const fallidas = resultados.filter((r) => r.status === "rejected").length;
-
-  return NextResponse.json({ ok: true, cargasActivas, enviadas, fallidas });
+  return NextResponse.json({ ok: true, cargasActivas: cargas.length, ...resultado });
 }

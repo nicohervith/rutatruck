@@ -477,7 +477,8 @@ export async function findCargasCanceladasParaPurgar(umbral: Date) {
 export async function eliminarCargas(cargaIds: number[]) {
   if (cargaIds.length === 0) return;
   await db.$transaction([
-    db.mensaje.deleteMany({ where: { cargaId: { in: cargaIds } } }),
+    // Mensaje cascadea desde Postulacion (ver la FK en schema.prisma), así que
+    // borrar las postulaciones se lleva los hilos de chat con ellas.
     db.postulacion.deleteMany({ where: { cargaId: { in: cargaIds } } }),
     db.carga.deleteMany({ where: { id: { in: cargaIds } } }),
   ]);

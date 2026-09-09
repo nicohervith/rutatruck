@@ -50,8 +50,8 @@ export default async function EmpresaConversacionesPage() {
           <div className="space-y-3">
             {conversaciones.map((c) => (
               <Link
-                key={c.cargaId}
-                href={`/empresa/conversaciones/${c.cargaId}`}
+                key={c.postulacionId}
+                href={`/empresa/conversaciones/${c.postulacionId}`}
                 className="block rounded-xl border p-4 transition-colors hover:border-[var(--primary-27)]"
                 style={{ backgroundColor: "#FFFFFF", borderColor: "#E2E8E8" }}
               >

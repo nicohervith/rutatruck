@@ -1,21 +1,35 @@
 import { db } from "@/lib/db";
 import { esChatVigente, whereChatVigente, labelChatPorVencer, CHAT_RETENCION_FINALIZADA_MS } from "@/lib/chat";
 
-export async function crearMensaje(cargaId: number, autorId: string, cuerpo: string) {
-  return db.mensaje.create({ data: { cargaId, autorId, cuerpo } });
+export async function crearMensaje(postulacionId: number, autorId: string, cuerpo: string) {
+  return db.mensaje.create({ data: { postulacionId, autorId, cuerpo } });
 }
 
-export async function findMensajesDeCarga(cargaId: number, sinceId?: number, limit = 200) {
-  return db.mensaje.findMany({
-    where: { cargaId, ...(sinceId ? { id: { gt: sinceId } } : {}) },
-    orderBy: { creadoEn: "asc" },
+/**
+ * Los mensajes del hilo. Sin cursor devuelve la ÚLTIMA página, no la primera:
+ * ordenar ascendente con `take` traía los 200 mensajes más viejos y escondía
+ * los recientes en cuanto una conversación pasaba ese largo.
+ */
+export async function findMensajesDeHilo(postulacionId: number, sinceId?: number, limit = 200) {
+  if (sinceId) {
+    return db.mensaje.findMany({
+      where: { postulacionId, id: { gt: sinceId } },
+      orderBy: { id: "asc" },
+      take: limit,
+    });
+  }
+
+  const ultimos = await db.mensaje.findMany({
+    where: { postulacionId },
+    orderBy: { id: "desc" },
     take: limit,
   });
+  return ultimos.reverse();
 }
 
-export async function marcarLeidos(cargaId: number, userId: string) {
+export async function marcarLeidos(postulacionId: number, userId: string) {
   const { count } = await db.mensaje.updateMany({
-    where: { cargaId, autorId: { not: userId }, leidoEn: null },
+    where: { postulacionId, autorId: { not: userId }, leidoEn: null },
     data: { leidoEn: new Date() },
   });
   return count;
@@ -26,57 +40,71 @@ export async function countMensajesNoLeidos(userId: string, role: "empresa" | "t
     where: {
       autorId: { not: userId },
       leidoEn: null,
-      carga:
+      postulacion:
         role === "empresa"
-          ? { empresaId: userId }
-          : { postulaciones: { some: { transportistaId: userId, estado: "ACEPTADA" } } },
+          ? { estado: "ACEPTADA", carga: { empresaId: userId } }
+          : { estado: "ACEPTADA", transportistaId: userId },
     },
   });
 }
 
 /**
- * Carga con datos de contraparte, solo si userId es la empresa o un transportista
- * con postulación ACEPTADA en esta carga (no solo el transportistaAsignadoId,
- * que es un único campo escalar: cuando una convocatoria la cubren varios
- * transportistas aceptados a la vez, ese campo solo guarda a uno).
+ * El hilo, con los datos de la contraparte, solo si `userId` es una de las dos
+ * partes: el transportista de la postulación o la empresa dueña de la carga.
+ *
+ * Exige `estado: ACEPTADA` para ambos lados. Antes la empresa entraba con solo
+ * ser dueña de la carga, así que al cancelarse —lo que manda todas las
+ * postulaciones a RECHAZADA— el transportista quedaba afuera pero la empresa
+ * seguía pudiendo escribir mensajes que ya no le llegaban a nadie.
  */
-export async function findCargaParaChat(cargaId: number, userId: string) {
-  const carga = await db.carga.findUnique({
-    where: { id: cargaId },
+export async function findPostulacionParaChat(postulacionId: number, userId: string) {
+  const postulacion = await db.postulacion.findUnique({
+    where: { id: postulacionId },
     select: {
       id: true,
-      titulo: true,
-      origen: true,
-      destino: true,
       estado: true,
-      updatedAt: true,
-      empresaId: true,
-      transportistaAsignadoId: true,
-      empresa: { select: { name: true } },
-      transportistaAsignado: { select: { name: true } },
-      postulaciones: {
-        where: { estado: "ACEPTADA" },
-        select: { transportistaId: true },
+      transportistaId: true,
+      transportista: { select: { name: true } },
+      carga: {
+        select: {
+          id: true,
+          titulo: true,
+          origen: true,
+          destino: true,
+          estado: true,
+          updatedAt: true,
+          empresaId: true,
+          empresa: { select: { name: true } },
+        },
       },
     },
   });
-  if (!carga) return null;
-  const esTransportistaAceptado = carga.postulaciones.some((p) => p.transportistaId === userId);
-  if (carga.empresaId !== userId && !esTransportistaAceptado) return null;
-  if (!esChatVigente(carga)) return null;
-  return carga;
+  if (!postulacion) return null;
+  if (postulacion.estado !== "ACEPTADA") return null;
+  if (postulacion.transportistaId !== userId && postulacion.carga.empresaId !== userId) return null;
+  if (!esChatVigente(postulacion.carga)) return null;
+  return postulacion;
+}
+
+/** La postulación aceptada de un transportista en una carga, para linkear al hilo desde la carga. */
+export async function findPostulacionAceptadaDeTransportista(cargaId: number, transportistaId: string) {
+  return db.postulacion.findFirst({
+    where: { cargaId, transportistaId, estado: "ACEPTADA" },
+    select: { id: true },
+  });
 }
 
 /** Borra los mensajes de cargas FINALIZADA hace más de 24h. Se llama desde un cron ya existente. */
 export async function eliminarMensajesFinalizadosVencidos() {
   const cutoff = new Date(Date.now() - CHAT_RETENCION_FINALIZADA_MS);
   const { count } = await db.mensaje.deleteMany({
-    where: { carga: { estado: "FINALIZADA", updatedAt: { lt: cutoff } } },
+    where: { postulacion: { carga: { estado: "FINALIZADA", updatedAt: { lt: cutoff } } } },
   });
   return count;
 }
 
 export type ConversacionResumen = {
+  postulacionId: number;
   cargaId: number;
   titulo: string;
   origen: string;
@@ -89,61 +117,89 @@ export type ConversacionResumen = {
   avisoVencimiento: string | null;
 };
 
+/**
+ * Una fila por hilo, o sea por postulación aceptada. Para una empresa con una
+ * convocatoria de tres camiones eso son tres conversaciones distintas sobre la
+ * misma carga, una por transportista.
+ */
 export async function findConversaciones(
   userId: string,
   role: "empresa" | "transportista",
 ): Promise<ConversacionResumen[]> {
-  const cargas = await db.carga.findMany({
+  const postulaciones = await db.postulacion.findMany({
     where: {
+      estado: "ACEPTADA",
       ...(role === "empresa"
-        ? { empresaId: userId, postulaciones: { some: { estado: "ACEPTADA" } } }
-        : { postulaciones: { some: { transportistaId: userId, estado: "ACEPTADA" } } }),
-      ...whereChatVigente(),
+        ? { carga: { empresaId: userId, ...whereChatVigente() } }
+        : { transportistaId: userId, carga: whereChatVigente() }),
     },
     select: {
       id: true,
-      titulo: true,
-      origen: true,
-      destino: true,
-      estado: true,
-      updatedAt: true,
-      empresa: { select: { name: true } },
-      transportistaAsignado: { select: { name: true } },
+      transportista: { select: { name: true } },
+      carga: {
+        select: {
+          id: true,
+          titulo: true,
+          origen: true,
+          destino: true,
+          estado: true,
+          updatedAt: true,
+          empresa: { select: { name: true } },
+        },
+      },
     },
   });
 
-  if (cargas.length === 0) return [];
+  if (postulaciones.length === 0) return [];
 
-  const mensajes = await db.mensaje.findMany({
-    where: { cargaId: { in: cargas.map((c) => c.id) } },
-    orderBy: { creadoEn: "desc" },
-    select: { cargaId: true, cuerpo: true, autorId: true, creadoEn: true, leidoEn: true },
-  });
+  const ids = postulaciones.map((p) => p.id);
 
-  const ultimoPorCarga = new Map<number, (typeof mensajes)[number]>();
-  const noLeidosPorCarga = new Map<number, number>();
-  for (const m of mensajes) {
-    if (!ultimoPorCarga.has(m.cargaId)) ultimoPorCarga.set(m.cargaId, m);
-    if (m.autorId !== userId && m.leidoEn === null) {
-      noLeidosPorCarga.set(m.cargaId, (noLeidosPorCarga.get(m.cargaId) ?? 0) + 1);
-    }
-  }
+  // Agregados en la base en vez de traerse todos los mensajes a memoria como
+  // antes. Se evita `distinct` a propósito: según el conector Prisma lo puede
+  // resolver en memoria, que es exactamente lo que se quiere evitar acá.
+  const [ultimoDeCadaHilo, noLeidos] = await Promise.all([
+    db.mensaje.groupBy({
+      by: ["postulacionId"],
+      where: { postulacionId: { in: ids } },
+      _max: { id: true },
+    }),
+    db.mensaje.groupBy({
+      by: ["postulacionId"],
+      where: { postulacionId: { in: ids }, autorId: { not: userId }, leidoEn: null },
+      _count: { _all: true },
+    }),
+  ]);
 
-  return cargas
-    .map((c) => {
-      const ultimo = ultimoPorCarga.get(c.id);
+  const ultimosIds = ultimoDeCadaHilo
+    .map((g) => g._max.id)
+    .filter((id): id is number => id !== null);
+
+  const ultimos = ultimosIds.length
+    ? await db.mensaje.findMany({
+        where: { id: { in: ultimosIds } },
+        select: { postulacionId: true, cuerpo: true, creadoEn: true },
+      })
+    : [];
+
+
+  const ultimoPorHilo = new Map(ultimos.map((m) => [m.postulacionId, m]));
+  const noLeidosPorHilo = new Map(noLeidos.map((g) => [g.postulacionId, g._count._all]));
+
+  return postulaciones
+    .map((p) => {
+      const ultimo = ultimoPorHilo.get(p.id);
       return {
-        cargaId: c.id,
-        titulo: c.titulo,
-        origen: c.origen,
-        destino: c.destino,
-        estado: c.estado,
-        contraparteNombre:
-          role === "empresa" ? (c.transportistaAsignado?.name ?? "Transportista") : c.empresa.name,
+        postulacionId: p.id,
+        cargaId: p.carga.id,
+        titulo: p.carga.titulo,
+        origen: p.carga.origen,
+        destino: p.carga.destino,
+        estado: p.carga.estado,
+        contraparteNombre: role === "empresa" ? p.transportista.name : p.carga.empresa.name,
         ultimoMensaje: ultimo?.cuerpo ?? null,
-        ultimoMensajeEn: ultimo?.creadoEn ?? c.updatedAt,
-        noLeidos: noLeidosPorCarga.get(c.id) ?? 0,
-        avisoVencimiento: labelChatPorVencer(c),
+        ultimoMensajeEn: ultimo?.creadoEn ?? p.carga.updatedAt,
+        noLeidos: noLeidosPorHilo.get(p.id) ?? 0,
+        avisoVencimiento: labelChatPorVencer(p.carga),
       };
     })
     .sort((a, b) => b.ultimoMensajeEn.getTime() - a.ultimoMensajeEn.getTime());

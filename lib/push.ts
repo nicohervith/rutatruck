@@ -7,6 +7,20 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY!
 );
 
+const ROLES_TRANSPORTISTA = [
+  "TRANSPORTISTA",
+  "TRANSPORTISTA_FLOTA",
+  "EMPRESA_TRANSPORTISTA",
+] as const;
+
+export type PushPayload = { title: string; body: string; url?: string };
+
+type Zona = {
+  notifZonaLat: number | null;
+  notifZonaLng: number | null;
+  notifRadioKm: number | null;
+};
+
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -18,38 +32,82 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/** El usuario configuró una zona de interés completa (centro + radio). */
+export function tieneZonaConfigurada(zona: Zona): boolean {
+  return (
+    zona.notifRadioKm !== null && zona.notifZonaLat !== null && zona.notifZonaLng !== null
+  );
+}
+
+/**
+ * Un origen entra en la zona del usuario si no configuró zona (recibe todo),
+ * si la carga no tiene coordenadas (no hay con qué descartarla) o si la
+ * distancia real cae dentro del radio.
+ */
+export function enZona(
+  zona: Zona,
+  origenLat: number | null,
+  origenLng: number | null,
+): boolean {
+  if (!tieneZonaConfigurada(zona)) return true;
+  if (origenLat === null || origenLng === null) return true;
+  return (
+    haversineKm(zona.notifZonaLat!, zona.notifZonaLng!, origenLat, origenLng) <=
+    zona.notifRadioKm!
+  );
+}
+
+/**
+ * Envío individual. Es el único lugar que habla con web-push: centraliza el
+ * JSON.stringify, el log y la limpieza de subscripciones muertas (410/404).
+ * Nunca propaga el error — un endpoint caído no puede tumbar el resto del
+ * lote — así que devuelve si el envío salió o no.
+ *
+ * Todo envío pasa por acá a propósito: cuando el cron de cargas se escribió
+ * su propia copia de esta lógica terminó ignorando el filtro de zona durante
+ * meses sin que nada lo delatara.
+ */
+async function enviar(
+  sub: { endpoint: string; p256dh: string; auth: string },
+  payload: PushPayload,
+  contexto: string,
+): Promise<boolean> {
+  try {
+    await webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      JSON.stringify(payload),
+    );
+    return true;
+  } catch (err) {
+    const { statusCode, body } = err as { statusCode?: number; body?: string };
+    console.error(`[push] ${contexto} fallo`, statusCode, body);
+    if (statusCode === 410 || statusCode === 404) {
+      await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
+    }
+    return false;
+  }
+}
+
 export async function sendPushToAllTransportistas(
-  payload: { title: string; body: string; url?: string },
+  payload: PushPayload,
   excludeUserId?: string
 ) {
   const subscriptions = await db.pushSubscription.findMany({
     where: {
       user: {
-        role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] },
+        role: { in: [...ROLES_TRANSPORTISTA] },
         ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
       },
     },
   });
 
   await Promise.allSettled(
-    subscriptions.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify(payload)
-        );
-      } catch (err: any) {
-        console.error("[push] sendPushToAllTransportistas fallo", err.statusCode, err.body);
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
-        }
-      }
-    })
+    subscriptions.map((sub) => enviar(sub, payload, "sendPushToAllTransportistas")),
   );
 }
 
 export async function sendPushToTransportistasCercanos(
-  payload: { title: string; body: string; url?: string },
+  payload: PushPayload,
   origenLat: number | null,
   origenLng: number | null,
   excludeUserId?: string
@@ -57,7 +115,7 @@ export async function sendPushToTransportistasCercanos(
   const subscriptions = await db.pushSubscription.findMany({
     where: {
       user: {
-        role: { in: ["TRANSPORTISTA", "TRANSPORTISTA_FLOTA", "EMPRESA_TRANSPORTISTA"] },
+        role: { in: [...ROLES_TRANSPORTISTA] },
         ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
       },
     },
@@ -66,51 +124,70 @@ export async function sendPushToTransportistasCercanos(
     },
   });
 
-  const filtered = subscriptions.filter((sub) => {
-    const { notifZonaLat, notifZonaLng, notifRadioKm } = sub.user;
-    if (notifRadioKm === null || notifZonaLat === null || notifZonaLng === null) return true;
-    if (origenLat === null || origenLng === null) return true;
-    return haversineKm(notifZonaLat, notifZonaLng, origenLat, origenLng) <= notifRadioKm;
-  });
+  const filtered = subscriptions.filter((sub) => enZona(sub.user, origenLat, origenLng));
 
   await Promise.allSettled(
-    filtered.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify(payload)
-        );
-      } catch (err: any) {
-        console.error("[push] sendPushToTransportistasCercanos fallo", err.statusCode, err.body);
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
-        }
-      }
-    })
+    filtered.map((sub) => enviar(sub, payload, "sendPushToTransportistasCercanos")),
   );
 }
 
-export async function sendPushToUser(
-  userId: string,
-  payload: { title: string; body: string; url?: string }
-) {
+export async function sendPushToUser(userId: string, payload: PushPayload) {
   const subscriptions = await db.pushSubscription.findMany({
     where: { userId },
   });
 
   await Promise.allSettled(
-    subscriptions.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify(payload)
-        );
-      } catch (err: any) {
-        console.error("[push] sendPushToUser fallo", err.statusCode, err.body);
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          await db.pushSubscription.delete({ where: { endpoint: sub.endpoint } });
-        }
-      }
-    })
+    subscriptions.map((sub) => enviar(sub, payload, "sendPushToUser")),
   );
+}
+
+/**
+ * Resumen diario de cargas disponibles. A diferencia de un blast, a cada
+ * transportista se le cuentan solo las cargas que caen dentro de su zona
+ * configurada, y si no le queda ninguna no se le manda nada: un aviso de
+ * "hay 8 cargas" sobre cargas del otro lado del país es lo que hace que la
+ * gente apague las notificaciones y se pierda también las que importan.
+ *
+ * `cargas` ya viene filtrado por quien llama (activas y públicas); acá solo
+ * se recorta por zona.
+ */
+export async function sendDigestCargasDisponibles(
+  cargas: { origenLat: number | null; origenLng: number | null }[],
+  url = "/transportista/cargas",
+) {
+  const subscriptions = await db.pushSubscription.findMany({
+    where: { user: { role: { in: [...ROLES_TRANSPORTISTA] } } },
+    include: {
+      user: { select: { notifZonaLat: true, notifZonaLng: true, notifRadioKm: true } },
+    },
+  });
+
+  let enviadas = 0;
+  let fallidas = 0;
+  let sinCargasEnZona = 0;
+
+  await Promise.allSettled(
+    subscriptions.map(async (sub) => {
+      const relevantes = cargas.filter((c) => enZona(sub.user, c.origenLat, c.origenLng)).length;
+      if (relevantes === 0) {
+        sinCargasEnZona++;
+        return;
+      }
+
+      const plural = relevantes !== 1;
+      const body = tieneZonaConfigurada(sub.user)
+        ? `${relevantes} carga${plural ? "s" : ""} disponible${plural ? "s" : ""} en tu zona.`
+        : `${relevantes} carga${plural ? "s" : ""} activa${plural ? "s" : ""} esperando transportistas.`;
+
+      const ok = await enviar(
+        sub,
+        { title: "¡Hay cargas disponibles!", body, url },
+        "sendDigestCargasDisponibles",
+      );
+      if (ok) enviadas++;
+      else fallidas++;
+    }),
+  );
+
+  return { suscripciones: subscriptions.length, enviadas, fallidas, sinCargasEnZona };
 }

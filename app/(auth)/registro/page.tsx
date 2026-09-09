@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
+import PurgeAuthedCache from "@/app/_components/PurgeAuthedCache";
+import PurgeAuthedPush from "@/app/_components/PurgeAuthedPush";
 import { signup } from "@/app/actions/auth";
 import type { FormState } from "@/app/actions/auth";
 import LocationAutocomplete from "@/app/(empresa)/empresa/cargas/nueva/_components/LocationAutocomplete";
@@ -15,6 +17,11 @@ export default function RegistroPage() {
   const [notifZonaLat, setNotifZonaLat] = useState("");
   const [notifZonaLng, setNotifZonaLng] = useState("");
   const [notifRadioKm, setNotifRadioKm] = useState("");
+  // "Todo el país" usa value="" y ese es además el estado inicial del radio, así
+  // que solo avisamos cuando eligió un radio concreto (50/100/200) sin localidad:
+  // ahí signup descarta la preferencia entera —exige lat y lng— y el usuario
+  // termina recibiendo avisos de todo el país creyendo que los filtró.
+  const radioSinZona = notifRadioKm !== "" && !notifZonaLat;
 
   const inputClass =
     "w-full rounded-xl border px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-colors";
@@ -29,6 +36,8 @@ export default function RegistroPage() {
       className="min-h-screen flex flex-col items-center justify-center px-5 py-12"
       style={{ backgroundColor: "#060F0F" }}
     >
+      <PurgeAuthedCache />
+      <PurgeAuthedPush />
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex justify-center mb-10">
@@ -162,7 +171,7 @@ export default function RegistroPage() {
                     <span className="text-sm" style={{ color: "#D1D5DB" }}>Flota — 2 o más camiones</span>
                   </label>
 
-                  {/* <div className="pt-3 space-y-3">
+                  <div className="pt-3 space-y-3">
                     <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                       Zona para notificaciones
                     </p>
@@ -198,7 +207,21 @@ export default function RegistroPage() {
                         </label>
                       ))}
                     </div>
-                  </div> */}
+
+                    {radioSinZona && (
+                      <p
+                        className="text-xs rounded-lg px-3 py-2"
+                        style={{
+                          color: "#FCD34D",
+                          backgroundColor: "rgba(252, 211, 77, 0.08)",
+                          border: "1px solid rgba(252, 211, 77, 0.25)",
+                        }}
+                      >
+                        Elegí una localidad para que el radio tenga efecto. Sin localidad vas a
+                        recibir avisos de cargas de todo el país.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import LogoClickCargo from "@/app/_components/LogoClickCargo";
 import PurgeAuthedCache from "@/app/_components/PurgeAuthedCache";
+import PurgeAuthedPush from "@/app/_components/PurgeAuthedPush";
 import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
@@ -25,6 +26,7 @@ export default function LoginPage() {
       style={{ backgroundColor: "#060F0F" }}
     >
       <PurgeAuthedCache />
+      <PurgeAuthedPush />
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex justify-center mb-10">

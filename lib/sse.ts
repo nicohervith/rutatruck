@@ -29,29 +29,29 @@ function ssePush(userId: string, data: unknown) {
 }
 
 /**
- * Pub/sub separado para hilos de chat abiertos, keyed por cargaId en vez de
+ * Pub/sub separado para hilos de chat abiertos, keyed por postulacionId en vez de
  * userId. Igual que `subs`, vive en memoria de una sola instancia serverless
  * — el push cross-instancia puede no llegar, por eso el stream de chat
- * (app/api/conversaciones/[cargaId]/stream) también re-consulta la DB en
+ * (app/api/conversaciones/[postulacionId]/stream) también re-consulta la DB en
  * cada tick: esto es solo el atajo cuando cae en la misma instancia.
  */
 const chatSubs = new Map<number, Set<Ctrl>>();
 
-export function chatSubscribe(cargaId: number, ctrl: Ctrl) {
-  if (!chatSubs.has(cargaId)) chatSubs.set(cargaId, new Set());
-  chatSubs.get(cargaId)!.add(ctrl);
+export function chatSubscribe(postulacionId: number, ctrl: Ctrl) {
+  if (!chatSubs.has(postulacionId)) chatSubs.set(postulacionId, new Set());
+  chatSubs.get(postulacionId)!.add(ctrl);
 }
 
-export function chatUnsubscribe(cargaId: number, ctrl: Ctrl) {
-  const s = chatSubs.get(cargaId);
+export function chatUnsubscribe(postulacionId: number, ctrl: Ctrl) {
+  const s = chatSubs.get(postulacionId);
   if (!s) return;
   s.delete(ctrl);
-  if (s.size === 0) chatSubs.delete(cargaId);
+  if (s.size === 0) chatSubs.delete(postulacionId);
 }
 
 /** `mensajes` es un array para compartir el mismo evento SSE que usa el polling en stream/route.ts. */
-export function chatPush(cargaId: number, mensajes: unknown[]) {
-  const s = chatSubs.get(cargaId);
+export function chatPush(postulacionId: number, mensajes: unknown[]) {
+  const s = chatSubs.get(postulacionId);
   if (!s?.size) return;
   const chunk = enc.encode(`event: mensajes\ndata: ${JSON.stringify(mensajes)}\n\n`);
   for (const ctrl of [...s]) {
@@ -61,8 +61,8 @@ export function chatPush(cargaId: number, mensajes: unknown[]) {
 }
 
 /** Señal efímera "está escribiendo": no se persiste, solo se relaya a quien tenga el hilo abierto en esta misma instancia. */
-export function chatPushTyping(cargaId: number, autorId: string) {
-  const s = chatSubs.get(cargaId);
+export function chatPushTyping(postulacionId: number, autorId: string) {
+  const s = chatSubs.get(postulacionId);
   if (!s?.size) return;
   const chunk = enc.encode(`event: typing\ndata: ${JSON.stringify({ autorId })}\n\n`);
   for (const ctrl of [...s]) {
@@ -72,8 +72,8 @@ export function chatPushTyping(cargaId: number, autorId: string) {
 }
 
 /** Avisa que `lectorId` marcó como leídos los mensajes de la contraparte, para actualizar el check en el emisor. */
-export function chatPushLeido(cargaId: number, lectorId: string, en: string) {
-  const s = chatSubs.get(cargaId);
+export function chatPushLeido(postulacionId: number, lectorId: string, en: string) {
+  const s = chatSubs.get(postulacionId);
   if (!s?.size) return;
   const chunk = enc.encode(`event: leido\ndata: ${JSON.stringify({ lectorId, en })}\n\n`);
   for (const ctrl of [...s]) {

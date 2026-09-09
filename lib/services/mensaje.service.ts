@@ -1,4 +1,4 @@
-import { crearMensaje, findCargaParaChat } from "@/lib/repositories/mensaje.repository";
+import { crearMensaje, findPostulacionParaChat } from "@/lib/repositories/mensaje.repository";
 import { emit } from "@/lib/events/bus";
 
 export type EnviarMensajeResult =
@@ -6,7 +6,7 @@ export type EnviarMensajeResult =
   | { ok: false; status: number; error: string };
 
 export async function enviarMensaje(
-  cargaId: number,
+  postulacionId: number,
   autorId: string,
   cuerpoCrudo: string,
 ): Promise<EnviarMensajeResult> {
@@ -18,34 +18,27 @@ export async function enviarMensaje(
     return { ok: false, status: 400, error: "Mensaje demasiado largo" };
   }
 
-  const carga = await findCargaParaChat(cargaId, autorId);
-  if (!carga) {
+  const postulacion = await findPostulacionParaChat(postulacionId, autorId);
+  if (!postulacion) {
     return { ok: false, status: 404, error: "Conversación no encontrada" };
   }
 
-  const mensaje = await crearMensaje(cargaId, autorId, cuerpo);
+  const mensaje = await crearMensaje(postulacionId, autorId, cuerpo);
 
-  const esEmpresa = carga.empresaId === autorId;
-  // Si la convocatoria la cubren varios transportistas, el mensaje de la empresa
-  // le llega a todos: transportistaAsignadoId solo guarda a uno.
-  const destinatarioIds = esEmpresa
-    ? Array.from(
-        new Set([
-          ...carga.postulaciones.map((p) => p.transportistaId),
-          ...(carga.transportistaAsignadoId ? [carga.transportistaAsignadoId] : []),
-        ]),
-      )
-    : [carga.empresaId];
-  const autorNombre = esEmpresa ? carga.empresa.name : (carga.transportistaAsignado?.name ?? "Transportista");
+  // Un hilo es una postulación, así que siempre son exactamente dos partes: el
+  // destinatario es el otro extremo, sin listas ni broadcast.
+  const esEmpresa = postulacion.carga.empresaId === autorId;
+  const destinatarioId = esEmpresa ? postulacion.transportistaId : postulacion.carga.empresaId;
+  const autorNombre = esEmpresa ? postulacion.carga.empresa.name : postulacion.transportista.name;
 
   emit("mensaje.creado", {
-    cargaId,
+    postulacionId,
     autorId,
-    destinatarioIds,
+    destinatarioId,
     destinatarioRole: esEmpresa ? "transportista" : "empresa",
     autorNombre,
     cuerpo,
-    titulo: carga.titulo,
+    titulo: postulacion.carga.titulo,
   });
 
   return { ok: true, mensaje };
